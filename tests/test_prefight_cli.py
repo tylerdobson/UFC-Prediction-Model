@@ -15,8 +15,11 @@ from unittest.mock import patch
 
 from ufc_odds_model import db
 from ufc_odds_model.card_history import record_card_snapshots
+from ufc_odds_model.alerts import record_prefight_checks
 from ufc_odds_model.cli import main
-from ufc_odds_model.pipeline import utc_now, utc_string
+from ufc_odds_model.ingest import import_odds_payload
+from ufc_odds_model.pipeline import score_event, utc_now, utc_string
+from tests.test_evaluation import add_card_snapshot
 
 
 class PrefightCliTests(unittest.TestCase):
@@ -29,14 +32,16 @@ class PrefightCliTests(unittest.TestCase):
         self.updated = utc_string(now - timedelta(seconds=2))
         with db.connect(self.database) as connection:
             db.init_db(connection)
-            db.upsert_fighter(connection, "fa", "Fighter Alpha")
-            db.upsert_fighter(connection, "fb", "Fighter Bravo")
+            db.upsert_fighter(connection, "fa", "Fighter Alpha", "demo", "fa")
+            db.upsert_fighter(connection, "fb", "Fighter Bravo", "demo", "fb")
             db.upsert_event(
                 connection, "event", "UFC test card",
                 (now + timedelta(days=4)).date().isoformat(), "scheduled",
+                source="demo", source_event_id="event",
                 start_time_utc=self.start,
             )
-            db.upsert_bout(connection, "bout", "event", "fa", "fb", "scheduled")
+            db.upsert_bout(connection, "bout", "event", "fa", "fb", "scheduled",
+                           source="demo", source_bout_id="bout")
             roster_observed = utc_string(now - timedelta(seconds=10))
             roster_file = self.root / "roster.csv"
             roster_file.write_text("reviewed fixture card", encoding="utf-8")
@@ -95,6 +100,35 @@ class PrefightCliTests(unittest.TestCase):
             ])
         self.assertEqual(result, 0)
         return json.loads(output.getvalue())
+
+    def _add_qualified_observed_history(self) -> None:
+        """Fifteen dated cards with retained before/after observations."""
+        with db.connect(self.database) as connection:
+            connection.execute("UPDATE events SET source = 'manual' WHERE event_id = 'event'")
+            for index in range(15):
+                start = utc_now() - timedelta(days=2 * (15 - index))
+                event_id = f"observed-{index:02d}"
+                db.upsert_event(
+                    connection, event_id, event_id, start.date().isoformat(),
+                    "completed", source="licensed-fixture-provider",
+                    source_event_id=event_id, start_time_utc=utc_string(start),
+                )
+                for number in range(15):
+                    fighter_a = "fa" if number == 0 else f"history-a-{index}-{number}"
+                    fighter_b = f"history-b-{index}-{number}"
+                    if number != 0:
+                        db.upsert_fighter(connection, fighter_a, fighter_a)
+                    db.upsert_fighter(connection, fighter_b, fighter_b)
+                    bout_id = f"history-bout-{index}-{number}"
+                    db.upsert_bout(connection, bout_id, event_id, fighter_a,
+                                   fighter_b, "completed")
+                    db.upsert_result(connection, bout_id, "win", fighter_a,
+                                     utc_string(start + timedelta(hours=3)))
+                add_card_snapshot(connection, self.root, event_id,
+                                  utc_string(start - timedelta(hours=25)), "scheduled")
+                add_card_snapshot(connection, self.root, event_id,
+                                  utc_string(start + timedelta(hours=4)), "completed")
+            connection.commit()
 
     def test_paper_trade_persists_accepted_gate_and_capped_entry(self) -> None:
         # A tempting older line must not displace a lower-edge price in the
@@ -155,6 +189,72 @@ class PrefightCliTests(unittest.TestCase):
             self.assertEqual(connection.execute(
                 "SELECT COUNT(*) FROM prefight_gate_checks WHERE gate_decision = 'alert_candidate'"
             ).fetchone()[0], 1)
+
+    def test_real_card_without_observed_history_rejects_paper_decision(self) -> None:
+        # The other CLI fixtures are explicitly demo-only. A real manual card
+        # with the same fresh quote and zero prior results must fail closed.
+        with db.connect(self.database) as connection:
+            connection.execute("UPDATE events SET source = 'manual' WHERE event_id = 'event'")
+            connection.commit()
+        result = self._command("paper-trade", "--bankroll-units", "1000")
+        self.assertEqual(result["paper_bets_created"], 0)
+        self.assertEqual(result["checks"][0]["alert_reason"], "model_not_validated")
+        with db.connect(self.database) as connection:
+            self.assertEqual(connection.execute(
+                "SELECT gate_decision, gate_reason FROM prefight_gate_checks"
+            ).fetchone()[:], ("reject", "model_not_validated"))
+            self.assertEqual(connection.execute(
+                "SELECT COUNT(*) FROM paper_bets"
+            ).fetchone()[0], 0)
+
+    def test_real_card_records_model_gap_even_below_nominal_edge_floor(self) -> None:
+        with db.connect(self.database) as connection:
+            connection.execute("UPDATE events SET source = 'manual' WHERE event_id = 'event'")
+            connection.commit()
+        result = self._command("alert-event", "--min-ev", "1.0")
+        self.assertEqual(result["alert_candidates"], 0)
+        self.assertEqual(result["checks"][0]["decision"], "pass")
+        self.assertEqual(result["checks"][0]["alert_reason"], "model_not_validated")
+
+    def test_qualified_observed_history_can_clear_readiness_floor(self) -> None:
+        self._add_qualified_observed_history()
+        result = self._command("paper-trade", "--bankroll-units", "1000")
+        self.assertEqual(result["checks"][0]["alert_reason"], "ok")
+        self.assertEqual(result["paper_bets_created"], 1)
+        self.assertEqual(result["paper_bets"][0]["stake_units"], 10)
+
+    def test_changed_result_outside_saved_snapshot_blocks_real_candidate(self) -> None:
+        self._add_qualified_observed_history()
+        with db.connect(self.database) as connection:
+            db.upsert_result(connection, "history-bout-0-1", "win",
+                             "history-b-0-1", utc_string(utc_now()))
+            connection.commit()
+        result = self._command("paper-trade", "--bankroll-units", "1000")
+        self.assertEqual(result["checks"][0]["alert_reason"], "model_not_validated")
+        self.assertEqual(result["paper_bets_created"], 0)
+
+    def test_direct_gate_rejects_probability_not_reproduced_by_elo(self) -> None:
+        self._add_qualified_observed_history()
+        with db.connect(self.database) as connection:
+            odds = import_odds_payload(
+                connection, self._payload(), utc_string(utc_now()),
+                self.root / "raw",
+            )
+            _, rows = score_event(
+                connection, "event", utc_now(), self.root / "reports",
+                required_snapshot_at_utc=odds["snapshot_at_utc"],
+            )
+            self.assertEqual(rows[0]["decision"], "candidate")
+            connection.execute(
+                "UPDATE predictions SET p_fighter_a = 0.99 WHERE prediction_id = ?",
+                (rows[0]["prediction_id"],),
+            )
+            forged = dict(rows[0], model_selection_probability=0.99)
+            checked = record_prefight_checks(
+                connection, [forged], ingestion_run_id=int(odds["ingestion_run_id"]),
+            )
+            self.assertEqual(checked[0]["alert_reason"], "model_not_validated")
+            self.assertFalse(checked[0]["alert_eligible"])
 
     def test_tampered_retained_source_blocks_fetch_and_alert(self) -> None:
         (self.root / "roster.csv").write_text("source changed after import", encoding="utf-8")

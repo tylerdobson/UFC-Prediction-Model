@@ -15,6 +15,7 @@ from pathlib import Path
 from . import db
 from .alerts import record_prefight_checks
 from .backup import create_backup, verify_backup
+from .config import provider_key
 from .integrity import verify_evidence
 from .jobs import TRACKED_COMMANDS, finish_job, start_job
 from .audit import audit_database
@@ -220,7 +221,7 @@ def _check_prefight_event(connection, args) -> tuple[object, dict, list[dict]]:
     if not event["start_time_utc"] or parse_utc(event["start_time_utc"]) <= utc_now():
         raise ValueError("A future known event start is required for pre-fight alerts")
     odds_result = import_live_odds(
-        connection, os.environ.get("ODDS_API_KEY", ""),
+        connection, provider_key("ODDS_API_KEY"),
         args.raw_dir, args.regions,
     )
     report, rows = score_event(
@@ -381,16 +382,16 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 print(json.dumps(result, indent=2))
             elif args.command == "import-odds":
-                api_key = os.environ.get("ODDS_API_KEY", "")
+                api_key = provider_key("ODDS_API_KEY")
                 result = import_live_odds(connection, api_key, args.raw_dir, args.regions)
                 print(json.dumps(result, indent=2))
             elif args.command == "import-historical-odds":
-                api_key = os.environ.get("ODDS_API_KEY", "")
+                api_key = provider_key("ODDS_API_KEY")
                 result = import_historical_odds(connection, api_key, args.as_of, args.raw_dir, args.regions)
                 print(json.dumps(result, indent=2))
             elif args.command == "import-sportradar":
                 from .sportradar import import_daily_summaries
-                api_key = os.environ.get("SPORTRADAR_API_KEY", "")
+                api_key = provider_key("SPORTRADAR_API_KEY")
                 result = import_daily_summaries(
                     connection, api_key, args.date, args.raw_dir, args.access_level
                 )

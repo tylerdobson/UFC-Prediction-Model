@@ -15,6 +15,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterable, Mapping
 
+from . import db
 from .card_history import latest_prefight_roster
 from .quote_evidence import linked_quote_rows, quote_receipt_matches
 
@@ -44,6 +45,108 @@ def _finite_number(value: object) -> float | None:
     except (TypeError, ValueError):
         return None
     return number if math.isfinite(number) else None
+
+
+def _isolated_demo_database(connection: sqlite3.Connection, event_id: str) -> bool:
+    """Keep the fictional rehearsal usable without relaxing an operating DB."""
+    event = connection.execute(
+        "SELECT source FROM events WHERE event_id = ?", (event_id,)
+    ).fetchone()
+    if event is None or event["source"] != "demo":
+        return False
+    return all(connection.execute(
+        f"SELECT 1 FROM {table} WHERE COALESCE(source, '') != 'demo' LIMIT 1"
+    ).fetchone() is None for table in ("events", "bouts", "fighters"))
+
+
+def _ready_model_probabilities(
+    connection: sqlite3.Connection, event_id: str, model_version: str,
+    cutoff_text: str,
+) -> tuple[bool, dict[str, float] | None]:
+    """Check operating history and reproduce the model behind a live gate.
+
+    ``None`` probabilities on success is reserved for an isolated, visibly
+    fictional demo database. Operating rows must have enough point-in-time
+    history for a chronological holdout, and *every* result used by live Elo
+    must match a retained completed-card observation available at its cutoff.
+    A passed readiness check is a sample/provenance floor, not a betting edge.
+    """
+    if _isolated_demo_database(connection, event_id):
+        return True, None
+    if connection.execute(
+        "SELECT 1 FROM events WHERE source = 'wikipedia_research' LIMIT 1"
+    ).fetchone() is not None:
+        return False, None
+    cutoff = _utc(cutoff_text)
+    event = connection.execute(
+        "SELECT event_date FROM events WHERE event_id = ?", (event_id,)
+    ).fetchone()
+    if cutoff is None or event is None:
+        return False, None
+    history_before = min(str(event["event_date"]), cutoff.date().isoformat())
+    # The fixed event-date rule excludes same-day results. An implausible
+    # completed event on/after that date must not enter the holdout instead.
+    if connection.execute(
+        "SELECT 1 FROM events WHERE status = 'completed' AND event_date >= ? LIMIT 1",
+        (history_before,),
+    ).fetchone() is not None:
+        return False, None
+
+    history = db.prior_results(connection, history_before)
+    binary = [row for row in history if row["outcome"] == "win"]
+    if len(binary) < 100 or len({str(row["event_date"]) for row in binary}) < 10:
+        return False, None
+    # This set covers precisely the rows that Elo updates from (wins/draws).
+    # Missing or changed completed-card evidence cannot be hidden by a large
+    # valid holdout elsewhere in the same database.
+    from .features import _observed_result_ids
+
+    used_ids = {str(row["bout_id"]) for row in history if row["outcome"] != "no_contest"}
+    observed_ids = _observed_result_ids(
+        connection, history_before, cutoff.isoformat(), {}
+    )
+    if not used_ids or not used_ids.issubset(observed_ids):
+        return False, None
+
+    from .evaluation import evaluate_models
+
+    try:
+        holdout = evaluate_models(connection)
+    except (TypeError, ValueError):
+        return False, None
+    if holdout.get("status") != "ok" or not holdout.get("calibration", {}).get("applied"):
+        return False, None
+    if not holdout.get("prior_result_evidence", {}).get("promotion_eligible"):
+        return False, None
+    splits = holdout.get("split") or {}
+    if any((splits.get(name) or {}).get("bouts", 0) < minimum
+           for name, minimum in (("train", 50), ("validation", 30), ("test", 30))):
+        return False, None
+    if any((splits.get(name) or {}).get("events", 0) < minimum
+           for name, minimum in (("train", 5), ("validation", 2), ("test", 2))):
+        return False, None
+
+    from .elo import MODEL_VERSION as ELO_MODEL_VERSION, model_from_results
+    from .logistic import MODEL_VERSION as LOGISTIC_MODEL_VERSION
+
+    if model_version == ELO_MODEL_VERSION:
+        model = model_from_results(history)
+        bouts = db.event_bouts(connection, event_id)
+        return True, {
+            str(bout["bout_id"]): model.probability(
+                str(bout["fighter_a_id"]), str(bout["fighter_b_id"])
+            ) for bout in bouts
+        }
+    if model_version.startswith(f"{LOGISTIC_MODEL_VERSION}:"):
+        from .live_logistic import prepare_live_logistic
+
+        try:
+            run = prepare_live_logistic(connection, event_id, cutoff)
+        except (TypeError, ValueError):
+            return False, None
+        return (run.model_version == model_version,
+                run.predictions if run.model_version == model_version else None)
+    return False, None
 
 
 def gate_prefight_alerts(
@@ -218,6 +321,7 @@ def record_prefight_checks(
         decimal_odds_drift=decimal_odds_drift,
         min_edge=min_edge,
     )
+    readiness_cache: dict[tuple[str, str], tuple[bool, dict[str, float] | None]] = {}
     for row, verified_quote in zip(checked, verified_quotes):
         if row["alert_eligible"] and not verified_quote:
             row["alert_eligible"] = False
@@ -229,6 +333,42 @@ def record_prefight_checks(
             row["alert_eligible"] = False
             row["alert_decision"] = "reject"
             row["alert_reason"] = str(roster["reason"])
+        # A current, source-verified quote still needs a validated model even
+        # when its nominal EV is below the candidate threshold. Preserve
+        # stale/mismatched quote and roster reasons ahead of model readiness.
+        market_probe = gate_prefight_alerts(
+            [{**row, "decision": "candidate"}],
+            snapshot_at_utc=receipt["snapshot_at_utc"],
+            event_start_time_utc=event["start_time_utc"],
+            now_utc=now,
+            max_age_seconds=max_age_seconds,
+            decimal_odds_drift=decimal_odds_drift,
+            min_edge=min_edge,
+        )[0]
+        if (verified_quote and roster["accepted"]
+                and row.get("quote_id") and row["decision"] in ("candidate", "pass")
+                and market_probe["alert_reason"] in ("ok", "edge_below_floor")):
+            key = (str(row["model_version"]), str(row["as_of_utc"]))
+            if key not in readiness_cache:
+                readiness_cache[key] = _ready_model_probabilities(
+                    connection, event_id, key[0], key[1]
+                )
+            ready, expected = readiness_cache[key]
+            if ready and expected is not None:
+                prediction = connection.execute(
+                    "SELECT p_fighter_a FROM predictions WHERE prediction_id = ?",
+                    (int(row["prediction_id"]),),
+                ).fetchone()
+                probability = expected.get(str(row["bout_id"]))
+                ready = bool(
+                    prediction is not None and probability is not None
+                    and math.isclose(float(prediction["p_fighter_a"]), probability,
+                                     rel_tol=1e-12, abs_tol=1e-12)
+                )
+            if not ready:
+                row["alert_eligible"] = False
+                row["alert_decision"] = "reject"
+                row["alert_reason"] = "model_not_validated"
     checked_at = now.isoformat().replace("+00:00", "Z")
     connection.execute("SAVEPOINT record_prefight_checks")
     try:

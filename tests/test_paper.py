@@ -33,6 +33,7 @@ class PaperLedgerTests(unittest.TestCase):
         self.event_id = "event-1"
         db.upsert_event(
             self.connection, self.event_id, "Fixture card", self.event_date, "scheduled",
+            source="demo", source_event_id=self.event_id,
             start_time_utc=self.event_start,
         )
         self.report_rows = []
@@ -42,9 +43,10 @@ class PaperLedgerTests(unittest.TestCase):
             fighter_a = f"fighter-{index}-a"
             fighter_b = f"fighter-{index}-b"
             bout_id = f"bout-{index}"
-            db.upsert_fighter(self.connection, fighter_a, fighter_a)
-            db.upsert_fighter(self.connection, fighter_b, fighter_b)
-            db.upsert_bout(self.connection, bout_id, self.event_id, fighter_a, fighter_b, "scheduled")
+            db.upsert_fighter(self.connection, fighter_a, fighter_a, "demo", fighter_a)
+            db.upsert_fighter(self.connection, fighter_b, fighter_b, "demo", fighter_b)
+            db.upsert_bout(self.connection, bout_id, self.event_id, fighter_a, fighter_b,
+                           "scheduled", source="demo", source_bout_id=bout_id)
             price = 2.30 - index * 0.05
             db.add_quote(
                 self.connection, bout_id, "fixture-book", fighter_a, price,
@@ -278,6 +280,25 @@ class PaperLedgerTests(unittest.TestCase):
         rejected = dict(self.report_rows[0], alert_eligible=False)
         self.assertEqual(record_paper_candidates(self.connection, [rejected], 1000), [])
         self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM paper_bets").fetchone()[0], 0)
+
+    def test_direct_gate_rejects_real_card_with_insufficient_observed_history(self):
+        # Direct library callers must not inherit the demo fixture exemption.
+        self.connection.execute(
+            "UPDATE events SET source = 'manual' WHERE event_id = ?", (self.event_id,)
+        )
+        self.connection.commit()
+        checked = record_prefight_checks(
+            self.connection, [self.report_rows[0]], ingestion_run_id=self.receipt_id,
+        )
+        self.assertEqual(checked[0]["alert_reason"], "model_not_validated")
+        self.assertEqual(checked[0]["alert_decision"], "reject")
+        self.assertFalse(checked[0]["alert_eligible"])
+        self.assertEqual(record_paper_candidates(self.connection, checked, 1000), [])
+        saved = self.connection.execute(
+            "SELECT gate_decision, gate_reason FROM prefight_gate_checks "
+            "WHERE gate_check_id = ?", (checked[0]["gate_check_id"],)
+        ).fetchone()
+        self.assertEqual(tuple(saved), ("reject", "model_not_validated"))
 
     def test_stale_snapshot_is_saved_as_rejection_and_cannot_be_paper_traded(self):
         old = utc_string(self.now - timedelta(minutes=2))

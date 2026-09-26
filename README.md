@@ -46,6 +46,7 @@ UFC-Prediction-Model/
 ├── docs/RESEARCH_EVALUATION.md           # accepted-result holdout method and uncertainty
 ├── docs/RESULTS_SPOTCHECK.md             # bounded checks against UFC-published results
 ├── docs/LOCAL_RUNBOOK.md                 # operator setup and event-day commands
+├── docs/ONE_EVENT_PILOT.md                # real UFC 332 source/odds intake and holds
 ├── docs/EVIDENCE_BUNDLE.md               # portable evidence archive and recovery drill
 ├── docs/BUILD_ROADMAP.md                 # release milestones and acceptance gates
 ├── docs/LATENCY_POLICY.md                # pre-fight alert safeguards
@@ -59,7 +60,7 @@ UFC-Prediction-Model/
 
 SQLite is appropriate for one person's local project, including a serious first version. The SQL schema is committed; the live database, raw data, API key, and reports stay on your machine. If the project later needs several users or concurrent jobs, the repository can move to PostgreSQL without changing the basic table design.
 
-The [system architecture diagram](docs/UFC_SYSTEM_ARCHITECTURE.drawio) opens in diagrams.net; a [full-size PNG preview](docs/UFC_SYSTEM_ARCHITECTURE.png) is also available. The [build roadmap](docs/BUILD_ROADMAP.md) defines design constraints and milestone gates. The [source decision record](docs/DATA_SOURCE_DECISION.md) covers free account limits and historical-price availability. The [research dataset card](docs/RESEARCH_DATASET_CARD.md) records the checked **1993–2026** import: **790 completed events, 7,258 bouts/results, and 1,878 fighters**. The [retrospective comparison](docs/RESEARCH_EVALUATION.md) reports a separate, research-only Elo and logistic holdout, and the [result spot check](docs/RESULTS_SPOTCHECK.md) compares a bounded sample with UFC-published outcomes. The [public dataset survey](docs/PUBLIC_DATASET_SURVEY.md) compares Kaggle and GitHub leads; the [Wikidata review worksheet](docs/WIKIDATA_IDENTITY_REVIEW.md) lists candidates for currently unresolved names. The [local runbook](docs/LOCAL_RUNBOOK.md) has the operating sequence; the [one-event rehearsal](docs/EVENT_REHEARSAL.md) exercises it offline with fictional data. The [container deployment runbook](docs/CONTAINER_DEPLOYMENT.md) packages a verified, read-only dashboard snapshot.
+The [system architecture diagram](docs/UFC_SYSTEM_ARCHITECTURE.drawio) opens in diagrams.net; a [full-size PNG preview](docs/UFC_SYSTEM_ARCHITECTURE.png) is also available. The [build roadmap](docs/BUILD_ROADMAP.md) defines design constraints and milestone gates. The [source decision record](docs/DATA_SOURCE_DECISION.md) covers free account limits and historical-price availability. The [research dataset card](docs/RESEARCH_DATASET_CARD.md) records the checked **1993–2026** import: **790 completed events, 7,258 bouts/results, and 1,878 fighters**. The [retrospective comparison](docs/RESEARCH_EVALUATION.md) reports a separate, research-only Elo and logistic holdout, and the [result spot check](docs/RESULTS_SPOTCHECK.md) compares a bounded sample with UFC-published outcomes. The [public dataset survey](docs/PUBLIC_DATASET_SURVEY.md) compares Kaggle and GitHub leads; the [Wikidata review worksheet](docs/WIKIDATA_IDENTITY_REVIEW.md) lists candidates for currently unresolved names. The [local runbook](docs/LOCAL_RUNBOOK.md) has the operating sequence; the [one-event rehearsal](docs/EVENT_REHEARSAL.md) exercises it offline with fictional data. The [UFC 332 intake pilot](docs/ONE_EVENT_PILOT.md) documents the first real card and saved live odds snapshot, including its review holds. The [container deployment runbook](docs/CONTAINER_DEPLOYMENT.md) packages a verified, read-only dashboard snapshot.
 
 An existing database never upgrades as a side effect of another CLI command. Use `ufc-model --db data/ufc.sqlite migrate --backup backups/UNIQUE.sqlite` for a schema upgrade; it verifies the pre-migration backup first. For recovery across machines or paths, use the [portable evidence bundle](docs/EVIDENCE_BUNDLE.md), which includes receipt payloads, model files, and reports alongside SQLite.
 
@@ -142,20 +143,18 @@ ufc-model --db data/ufc_research_2011_2025.sqlite import-wikipedia-embedded \
 
 Review the catalog exceptions, skipped event pages, unresolved fighter identities, and source results before interpreting the sample. These retrospective pages lack exact pre-fight times, dated roster changes, and historical bookmaker prices. The importer cannot write to the default operating database, and a database containing its research events cannot run `alert-event` or `paper-trade`. The separate [research-only comparison](docs/RESEARCH_EVALUATION.md) calibrates a retrospective model on later accepted results; it does not unlock the operating `evaluate` command or a betting decision workflow.
 
-After upcoming UFC bouts are in the database, get a key from [The Odds API](https://the-odds-api.com/sports/mma-ufc-odds.html) and run:
+After upcoming UFC bouts are in the database, get a key from [The Odds API](https://the-odds-api.com/sports/mma-ufc-odds.html). Put `ODDS_API_KEY=...` in a private `.env` file in the project root (`chmod 600 .env`), or export it in the shell, then run:
 
 ```bash
-export ODDS_API_KEY="your-key"
 ufc-model import-odds
 ufc-model score-event YOUR_EVENT_ID
 ```
 
-The odds feed includes MMA outside the UFC. The importer only stores a quote when both fighter names and the date match exactly one known UFC bout in your database. Unmatched quotes stay in the saved raw response for review. The key comes from the exported `ODDS_API_KEY` variable. To use a private `.env` file, follow the [local runbook](docs/LOCAL_RUNBOOK.md#configure-real-sources); the application does not read that file automatically.
+The odds feed includes MMA outside the UFC. The importer only stores a quote when both fighter names and the date match exactly one known UFC bout in your database. Unmatched quotes stay in the saved raw response for review. The CLI reads the private `.env` file automatically from its current working directory; an exported variable takes precedence. See the [local runbook](docs/LOCAL_RUNBOOK.md#configure-real-sources).
 
 For a **permitted internal evaluation** of an authenticated UFC card/results source, the optional [Sportradar MMA Daily Summaries](https://developer.sportradar.com/mma/reference/mma-daily-summaries) adapter can import a UTC day:
 
 ```bash
-export SPORTRADAR_API_KEY="your-key"
 ufc-model import-sportradar 2026-10-10
 ufc-model list-events
 ufc-model audit
@@ -205,7 +204,7 @@ ufc-model settle-bet --bet-id 1 --status won --payout 9.00
 
 The ledger records the actual return and keeps it separate from hypothetical backtest bets. There is no automatic bet placement.
 
-For prospective paper trading, set `ODDS_API_KEY` and refresh, score, check the pre-fight gate, and record eligible decisions in one command:
+For prospective paper trading, configure `ODDS_API_KEY` in `.env` or the shell, then refresh, score, check the pre-fight gate, and record eligible decisions in one command:
 
 ```bash
 ufc-model paper-trade YOUR_EVENT_ID --bankroll-units 1000 \
@@ -226,9 +225,9 @@ An alert candidate must use the just-imported odds snapshot, a recent bookmaker 
 
 ## Next steps for a trustworthy model
 
-1. Run the [one-event rehearsal](docs/EVENT_REHEARSAL.md) and inspect its pre-fight and settled dashboard views. This verifies the software path with fictional inputs only.
-2. Obtain a rights-cleared, source-dated roster and result feed for **one actual upcoming UFC event**. A free Sportradar trial alone does not authorize a betting decision workflow. Verify fighter IDs, card changes, event start, and each observation time before importing to a separate operating database.
-3. Configure a permitted odds account locally, capture fresh two-sided quotes for that same event, and run the alert gate and capped paper ledger. Audit quote age, roster evidence, rejected decisions, and bookmaker-specific settlement after the event. Complete this real event-day drill before calling the workflow operational.
+1. Complete the [UFC 332 intake pilot](docs/ONE_EVENT_PILOT.md): recheck the current card, resolve the five held fighter-ID rows and three odds name/alias holds, and document a reviewer for any promoted roster. The provisional local database contains eight linked bouts and 20 saved quote rows across four of them, but stays `review_pending` with no predictions or decisions.
+2. Obtain a sufficiently large, rights-cleared, **source-dated operating history** of completed results and pre-fight rosters. The gate now requires at least 100 earlier binary bouts across 10 event dates, complete prior-result source evidence, a calibrated chronological evaluation, and minimum 50/30/30 train/validation/test bouts before a real alert can pass. The current one-card pilot has zero completed results and remains blocked.
+3. On event day, capture a new card observation and fresh two-sided quotes for the reviewed card, then run the alert gate and capped paper ledger if the model and source evidence qualify. Audit quote age, roster changes, rejected decisions, and bookmaker-specific settlement after the event. The September 26 odds snapshot is historical intake evidence, not an event-day price.
 4. Grow the operating history and historical price record one event at a time. Re-evaluate the chronological Elo, logistic, and bookmaker baselines, calibration, coverage, and uncertainty before promoting a model. The 1993–2026 Wikipedia dataset, including 1,647 held bout rows, remains research-only until its identity and point-in-time limits are addressed.
 5. Add rights-cleared, dated fighter profiles and per-fight statistics when they can be observed before each decision. Review source timestamps and coverage before using age, reach, recent form, or opponent-adjusted features. Keep API keys and ingestion jobs server-side; the [web dashboard](docs/WEB_APP_PLAN.md) remains read-only.
 

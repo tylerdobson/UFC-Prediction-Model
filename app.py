@@ -12,6 +12,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
+from urllib.parse import urlsplit
 
 import streamlit as st
 
@@ -41,6 +42,16 @@ def _mapping(value: Any) -> Mapping[str, Any]:
 
 def _esc(value: Any, fallback: str = "—") -> str:
     return html.escape(_text(value, fallback), quote=True)
+
+
+def _source_link(value: Any, label: str) -> str:
+    if not isinstance(value, str):
+        return "—"
+    parsed = urlsplit(value)
+    if parsed.scheme != "https" or not parsed.hostname or parsed.username:
+        return _esc(value)
+    return (f"<a href='{_esc(value)}' target='_blank' rel='noopener noreferrer'>"
+            f"{_esc(label)}</a>")
 
 
 def _utc(value: Any, *, short: bool = False) -> str:
@@ -192,6 +203,8 @@ def _source_status(snapshot: Mapping[str, Any], event: Mapping[str, Any] | None)
         return "Demo card · fictional data"
     if event and event.get("source") == "wikipedia_research":
         return "Research card · no live decisions"
+    if event and event.get("source") == "manual":
+        return "Imported card · completeness unverified"
     if snapshot.get("status") != "available":
         return "Data unavailable"
     if event is None:
@@ -257,6 +270,8 @@ def _requirements(snapshot: Mapping[str, Any], event: Mapping[str, Any] | None) 
     audit = (snapshot.get("quality") or {}).get("ok")
     values = [
         ("Matched fighter IDs", "Review" if has_ids else "Pending"),
+        ("Card completeness", "Unknown" if event and event.get("source") == "manual"
+         else "Review" if event else "Pending"),
         ("Fresh quote", "Observed" if has_quote else "Pending"),
         ("Point-in-time model", "Saved" if has_model else "Pending"),
         ("Audit clear", "Demo only" if event and event.get("is_demo")
@@ -316,6 +331,7 @@ def _render_upcoming(snapshot: Mapping[str, Any]) -> None:
             intro = (
                 "Demo card — fictional data" if event.get("is_demo")
                 else "Research card — ineligible for live decisions" if event.get("source") == "wikipedia_research"
+                else "Imported bouts only · verify the full card and substitutions" if event.get("source") == "manual"
                 else "Observed card data · verify the audit before acting"
             )
             st.markdown(
@@ -361,6 +377,18 @@ def _render_upcoming(snapshot: Mapping[str, Any]) -> None:
                     f"<strong>Status:</strong> <code>{_esc(event.get('status'))}</code></p>",
                     unsafe_allow_html=True,
                 )
+                source_evidence = _mapping(event.get("source_evidence"))
+                if source_evidence:
+                    st.markdown(
+                        "<p class='evidence-line'><strong>Card attribution:</strong> "
+                        f"{_source_link(source_evidence.get('source_url'), 'Source revision')} · "
+                        f"{_source_link(source_evidence.get('license_url'), 'License')} · "
+                        f"revision {_esc(source_evidence.get('source_revision_id'))} · "
+                        f"observed {_esc(source_evidence.get('source_observed_at_utc'))} · "
+                        f"reviewer {_esc(source_evidence.get('reviewed_by'), 'Pending')}"
+                        "</p>",
+                        unsafe_allow_html=True,
+                    )
                 for bout in event.get("bouts") or []:
                     prediction = bout.get("prediction") or {}
                     st.markdown(

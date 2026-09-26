@@ -8,7 +8,7 @@ import json
 import os
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -120,6 +120,31 @@ class DashboardAppSmokeTests(unittest.TestCase):
         self.assertIn("No historical research data in this database", markup)
         self.assertIn("bookmaker time unverified", markup)
         self.assertNotIn("Place wager", markup)
+
+    def test_imported_upcoming_card_discloses_unknown_completeness(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "partial.sqlite"
+            start = datetime.now(timezone.utc) + timedelta(days=7)
+            with db.connect(path) as connection:
+                db.init_db(connection)
+                db.upsert_fighter(connection, "fighter-a", "Fighter A")
+                db.upsert_fighter(connection, "fighter-b", "Fighter B")
+                db.upsert_event(
+                    connection, "partial-card", "Prospective card",
+                    start.date().isoformat(), "scheduled", source="manual",
+                    source_event_id="partial-card", start_time_utc=start.isoformat(),
+                )
+                db.upsert_bout(connection, "bout-1", "partial-card", "fighter-a",
+                               "fighter-b", "scheduled", source="manual")
+                connection.commit()
+            before = path.stat().st_mtime_ns
+            app = self._run_app(path, Path(temporary) / "missing.json")
+            self.assertEqual(path.stat().st_mtime_ns, before)
+        self.assertEqual(list(app.exception), [])
+        markup = self._all_markup(app)
+        self.assertIn("Imported card · completeness unverified", markup)
+        self.assertIn("Imported bouts only · verify the full card and substitutions", markup)
+        self.assertIn("Card completeness", markup)
 
     def test_malformed_saved_evaluation_is_not_displayed_as_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

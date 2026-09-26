@@ -510,7 +510,10 @@ class DashboardDataTests(unittest.TestCase):
         connection = self._connect()
         prediction_id, quote_id = self._card(connection)
         gate_check_id = self._accepted_gate(connection, prediction_id, quote_id)
-        recent = load_dashboard(self.path, as_of=self.now)["upcoming_events"][0]["bouts"][0]
+        card = load_dashboard(self.path, as_of=self.now)["upcoming_events"][0]
+        self.assertEqual(card["source_evidence"]["source_revision_id"], "fixture-1")
+        self.assertEqual(card["source_evidence"]["reviewed_by"], "test")
+        recent = card["bouts"][0]
         self.assertEqual(recent["gate_check"]["gate_check_id"], gate_check_id)
         self.assertEqual(recent["gate_check"]["display_status"], "accepted_recently")
 

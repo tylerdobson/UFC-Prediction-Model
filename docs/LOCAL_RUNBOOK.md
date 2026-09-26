@@ -27,16 +27,13 @@ The demo contains no real market signal. It has too little history for the calib
 
 ## Configure real sources
 
-The operator approved free API accounts. Obtain keys through the providers' own account pages and set them in the shell that runs the CLI. Check that each account's terms permit this project's intended use. For a local `.env` file, copy the ignored template, edit `ODDS_API_KEY=` with your key, and load it into the current terminal before running a CLI command:
+The operator approved free API accounts. Obtain keys through the providers' own account pages and check that each account's terms permit this project's intended use. Create a `.env` file from `.env.example` if you do not already have one, then put `ODDS_API_KEY=...` on its own line. Keep the file private:
 
 ```bash
-cp .env.example .env
 chmod 600 .env
-# Edit .env locally; keep the key out of chat and Git.
-set -a; source .env; set +a
 ```
 
-The application reads the exported shell variable; it does not load `.env` automatically. Run the `source` command again in each new terminal. Do not put keys into the dashboard, commit them, or include them in bug reports.
+The CLI reads `.env` automatically from its current working directory. An exported shell variable takes precedence. Keep the key out of chat, Git, the dashboard, and bug reports.
 
 The Odds API free tier can collect prospective snapshots, while historical odds generally need a paid plan. A reviewed rights-cleared CSV import is supported for fight history. The optional Sportradar adapter is for permitted internal source evaluation; its current free-trial terms restrict publication/display and require express written approval for betting-related use. Do not run a decision workflow on trial data without the appropriate rights. Read [DATA_SOURCE_DECISION.md](DATA_SOURCE_DECISION.md) for the checked limits and terms.
 
@@ -53,6 +50,12 @@ A Wikipedia batch can leave earlier event commits in place if a later event fail
 5. Rerun `python -m ufc_odds_model.integrity --db data/ufc.sqlite --output reports/integrity.json` after the latest import and gate writes so the dashboard's saved integrity status reflects the current database. Launch the local dashboard with `python -m streamlit run app.py --server.address 127.0.0.1`. See [DASHBOARD_RUNBOOK.md](DASHBOARD_RUNBOOK.md) for screen details and optional path settings. Review the saved gate reason, quote capture and bookmaker update times, model cutoff/version, recent source job status, and open exposure. Recheck any live market directly if deciding whether to place a real wager; the dashboard price is observational.
 
 No API key or confirmed future card means no live alert or new paper decision. An unavailable state is expected in that case.
+
+### Model-readiness floor for a real card
+
+The saved pre-fight gate checks model readiness as well as quote and roster freshness. A real operating database needs at least 100 earlier binary results across 10 event dates. Every win or draw used by live Elo must match an intact, source-observed completed-card snapshot available before the current prediction cutoff. The operating chronological evaluation must have complete prior-result evidence, a calibrated validation period, at least 50 training bouts on 5 event dates, 30 validation bouts on 2 later dates, and 30 untouched test bouts on 2 still later dates. Logistic forecasts must also reproduce their saved model version and probabilities; Elo probabilities are recomputed from their exact prior results.
+
+When that evidence is missing, `alert-event` and `paper-trade` can still retain a newly fetched odds snapshot, but the gate records `model_not_validated` and creates no paper decision. `score-event` remains useful for exploratory forecasts. The isolated fictional rehearsal is explicitly labeled demo and bypasses this operating-history floor only while **all** stored events, bouts, and fighters are demo rows. Passing this sample and provenance floor does not establish a betting edge or permission to use a source; review the holdout metrics, data rights, and prospective paper results separately.
 
 ## After the event
 

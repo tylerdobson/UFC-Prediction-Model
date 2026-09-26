@@ -77,6 +77,7 @@ class EventView(TypedDict):
     status: str
     provider_status: str | None
     source: str | None
+    source_evidence: dict[str, str | None] | None
     is_demo: bool
     bouts: list[BoutView]
 
@@ -725,6 +726,17 @@ def _upcoming_events(
         start = _timestamp(event["start_time_utc"])
         if start is not None and start <= as_of:
             continue
+        source_snapshot = connection.execute(
+            """SELECT source_url, source_revision_id, license_name, license_url,
+                      source_observed_at_utc, reviewed_by
+               FROM card_event_snapshots WHERE event_id = ?
+               ORDER BY source_observed_at_utc DESC, event_snapshot_id DESC LIMIT 1""",
+            (event["event_id"],),
+        ).fetchone()
+        source_evidence = (
+            {key: source_snapshot[key] for key in source_snapshot.keys()}
+            if source_snapshot is not None else None
+        )
         bouts: list[BoutView] = []
         for bout in connection.execute(
             """
@@ -764,6 +776,7 @@ def _upcoming_events(
             "status": str(event["status"]),
             "provider_status": event["provider_status"],
             "source": event["source"],
+            "source_evidence": source_evidence,
             "is_demo": event["source"] == "demo",
             "bouts": bouts,
         })
