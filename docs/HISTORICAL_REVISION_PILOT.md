@@ -75,33 +75,61 @@ reports are `reports/ufc331-prefight-review.json` and
 `reports/ufc331-result-review.json`; all raw receipts and reports are ignored
 by Git. These counts are a source coverage check, not a predictive result.
 
-The same receipt process was then run on four earlier completed cards. Their
-24-hour cutoffs use the earliest segment times in UFC's official
-[Noche](https://www.ufc.com/news/noche-ufc-silva-delgado-official-weigh-in-results),
-[Paris](https://www.ufc.com/news/ufc-fight-night-paris-official-weigh-in-results-hooker-parnasse),
-[Shanghai](https://www.ufc.com/news/official-weigh-results-ufc-shanghai-nurmagomedov-song-fight-night),
-and [Sacramento](https://www.ufc.com/news/official-weigh-results-ufc-sacramento-fight-night-hernandez-rodrigues)
-weigh-in articles. For each card, a separate completed revision was selected
-at the *next* event's pre-fight cutoff. The linked fighter titles were checked
+The same receipt process was then run across the 15 consecutive event dates
+from June 6 through September 19, 2026. The checked
+[cutoff manifest](HISTORICAL_2026_PILOT_CARDS.json) records the earliest UFC
+segment time, its official source URL, a 24-hour pre-fight decision cutoff,
+and the following event's decision cutoff for each completed result. UFC 331's
+completed result uses the September 26 research cutoff. UFC 330 and UFC 331
+have conflicting official start times; the manifest records the conflict and
+uses the earlier time. Freedom 250 began at midnight UTC on June 15, although
+its local event date was June 14. These start times were manually reviewed
+from the linked official pages; the offline cohort command verifies the
+manifest's format and archived receipts, but does not recheck those pages.
+The linked fighter titles were checked
 against the research import's saved, hash-verified MediaWiki title lookup
 responses and page IDs; these lookups were fetched retrospectively and are
 used for identity only.
 
-| Event | Source bouts | Pre-fight linked pairs with verified IDs | Completed pairs at next cutoff |
-| --- | ---: | ---: | ---: |
-| Sacramento, Aug 22 | 13 | 4 | 4 at Shanghai's Aug 28 cutoff |
-| Shanghai, Aug 29 | 13 | 4 | 4 at Paris's Sep 4 cutoff |
-| Paris, Sep 5 | 14 | 3 | 4 at Noche's Sep 11 cutoff |
-| Noche, Sep 12 | 13 | 7 | 7 at UFC 331's Sep 18 cutoff |
-| UFC 331, Sep 19 | 12 | 7 | 7 at Sep 26 research cutoff |
-| **Total** | **65** | **25** | **26** |
+Recheck every saved selection and content receipt against the research DB
+without making a network request:
 
-The 25 pre-fight bouts had matching stable IDs in their source-linked lookup
-receipts. Paris's later result revision had one additional linked result, but
-that fight was not linked in the pre-fight source and is still held as a model
-target. Earlier completed revisions must also be selected at *every further*
+```bash
+.venv/bin/python -m scripts.review_historical_pilot \
+  --output reports/historical-2026-fifteen-event-cohort.json
+```
+
+Choose a new output path when rerunning; the command does not overwrite an
+existing report.
+
+| Event date and card | Source bouts | Paired binary bouts | Pre-fight rows held |
+| --- | ---: | ---: | ---: |
+| Jun 6, Muhammad–Bonfim | 12 | 7 | 5 |
+| Jun 14, Freedom 250 | 7 | 7 | 0 |
+| Jun 20, Kape–Horiguchi | 12 | 3 | 9 |
+| Jun 27, Baku | 13 | 4 | 9 |
+| Jul 11, UFC 329 | 14 | 7 | 7 |
+| Jul 18, Oklahoma City | 12 | 3 | 9 |
+| Jul 25, Abu Dhabi | 13 | 4 | 9 |
+| Aug 1, Belgrade | 14 | 5 | 9 |
+| Aug 8, Gamrot–Salkilld | 12 | 2 | 10 |
+| Aug 15, UFC 330 | 12 | 6 | 6 |
+| Aug 22, Sacramento | 13 | 4 | 9 |
+| Aug 29, Shanghai | 13 | 4 | 9 |
+| Sep 5, Paris | 14 | 3 | 11 |
+| Sep 12, Noche UFC | 13 | 7 | 6 |
+| Sep 19, UFC 331 | 12 | 7 | 5 |
+| **Total** | **186** | **73** | **113** |
+
+Each of the 73 paired bouts has a stable fighter ID match in the archived
+pre-fight card and a binary result in the following saved completed revision.
+Paris's later result revision has one additional linked result, but that
+fight was not linked in the pre-fight source and is still held as a model
+target. Earlier completed revisions must also be selected at *every later*
 historical model cutoff; the table only establishes availability by the next
-event. These five cards do not meet the model's history or validation floors.
+event. These 15 cards do not meet the model's 100-bout history floor or the
+50/30/30 chronological evaluation floor. There are no matched historical
+bookmaker quotes in this cohort, so it cannot support a priced return claim.
 
 ## Promotion work still required
 

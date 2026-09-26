@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "description": "Conservative 24-hour pre-event cutoffs reviewed from official UFC earliest segment schedules; retrospective research only",
+  "events": [
+    {
+      "slug": "bonfim2026",
+      "page_id": 82666422,
+      "event_date": "2026-06-06",
+      "earliest_start_at_utc": "2026-06-06T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-06-05T21:00:00Z",
+      "result_cutoff_at_utc": "2026-06-14T00:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-fight-night-muhammad-vs-bonfim"
+    },
+    {
+      "slug": "freedom250",
+      "page_id": 80931969,
+      "event_date": "2026-06-14",
+      "earliest_start_at_utc": "2026-06-15T00:00:00Z",
+      "prefight_cutoff_at_utc": "2026-06-14T00:00:00Z",
+      "result_cutoff_at_utc": "2026-06-19T21:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-freedom-250"
+    },
+    {
+      "slug": "kape2026",
+      "page_id": 82772799,
+      "event_date": "2026-06-20",
+      "earliest_start_at_utc": "2026-06-20T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-06-19T21:00:00Z",
+      "result_cutoff_at_utc": "2026-06-26T13:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-kape-horiguchi-vegas-119"
+    },
+    {
+      "slug": "baku2026",
+      "page_id": 82727483,
+      "event_date": "2026-06-27",
+      "earliest_start_at_utc": "2026-06-27T13:00:00Z",
+      "prefight_cutoff_at_utc": "2026-06-26T13:00:00Z",
+      "result_cutoff_at_utc": "2026-07-10T21:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-in-results-fight-night-fiziev-torres-baku"
+    },
+    {
+      "slug": "ufc329",
+      "page_id": 82816283,
+      "event_date": "2026-07-11",
+      "earliest_start_at_utc": "2026-07-11T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-07-10T21:00:00Z",
+      "result_cutoff_at_utc": "2026-07-17T21:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-329-mcgregor-vs-holloway-2"
+    },
+    {
+      "slug": "oklahoma2026",
+      "page_id": 83008381,
+      "event_date": "2026-07-18",
+      "earliest_start_at_utc": "2026-07-18T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-07-17T21:00:00Z",
+      "result_cutoff_at_utc": "2026-07-24T13:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-fight-night-oklahoma-city-du-plessis-usman"
+    },
+    {
+      "slug": "abudhabi2026",
+      "page_id": 83052602,
+      "event_date": "2026-07-25",
+      "earliest_start_at_utc": "2026-07-25T13:00:00Z",
+      "prefight_cutoff_at_utc": "2026-07-24T13:00:00Z",
+      "result_cutoff_at_utc": "2026-07-31T14:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-abu-dhabi-ankalaev-guskov"
+    },
+    {
+      "slug": "belgrade2026",
+      "page_id": 83176195,
+      "event_date": "2026-08-01",
+      "earliest_start_at_utc": "2026-08-01T14:00:00Z",
+      "prefight_cutoff_at_utc": "2026-07-31T14:00:00Z",
+      "result_cutoff_at_utc": "2026-08-07T21:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-belgrade-medic-rodriguez-fight-night"
+    },
+    {
+      "slug": "gamrot2026",
+      "page_id": 83603223,
+      "event_date": "2026-08-08",
+      "earliest_start_at_utc": "2026-08-08T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-08-07T21:00:00Z",
+      "result_cutoff_at_utc": "2026-08-14T21:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/ufc-fight-night-gamrot-vs-salkilld-official-weigh-in-results"
+    },
+    {
+      "slug": "ufc330",
+      "page_id": 82953602,
+      "event_date": "2026-08-15",
+      "earliest_start_at_utc": "2026-08-15T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-08-14T21:00:00Z",
+      "result_cutoff_at_utc": "2026-08-21T21:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-330-makhachev-vs-machado-garry",
+      "start_conflict_note": "UFC event page currently says 5:30 PM EDT; announcement and weigh-in say 5:00 PM EDT. Earlier time is used."
+    },
+    {
+      "slug": "sacramento2026",
+      "page_id": 83560050,
+      "event_date": "2026-08-22",
+      "earliest_start_at_utc": "2026-08-22T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-08-21T21:00:00Z",
+      "result_cutoff_at_utc": "2026-08-28T07:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-sacramento-fight-night-hernandez-rodrigues"
+    },
+    {
+      "slug": "shanghai2026",
+      "page_id": 83393715,
+      "event_date": "2026-08-29",
+      "earliest_start_at_utc": "2026-08-29T07:00:00Z",
+      "prefight_cutoff_at_utc": "2026-08-28T07:00:00Z",
+      "result_cutoff_at_utc": "2026-09-04T16:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-shanghai-nurmagomedov-song-fight-night"
+    },
+    {
+      "slug": "paris2026",
+      "page_id": 83413060,
+      "event_date": "2026-09-05",
+      "earliest_start_at_utc": "2026-09-05T16:00:00Z",
+      "prefight_cutoff_at_utc": "2026-09-04T16:00:00Z",
+      "result_cutoff_at_utc": "2026-09-11T18:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/ufc-fight-night-paris-official-weigh-in-results-hooker-parnasse"
+    },
+    {
+      "slug": "noche2026",
+      "page_id": 83674360,
+      "event_date": "2026-09-12",
+      "earliest_start_at_utc": "2026-09-12T18:00:00Z",
+      "prefight_cutoff_at_utc": "2026-09-11T18:00:00Z",
+      "result_cutoff_at_utc": "2026-09-18T21:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/noche-ufc-silva-delgado-official-weigh-in-results"
+    },
+    {
+      "slug": "ufc331",
+      "page_id": 83648230,
+      "event_date": "2026-09-19",
+      "earliest_start_at_utc": "2026-09-19T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-09-18T21:00:00Z",
+      "result_cutoff_at_utc": "2026-09-26T23:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-cryptocom-ufc-331-van-vs-pantoja-2",
+      "start_conflict_note": "UFC fight-week guide says 2:30 PM PT; weigh-in says 2:00 PM PT. Earlier time is used."
+    }
+  ]
+}
