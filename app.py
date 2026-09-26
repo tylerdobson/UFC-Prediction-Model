@@ -413,7 +413,14 @@ def _evaluation_row(name: str, result: Mapping[str, Any] | None, split: Mapping[
 
 def _evaluation_has_displayable_results(result: Mapping[str, Any]) -> bool:
     """Fail closed when a saved report cannot support the visible comparisons."""
-    if result.get("status") != "ok":
+    status = result.get("status")
+    if status not in {"ok", "insufficient_result_evidence"}:
+        return False
+    prior = result.get("prior_result_evidence")
+    if (not isinstance(prior, Mapping)
+            or prior.get("promotion_eligible") is not (status == "ok")
+            or not all(isinstance(prior.get(name), Mapping)
+                       for name in ("train", "validation", "test"))):
         return False
     splits = result.get("split")
     test = result.get("test")
@@ -457,7 +464,10 @@ def _evaluation_has_displayable_results(result: Mapping[str, Any]) -> bool:
 def _render_model(snapshot: Mapping[str, Any]) -> None:
     evaluation = _mapping(snapshot.get("evaluation"))
     result = _mapping(evaluation.get("result"))
-    available = evaluation.get("status") == "available" and _evaluation_has_displayable_results(result)
+    report_status = evaluation.get("status")
+    exploratory = report_status == "insufficient_result_evidence"
+    displayable = (report_status in {"available", "insufficient_result_evidence"}
+                   and _evaluation_has_displayable_results(result))
     test = _mapping(result.get("test"))
     splits = _mapping(result.get("split"))
     split = _mapping(splits.get("test"))
@@ -468,16 +478,25 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
     )
     if snapshot.get("data_origin") in {"demo_only", "mixed", "research_only", "research_mixed"}:
         st.markdown(_notice(snapshot), unsafe_allow_html=True)
+    if exploratory and displayable:
+        st.markdown(
+            "<div class='notice'><strong>Exploratory metrics only · model promotion blocked.</strong> "
+            "At least one chronological split lacks complete source-observed prior-result "
+            "history. Scores below are for investigation, not a validated betting edge.</div>",
+            unsafe_allow_html=True,
+        )
     model_cards = []
     for title, key in [("Elo", "elo"), ("Logistic", "logistic"), ("Bookmaker baseline", "bookmaker")]:
         model = _mapping(test.get(key))
         metrics = _mapping(model.get("metrics"))
         label = (
             f"Brier {_number(metrics.get('brier_score'), 3)} · {metrics.get('bouts', 0)} bouts"
-            if available and metrics
-            else "No matched two-sided prices" if available and key == "bookmaker"
+            if displayable and metrics
+            else "No matched two-sided prices" if displayable and key == "bookmaker"
             else "Awaiting evaluated history"
         )
+        if exploratory and displayable:
+            label += " · exploratory"
         model_cards.append(
             f"<div class='model-card'><h2>{_esc(title)}</h2><p>{_esc(label)}</p></div>"
         )
@@ -498,9 +517,35 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
                  "No saved upcoming predictions") + "</section>",
         unsafe_allow_html=True,
     )
+    prior = _mapping(result.get("prior_result_evidence"))
+    if report_status in {"available", "insufficient_result_evidence", "insufficient_history"} and prior:
+        names = ("train", "validation", "test") if displayable else ("available",)
+        evidence_rows = []
+        for name in names:
+            item = _mapping(prior.get(name))
+            if not item:
+                continue
+            evidence_rows.append([
+                name.title(),
+                f"{_text(item.get('observed_prior_result_instances'))} / "
+                f"{_text(item.get('available_prior_result_instances'))}",
+                _percent(item.get("coverage")),
+                _text(item.get("unverified_feature_rows")),
+                "Pass" if item.get("meets_threshold") else "Blocked",
+            ])
+        st.markdown(
+            "<section class='panel coverage'><h2>Prior-result source evidence</h2>"
+            "<p>Counts are source-observed prior-result instances across target bouts; the same "
+            "earlier bout may be counted for more than one target. The promotion threshold is "
+            f"{_esc(_percent(prior.get('threshold')))} coverage in every split, with no unverified "
+            "feature rows.</p>"
+            + _table(["Split", "Observed / available", "Coverage", "Unverified rows", "Gate"],
+                     evidence_rows, "No prior-result evidence saved") + "</section>",
+            unsafe_allow_html=True,
+        )
     comparison, requirements = st.columns([2.25, 1], gap="large")
     with comparison:
-        if available:
+        if displayable:
             rows = [
                 _evaluation_row("Elo", test.get("elo"), split),
                 _evaluation_row("Logistic", test.get("logistic"), split),
@@ -509,7 +554,8 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
         else:
             rows = [[title, "—", "—", "—", "—"] for title in ["Elo", "Logistic", "Bookmaker baseline"]]
         st.markdown(
-            "<section class='panel'><h2>Model comparison</h2>"
+            "<section class='panel'><h2>Model comparison"
+            + (" (exploratory)" if exploratory and displayable else "") + "</h2>"
             + _table(["Model", "Test window", "Brier", "Log loss", "Evaluated bouts"], rows, "No evaluation")
             + "</section>",
             unsafe_allow_html=True,
@@ -519,16 +565,18 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
         validation = _mapping(splits.get("validation"))
         priced = _mapping(test.get("bookmaker")).get("available_bouts")
         checks = [
-            ("Later untouched test events", f"{split.get('events', 0)} events" if available else "Pending"),
-            ("Calibration fit on validation only", f"{validation.get('bouts', 0)} bouts" if available else "Pending"),
-            ("Same priced bouts for comparison", f"{priced} bouts" if available and priced is not None else "Pending"),
+            ("Later untouched test events", f"{split.get('events', 0)} events" if displayable else "Pending"),
+            ("Calibration fit on validation only", f"{validation.get('bouts', 0)} bouts" if displayable else "Pending"),
+            ("Same priced bouts for comparison", f"{priced} bouts" if displayable and priced is not None else "Pending"),
+            ("Source-observed prior results", "All splits pass" if displayable and not exploratory
+             else "Promotion blocked" if exploratory and displayable else "Pending"),
         ]
         details = "".join(
             f"<div class='requirement'><span>{_esc(label)}</span><span>{_esc(value)}</span></div>"
             for label, value in checks
         )
         st.markdown("<section class='panel criteria'><h2>What must be true</h2>" + details + "</section>", unsafe_allow_html=True)
-    if available:
+    if displayable:
         calibration = _mapping(result.get("calibration"))
         flags = _mapping(result.get("sample_size_flags"))
         book = _mapping(test.get("bookmaker"))
@@ -562,13 +610,14 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
                 for name, metrics in subset_metrics
             ]
             st.markdown(
-                "<section class='panel subset-comparison'><h2>Same priced-bout subset</h2>"
+                "<section class='panel subset-comparison'><h2>Same priced-bout subset"
+                + (" (exploratory)" if exploratory else "") + "</h2>"
                 "<p>These three scores use exactly the held-out bouts with a valid, "
                 "two-sided bookmaker price at the decision cutoff.</p>"
                 + _table(["Model", "Brier", "Log loss", "Priced bouts"], subset_rows, "No priced bouts")
                 + "</section>", unsafe_allow_html=True,
             )
-    bins = _mapping(test.get("logistic")).get("calibration_bins") if available else None
+    bins = _mapping(test.get("logistic")).get("calibration_bins") if displayable else None
     bins = bins if isinstance(bins, list) else None
     if bins:
         chart_rows = [
@@ -580,7 +629,9 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
             and math.isfinite(item["mean_probability"]) and math.isfinite(item["observed_win_rate"])
         ]
         if chart_rows:
-            st.markdown("<h2 class='calibration-title'>Calibration (test set)</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 class='calibration-title'>Calibration (test set)"
+                        + (" · exploratory" if exploratory else "") + "</h2>",
+                        unsafe_allow_html=True)
             st.vega_lite_chart(
                 {"$schema": "https://vega.github.io/schema/vega-lite/v5.json", "height": 245,
                  "data": {"values": chart_rows}, "mark": {"type": "circle", "size": 130, "color": "#0b7885"},
@@ -592,7 +643,7 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
                      "tooltip": [{"field": "Predicted", "format": ".2f"},
                                  {"field": "Observed", "format": ".2f"}, {"field": "Bouts"}]},
                  "config": {"background": "#ffffff", "axis": {"labelColor": "#536681", "titleColor": "#536681"}}},
-                use_container_width=True,
+                width="stretch",
             )
         else:
             st.markdown("<section class='calibration-panel'><h2>Calibration (test set)</h2><div class='chart-empty'>No populated calibration bins in the saved test set.</div></section>", unsafe_allow_html=True)
@@ -602,10 +653,10 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
             "<div class='chart-empty'>Calibration will appear when a saved evaluation is available.</div></section>",
             unsafe_allow_html=True,
         )
-    if not available:
+    if not displayable:
         reason = evaluation.get("reason") or (
             "Saved evaluation has incomplete metrics or split evidence; rerun evaluation."
-            if evaluation.get("status") == "available"
+            if evaluation.get("status") in {"available", "insufficient_result_evidence"}
             else "The saved evaluation does not yet meet the history gate."
             if evaluation.get("status") == "insufficient_history"
             else "A saved evaluation report is not available."
@@ -622,7 +673,7 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
             f"<div class='notice'><strong>Evaluation unavailable.</strong> {_esc(reason)}</div>",
             unsafe_allow_html=True,
         )
-    if available:
+    if displayable:
         st.markdown(
             "<p class='table-note'>Chart points are test-set bins. Logistic calibration is fit only on the "
             "validation period; the report records the fixed chronological splits.</p>",
@@ -737,6 +788,88 @@ def _render_quality(snapshot: Mapping[str, Any]) -> None:
         )
 
 
+def _render_historical_data(snapshot: Mapping[str, Any]) -> None:
+    history = _mapping(snapshot.get("historical_research"))
+    years = history.get("by_year") or []
+    recent = history.get("recent_events") or []
+    st.markdown(
+        "<section class='page-title'><h1>Historical data</h1>"
+        "<p>Completed UFC event pages imported for retrospective model research.</p></section>",
+        unsafe_allow_html=True,
+    )
+    if snapshot.get("status") not in {"available", "empty"}:
+        st.markdown(_notice(snapshot), unsafe_allow_html=True)
+        return
+    st.markdown(
+        "<div class='notice notice-demo'><strong>Research-only source.</strong> "
+        "Wikipedia event pages are retrospective. Their current revisions do not establish "
+        "what a pre-fight model could have known at decision time. The import has no "
+        "historical bookmaker prices or source-dated card snapshots, so it cannot "
+        "authorize betting alerts.</div>",
+        unsafe_allow_html=True,
+    )
+    if not history.get("events"):
+        st.markdown(
+            "<section class='panel'><h2>No historical research data in this database</h2>"
+            "<p>Import the fight history, then point <code>UFC_MODEL_DB</code> at the "
+            "research SQLite file to inspect it here.</p></section>",
+            unsafe_allow_html=True,
+        )
+        return
+
+    summary = (
+        ("Completed events", history.get("events")),
+        ("Imported bouts", history.get("bouts")),
+        ("Fighters in bouts", history.get("fighters")),
+        ("Recorded results", history.get("results")),
+    )
+    cards = "".join(
+        "<div class='history-stat'><span>" + _esc(label) + "</span>"
+        "<strong>" + _esc(f"{int(value or 0):,}") + "</strong></div>"
+        for label, value in summary
+    )
+    st.markdown("<div class='history-stats'>" + cards + "</div>", unsafe_allow_html=True)
+    receipt_count = int(history.get("event_page_receipts") or 0)
+    st.markdown(
+        "<p class='evidence-line'><strong>Coverage:</strong> "
+        f"{_esc(history.get('first_date'))} to {_esc(history.get('last_date'))}. "
+        f"<strong>Distinct source pages:</strong> {_esc(f'{receipt_count:,}')}. "
+        "Counts include only completed research-source events and matched completed bouts; "
+        "inspect the import review file for unresolved identities.</p>",
+        unsafe_allow_html=True,
+    )
+
+    max_bouts = max(1, max((int(row.get("bouts") or 0) for row in years), default=0))
+    bars = "".join(
+        "<div class='history-year-row'>"
+        f"<span class='history-year'>{_esc(row.get('year'))}</span>"
+        "<div class='history-bar-track'><div class='history-bar-fill' "
+        f"style='width:{100 * int(row.get('bouts') or 0) / max_bouts:.1f}%'></div></div>"
+        f"<strong>{_esc(format(int(row.get('bouts') or 0), ','))}</strong>"
+        f"<span>{_esc(format(int(row.get('events') or 0), ','))} events</span>"
+        "</div>"
+        for row in years
+    )
+    st.markdown(
+        "<section class='panel history-coverage'><h2>Imported bouts by year</h2>"
+        + ("<div class='history-years'>" + bars + "</div>" if bars else "<p>No annual data.</p>")
+        + "<p class='table-note'>Bars compare imported completed bouts. The event count "
+        "includes completed cards even when no bout cleared identity review.</p></section>",
+        unsafe_allow_html=True,
+    )
+    event_rows = [
+        [row.get("event_date"), row.get("name"), row.get("bouts"), row.get("results")]
+        for row in recent
+    ]
+    st.markdown(
+        "<section class='panel'><h2>Most recent imported events</h2>"
+        + _table(["Date", "Event", "Completed bouts", "Results"],
+                 event_rows, "No imported events")
+        + "<p class='table-note'>Showing at most 12 completed research events.</p></section>",
+        unsafe_allow_html=True,
+    )
+
+
 def _render_ledgers(snapshot: Mapping[str, Any]) -> None:
     paper = snapshot.get("paper_ledger") or {}
     manual = snapshot.get("manual_ledger") or {}
@@ -830,9 +963,13 @@ def main() -> None:
         st.error("The dashboard could not read its saved data. Check the local database and report configuration.")
         return
     _header(snapshot)
-    upcoming, model, quality, ledgers = st.tabs(["Upcoming card", "Model evidence", "Data quality", "Ledgers"])
+    upcoming, history, model, quality, ledgers = st.tabs([
+        "Upcoming card", "Historical data", "Model evidence", "Data quality", "Ledgers",
+    ])
     with upcoming:
         _render_upcoming(snapshot)
+    with history:
+        _render_historical_data(snapshot)
     with model:
         _render_model(snapshot)
     with quality:

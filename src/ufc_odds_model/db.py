@@ -11,6 +11,54 @@ from pathlib import Path
 DEFAULT_DB = Path("data/ufc.sqlite")
 
 
+def _migration_files():
+    directory = files("ufc_odds_model").joinpath("sql/migrations")
+    return sorted(
+        (entry for entry in directory.iterdir() if entry.name.endswith(".sql")),
+        key=lambda entry: entry.name,
+    )
+
+
+def has_migration_table(connection: sqlite3.Connection) -> bool:
+    """Inspect the schema without creating or changing any table."""
+    return connection.execute(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'schema_migrations'"
+    ).fetchone() is not None
+
+
+def is_empty_database(connection: sqlite3.Connection) -> bool:
+    """Allow first initialization of an existing but otherwise empty SQLite file."""
+    return connection.execute(
+        "SELECT 1 FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' LIMIT 1"
+    ).fetchone() is None
+
+
+def pending_migrations(connection: sqlite3.Connection) -> tuple[str, ...]:
+    """Return unapplied migration names without modifying the database."""
+    if not has_migration_table(connection):
+        raise ValueError("Database is not initialized; run 'ufc-model --db PATH init-db'")
+    expected = [entry.name for entry in _migration_files()]
+    applied = {
+        str(row["version"])
+        for row in connection.execute("SELECT version FROM schema_migrations")
+    }
+    unknown = sorted(applied - set(expected))
+    if unknown:
+        raise ValueError(
+            "Database has migrations unknown to this code version: " + ", ".join(unknown)
+        )
+    return tuple(name for name in expected if name not in applied)
+
+
+def require_current_schema(connection: sqlite3.Connection) -> None:
+    pending = pending_migrations(connection)
+    if pending:
+        raise ValueError(
+            "Database schema is out of date (" + ", ".join(pending)
+            + "); run 'ufc-model --db PATH migrate --backup NEW_PATH' before other commands"
+        )
+
+
 def connect(path: str | Path = DEFAULT_DB) -> sqlite3.Connection:
     db_path = Path(path)
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -21,15 +69,14 @@ def connect(path: str | Path = DEFAULT_DB) -> sqlite3.Connection:
 
 
 def init_db(connection: sqlite3.Connection) -> None:
+    if not has_migration_table(connection) and not is_empty_database(connection):
+        raise ValueError("Existing database has unversioned objects; review it before initializing")
     connection.execute(
         "CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY, applied_at_utc TEXT NOT NULL)"
     )
-    applied = {
-        row["version"] for row in connection.execute("SELECT version FROM schema_migrations")
-    }
-    migration_dir = files("ufc_odds_model").joinpath("sql/migrations")
-    for migration in sorted(migration_dir.iterdir(), key=lambda item: item.name):
-        if not migration.name.endswith(".sql") or migration.name in applied:
+    pending = set(pending_migrations(connection))
+    for migration in _migration_files():
+        if migration.name not in pending:
             continue
         version = migration.name.replace("'", "''")
         script = migration.read_text(encoding="utf-8")

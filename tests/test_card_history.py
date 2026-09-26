@@ -12,6 +12,7 @@ from unittest.mock import patch
 from ufc_odds_model import db
 from ufc_odds_model.audit import audit_database
 from ufc_odds_model.card_history import _receipt_payload_problem, latest_prefight_roster
+from ufc_odds_model.features import source_snapshot_available
 from ufc_odds_model.importers import import_bouts_csv
 
 
@@ -119,6 +120,30 @@ class CardHistoryTests(unittest.TestCase):
             latest_prefight_roster(self.connection, "event", "old", later)["reason"],
             "stale_roster_observation",
         )
+
+    def test_reviewed_timestamp_cannot_backdate_historical_availability(self) -> None:
+        self.import_rows(row(
+            observed="2026-09-26T11:00:00Z",
+            source_url="https://example.test/revision/123",
+            source_revision_id="123",
+            license_url="https://example.test/license",
+            reviewed_by="reviewer-1",
+        ))
+        snapshot = self.connection.execute(
+            """SELECT s.*, r.fetched_at_utc, r.payload_path, r.sha256
+               FROM card_event_snapshots s
+               JOIN ingestion_runs r ON r.run_id = s.ingestion_run_id"""
+        ).fetchone()
+        cache: dict[int, bool] = {}
+        self.assertFalse(source_snapshot_available(
+            snapshot, "2026-09-26T11:30:00Z", cache,
+        ))
+        self.assertFalse(source_snapshot_available(
+            snapshot, "2026-09-26T12:00:00Z", cache,
+        ))
+        self.assertTrue(source_snapshot_available(
+            snapshot, "2026-09-26T12:00:01Z", cache,
+        ))
 
     def test_selected_receipt_payload_must_exist_match_hash_and_be_regular(self) -> None:
         self.import_rows(row())

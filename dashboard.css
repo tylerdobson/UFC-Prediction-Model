@@ -395,6 +395,41 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 .quality-issues .empty-row td { text-align: center; padding-top: 65px; }
 .coverage { margin-top: 3px; }
 
+.history-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0 0 15px;
+}
+
+.history-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  background: #f8fafc;
+}
+
+.history-stat span { color: var(--body); font-size: 14px; }
+.history-stat strong { color: var(--ink); font: 700 30px/1 Georgia, Cambria, serif; }
+.history-years { display: grid; gap: 10px; padding: 5px 2px 10px; }
+.history-year-row {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 65px 80px;
+  align-items: center;
+  gap: 12px;
+  color: var(--body);
+  font-size: 14px;
+}
+.history-year { color: var(--ink); font-weight: 600; }
+.history-year-row strong { color: var(--ink); text-align: right; }
+.history-year-row > span:last-child { text-align: right; white-space: nowrap; }
+.history-bar-track { height: 13px; overflow: hidden; border-radius: 3px; background: #e9f0f4; }
+.history-bar-fill { height: 100%; border-radius: 3px; background: var(--teal); }
+.history-coverage .table-note { margin-bottom: 0; }
+
 .ledger-summaries { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 32px; }
 .ledger-summary { background: #f8fafc; min-height: 119px; }
 .ledger-section { margin: 0 0 31px; }
@@ -440,6 +475,10 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
   [role="tablist"] { gap: 0; overflow-x: auto; }
   [data-testid="stTab"] { white-space: nowrap; font-size: 14px; padding: 0 9px; }
   [data-testid="stTab"] p { font-size: 14px !important; }
+  .history-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .history-stat { padding: 14px; }
+  .history-stat strong { font-size: 25px; }
+  .history-year-row { grid-template-columns: 41px minmax(0, 1fr) 43px 57px; gap: 6px; font-size: 12px; }
   .empty-main { margin-top: 28px; margin-bottom: 30px; min-height: 0; }
   .empty-main h1, .event-main h1, .page-title h1 { font-size: 33px; }
   .empty-main p, .event-main p, .page-title p { font-size: 16px; }

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import sqlite3
 import json
+import hashlib
+import sqlite3
 import tempfile
 import unittest
 from datetime import datetime, timezone
@@ -12,6 +13,7 @@ from pathlib import Path
 from ufc_odds_model import db
 from ufc_odds_model.live_logistic import prepare_live_logistic
 from ufc_odds_model.pipeline import score_event
+from tests.test_evaluation import add_card_snapshot
 
 
 AS_OF = datetime(2024, 1, 12, 12, tzinfo=timezone.utc)
@@ -19,6 +21,8 @@ AS_OF = datetime(2024, 1, 12, 12, tzinfo=timezone.utc)
 
 class LiveLogisticTests(unittest.TestCase):
     def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
         self.connection = sqlite3.connect(":memory:")
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA foreign_keys = ON")
@@ -34,6 +38,7 @@ class LiveLogisticTests(unittest.TestCase):
 
     def tearDown(self) -> None:
         self.connection.close()
+        self.temp.cleanup()
 
     def add_card(self, day: int, count: int = 10) -> None:
         date = f"2024-01-{day:02d}"
@@ -52,6 +57,10 @@ class LiveLogisticTests(unittest.TestCase):
             db.upsert_bout(self.connection, bout_id, event_id, a_id, b_id, "completed")
             winner = a_id if (day + number) % 3 else b_id
             db.upsert_result(self.connection, bout_id, "win", winner, f"{date}T23:00:00Z")
+        scheduled_at = f"2024-01-{day - 1:02d}T19:00:00Z" if day > 1 else "2023-12-31T19:00:00Z"
+        completed_at = f"2024-01-{day + 1:02d}T00:00:00Z"
+        add_card_snapshot(self.connection, self.root, event_id, scheduled_at, "scheduled")
+        add_card_snapshot(self.connection, self.root, event_id, completed_at, "completed")
         self.connection.commit()
 
     def add_eligible_history(self) -> None:
@@ -59,9 +68,13 @@ class LiveLogisticTests(unittest.TestCase):
             self.add_card(day)
 
     def add_profile(self, fighter_id: str, observed_at_utc: str, birth_date: str) -> None:
+        payload = f"profile:{fighter_id}:{observed_at_utc}".encode()
+        path = self.root / f"profile-{fighter_id}-{observed_at_utc.replace(':', '-')}.csv"
+        path.write_bytes(payload)
         receipt = self.connection.execute(
             """INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256)
-               VALUES ('fixture-profile', '2024-01-12T12:00:00Z', 'fixture', 'fixture')"""
+               VALUES ('fixture-profile', ?, ?, ?)""",
+            (observed_at_utc, str(path), hashlib.sha256(payload).hexdigest()),
         )
         self.connection.execute(
             """INSERT INTO fighter_profile_observations(
@@ -80,6 +93,9 @@ class LiveLogisticTests(unittest.TestCase):
         self.assertEqual(prepared.training_last_date, "2024-01-08")
         self.assertEqual(prepared.calibration_first_date, "2024-01-09")
         self.assertEqual(prepared.calibration_last_date, "2024-01-11")
+        self.assertEqual(prepared.prior_result_evidence["threshold"], 1.0)
+        self.assertTrue(prepared.prior_result_evidence["training"]["meets_threshold"])
+        self.assertTrue(prepared.prior_result_evidence["calibration"]["meets_threshold"])
         self.assertEqual(prepared.history_before_date, "2024-01-12")
         self.assertTrue(prepared.model_version.startswith("logistic-prior-v2:"))
         self.assertEqual(len(prepared.model_version.split(":")[1]), 16)
@@ -104,9 +120,23 @@ class LiveLogisticTests(unittest.TestCase):
         db.upsert_result(
             self.connection, "bout-02-00", "win", "b-02-00", "2024-01-02T23:00:00Z"
         )
+        add_card_snapshot(
+            self.connection, self.root, "history-02", "2024-01-03T01:00:00Z", "completed"
+        )
         self.connection.commit()
         amended = prepare_live_logistic(self.connection, "target", AS_OF)
         self.assertNotEqual(original.model_version, amended.model_version)
+
+    def test_missing_source_result_snapshot_blocks_live_logistic(self):
+        self.add_eligible_history()
+        receipt = self.connection.execute(
+            """SELECT r.payload_path FROM card_event_snapshots s
+               JOIN ingestion_runs r ON r.run_id = s.ingestion_run_id
+               WHERE s.event_id = 'history-05' AND s.event_status = 'completed'"""
+        ).fetchone()
+        Path(receipt["payload_path"]).write_text("tampered", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "source-observed prior-result history"):
+            prepare_live_logistic(self.connection, "target", AS_OF)
 
     def test_observation_availability_changes_version_only_after_cutoff(self):
         self.add_eligible_history()

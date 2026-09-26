@@ -19,6 +19,8 @@ class OperatorJobStatusTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.database = Path(self.temp.name) / "jobs.sqlite"
+        with db.connect(self.database) as connection:
+            db.init_db(connection)
 
     def test_succeeded_and_failed_source_jobs_are_persisted_without_exception_text(self) -> None:
         with patch.dict(os.environ, {"ODDS_API_KEY": "fixture-key"}), patch(

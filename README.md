@@ -12,7 +12,9 @@ UFC-Prediction-Model/
 │   ├── sql/migrations/                # versioned database schema
 │   ├── db.py                            # SQLite reads and writes
 │   ├── ufcstats.py                      # UFCStats HTML parser
-│   ├── wikipedia_history.py             # bounded research-only result importer
+│   ├── wikipedia_catalog.py             # 15-year event discovery with review rows
+│   ├── wikipedia_embedded.py            # checked cards inside year/season pages
+│   ├── wikipedia_history.py             # research-only completed-result importer
 │   ├── odds_api.py                      # The Odds API client
 │   ├── sportradar.py                    # UFC card/results API adapter
 │   ├── importers.py                     # CSV and UFCStats imports
@@ -21,6 +23,7 @@ UFC-Prediction-Model/
 │   ├── observations.py                  # dated fighter profiles and fight statistics
 │   ├── integrity.py                     # read-only database and payload verification
 │   ├── backup.py                        # SQLite backup, verify, and restore drill
+│   ├── evidence_bundle.py               # portable database, payload, and artifact recovery
 │   ├── jobs.py                          # durable CLI success/failure status
 │   ├── ingest.py                        # match MMA prices to verified UFC bouts
 │   ├── features.py                      # earlier-fight-only feature replay
@@ -38,7 +41,9 @@ UFC-Prediction-Model/
 ├── docs/DASHBOARD_RUNBOOK.md             # dashboard launch and screen guide
 ├── docs/DATA_SOURCE_DECISION.md          # provider rights, cost, and quota review
 ├── docs/WIKIPEDIA_HISTORY_SOURCE.md      # research import limits and identity review
+├── docs/RESEARCH_DATASET_CARD.md          # 2011–2025 import counts, exclusions, and limits
 ├── docs/LOCAL_RUNBOOK.md                 # operator setup and event-day commands
+├── docs/EVIDENCE_BUNDLE.md               # portable evidence archive and recovery drill
 ├── docs/BUILD_ROADMAP.md                 # release milestones and acceptance gates
 ├── docs/LATENCY_POLICY.md                # pre-fight alert safeguards
 ├── docs/UFC_SYSTEM_ARCHITECTURE.drawio    # editable end-to-end workflow
@@ -51,7 +56,9 @@ UFC-Prediction-Model/
 
 SQLite is appropriate for one person's local project, including a serious first version. The SQL schema is committed; the live database, raw data, API key, and reports stay on your machine. If the project later needs several users or concurrent jobs, the repository can move to PostgreSQL without changing the basic table design.
 
-The [system architecture diagram](docs/UFC_SYSTEM_ARCHITECTURE.drawio) opens in diagrams.net; a [full-size PNG preview](docs/UFC_SYSTEM_ARCHITECTURE.png) is also available. The [build roadmap](docs/BUILD_ROADMAP.md) defines design constraints and milestone gates. The [source decision record](docs/DATA_SOURCE_DECISION.md) covers free account limits and historical-price availability. The [local runbook](docs/LOCAL_RUNBOOK.md) has the operating sequence.
+The [system architecture diagram](docs/UFC_SYSTEM_ARCHITECTURE.drawio) opens in diagrams.net; a [full-size PNG preview](docs/UFC_SYSTEM_ARCHITECTURE.png) is also available. The [build roadmap](docs/BUILD_ROADMAP.md) defines design constraints and milestone gates. The [source decision record](docs/DATA_SOURCE_DECISION.md) covers free account limits and historical-price availability. The [research dataset card](docs/RESEARCH_DATASET_CARD.md) records the checked 15-year import: **588 events, 5,763 imported bouts, and 1,542 fighters**. The [local runbook](docs/LOCAL_RUNBOOK.md) has the operating sequence.
+
+An existing database never upgrades as a side effect of another CLI command. Use `ufc-model --db data/ufc.sqlite migrate --backup backups/UNIQUE.sqlite` for a schema upgrade; it verifies the pre-migration backup first. For recovery across machines or paths, use the [portable evidence bundle](docs/EVIDENCE_BUNDLE.md), which includes receipt payloads, model files, and reports alongside SQLite.
 
 ## Run the starter
 
@@ -68,6 +75,12 @@ ufc-model backtest
 ufc-model score-event demo-upcoming
 ```
 
+CI installs from the committed `uv.lock` so runtime dependencies and artifact
+hashes are fixed. To use the same resolved environment locally, install
+`uv==0.12.9` and run `uv sync --frozen --extra dashboard`; prefix commands with
+`uv run --frozen --extra dashboard`. The plain `pip` setup above remains a
+simple way to start a student project.
+
 `seed-demo` creates fictional historical bouts, a fictional upcoming card, and fictional odds. `score-event` defaults to Elo and saves a CSV in `reports/` with a win probability for each fighter, the available quote, its break-even probability, estimated profit per dollar, and a `candidate`/`pass`/`no_quote` decision. A candidate is a model output, **not an instruction to place a bet**.
 
 To view saved evidence in the local web app, install its optional dependency and launch it from the repository root:
@@ -77,7 +90,7 @@ python -m pip install -e '.[dashboard]'
 python -m streamlit run app.py --server.address 127.0.0.1
 ```
 
-The dashboard reads SQLite and optional saved evaluation/integrity reports. It labels fictional, missing, stale, rejected, and superseded evidence and shows recent CLI job status. It cannot import data, retrain a model, send an alert, or place a wager. See the [dashboard runbook](docs/DASHBOARD_RUNBOOK.md) for the four views and optional paths.
+The dashboard reads SQLite and optional saved evaluation/integrity reports. Its Historical data tab shows imported research counts by year. It labels fictional, research-only, missing, stale, rejected, and superseded evidence and shows recent CLI job status. It cannot import data, retrain a model, send an alert, or place a wager. See the [dashboard runbook](docs/DASHBOARD_RUNBOOK.md) for the five views and optional paths.
 
 You can inspect the real SQL database directly:
 
@@ -112,15 +125,19 @@ ufc-model import-ufcstats upcoming --limit 2
 
 UFCStats currently serves a JavaScript browser check to direct Python requests on the development machine, so unattended fetching may fail. The parser has offline fixture tests; the CLI reports a source error instead of treating a blocked response as an empty card. Do not treat UFC or UFCStats pages as permission to build the operational database; [UFC's site terms](https://www.ufc.com/news/terms-use) restrict scraping and database construction. Use a source whose rights have been checked for this project.
 
-For an initial **research-only** historical experiment, the [Wikipedia results importer](docs/WIKIPEDIA_HISTORY_SOURCE.md) can read a bounded set of UFC 295–304 event pages into a separate database with page revision, license, and payload-hash receipts:
+For a **research-only** historical experiment, the [Wikipedia results importer](docs/WIKIPEDIA_HISTORY_SOURCE.md) can read 15 complete calendar years of event catalogs and completed results into a separate database with page revision, license, and payload-hash receipts:
 
 ```bash
-ufc-model --db data/ufc_research.sqlite import-wikipedia-history \
-  --first-event 295 --last-event 304 \
-  --review-out reports/wikipedia_identity_review.json
+ufc-model --db data/ufc_research_2011_2025.sqlite init-db
+ufc-model --db data/ufc_research_2011_2025.sqlite import-wikipedia-years \
+  --first-year 2011 --last-year 2025 \
+  --review-out reports/wikipedia_2011_2025_review.json
+ufc-model --db data/ufc_research_2011_2025.sqlite import-wikipedia-embedded \
+  --first-year 2011 --last-year 2025 \
+  --review-out reports/wikipedia_2011_2025_embedded_review.json
 ```
 
-Review unresolved fighter identities and source results before interpreting the sample. These retrospective pages lack exact pre-fight times, dated roster changes, and historical bookmaker prices. The importer cannot write to the default operating database, and a database containing its research events cannot run `alert-event` or `paper-trade`. This source does not unlock calibrated evaluation or a betting decision workflow on its own.
+Review the catalog exceptions, skipped event pages, unresolved fighter identities, and source results before interpreting the sample. These retrospective pages lack exact pre-fight times, dated roster changes, and historical bookmaker prices. The importer cannot write to the default operating database, and a database containing its research events cannot run `alert-event` or `paper-trade`. This source does not unlock calibrated evaluation or a betting decision workflow on its own.
 
 After upcoming UFC bouts are in the database, get a key from [The Odds API](https://the-odds-api.com/sports/mma-ufc-odds.html) and run:
 
@@ -162,13 +179,15 @@ The importer records the provider's snapshot timestamp, which may be earlier tha
 
 ## How the modeling and betting pieces work
 
-The model forecasts `P(fighter A wins)` from earlier event results. The other fighter's probability is `1 - P(A wins)`. Every report records a UTC cutoff and model version. The event scoring code excludes results from the cutoff date and later, so a historical prediction cannot learn a future fight result.
+The model forecasts `P(fighter A wins)` from earlier event results. The other fighter's probability is `1 - P(A wins)`. Every report records a UTC cutoff and model version. The historical evaluation requires a source-dated pre-decision card snapshot for each target bout, and only replays prior results supported by source-dated completed snapshots available before the cutoff. It reports how many targets were excluded for missing or changed roster evidence. An event date or local import timestamp alone cannot prove what was known before a past decision.
 
 For a two-outcome wager at decimal odds `d`, the simple break-even probability is `1 / d`, and estimated profit per dollar is `p × d - 1`. Quotes older than the configured freshness limit are ignored. The report uses the latest available quote for each bookmaker and fighter, then selects the highest estimated edge for each bout. This calculation assumes the wager either wins or loses; draws, no contests, substitutions, and voids must follow the actual bookmaker's rules.
 
-`ufc-model backtest` predicts completed events from earlier events with Elo. It reports accuracy, Brier score, and log loss. It also simulates flat $1 bets **only** where an event has a known start time and a historical quote captured before the chosen decision cutoff (default: 24 hours before the event). If there are no qualifying historical quotes, betting ROI is `null`; it is never fabricated from current prices. Historical MMA odds are a paid feature of [The Odds API](https://the-odds-api.com/historical-odds-data/).
+`ufc-model backtest` is a **research-only legacy replay** using current roster and result tables. It reports exploratory Elo accuracy, Brier score, log loss, and the count of quote-based candidates, including unresolved draws and no contests. It always returns `null` for betting profit and ROI because this path cannot prove the historical roster and quote receipt at each decision. Use `evaluate` for the source-dated model comparison and the prospective paper ledger for auditable decisions. Historical MMA odds are a paid feature of [The Odds API](https://the-odds-api.com/historical-odds-data/).
 
-`ufc-model evaluate` builds pre-fight features, trains regularized logistic regression on early event dates, calibrates on later validation dates when there are at least 30 validation bouts, and reports Elo/logistic metrics on untouched later dates. When historical two-sided prices exist at the decision cutoff, it adds a no-vig bookmaker baseline with coverage and compares all models on that **same subset**. `--output` saves a timestamped JSON snapshot for the dashboard; the command still prints the evaluation to the terminal. Small validation/test samples are labeled. `ufc-model audit` checks identities, cancellations and likely substitutions, results, event times, invalid/stale quotes, and historical/live price coverage. Resolve errors and review warnings before interpreting model returns.
+`ufc-model evaluate` builds pre-fight features, trains regularized logistic regression on early event dates, calibrates on later validation dates when there are at least 30 validation bouts, and reports Elo/logistic metrics on untouched later dates. It requires intact source-dated card and result snapshots; absent or changed historical rosters are excluded and counted. When historical two-sided prices share the same bookmaker, source, capture time, and market update time at the decision cutoff, it adds a no-vig bookmaker baseline with coverage and compares all models on that **same subset**. `--output` saves a timestamped JSON snapshot for the dashboard; the command still prints the evaluation to the terminal. Small validation/test samples are labeled. `ufc-model audit` checks identities, cancellations and likely substitutions, results, event times, invalid/stale quotes, and historical/live price coverage. Resolve errors and review warnings before interpreting model returns.
+
+The evaluation reports source-observed prior-result coverage for each chronological split. It returns `insufficient_result_evidence` when any split lacks complete source-observed prior history, leaving its metrics exploratory. The live logistic path requires complete training and calibration history plus its sample-size gates. A manually supplied `score-event --as-of` more than five minutes old is marked an unverified historical replay and cannot produce a `candidate` decision.
 
 For an upcoming card, `ufc-model score-event YOUR_EVENT_ID --model logistic` uses a separately calibrated logistic model once the database has at least 100 earlier binary bouts across 10 event dates, including a 30-bout later calibration period. It fails explicitly when history is too small. Its version hashes the training inputs and parameters, and the fitted weights/calibration are saved under ignored `models/`. The fictional demo intentionally fails this history gate. `paper-trade` also accepts `--model logistic`.
 
@@ -204,7 +223,7 @@ An alert candidate must use the just-imported odds snapshot, a recent bookmaker 
 
 ## Next steps for a trustworthy model
 
-1. Obtain a rights-cleared UFC history from a consistent fight-data source, or import reviewed CSVs. The adapters and audits are implemented, but this repository has only fictional demo data until a real source is connected. Verify card completeness, cancellations, substitutions, draws, and no contests. A free Sportradar trial alone does not authorize a betting decision workflow.
+1. Review the imported 2011–2025 Wikipedia history as research data, including catalog exceptions, missing event pages, fighter identities, cancellations, substitutions, draws, and no contests. Obtain a rights-cleared, source-dated UFC history for the operating decision database. A free Sportradar trial alone does not authorize a betting decision workflow.
 2. Add enough **historical** two-sided quotes at a consistent pre-event cutoff for a meaningful model/bookmaker comparison. If historical access is unavailable, save live quotes and build a prospective paper record instead.
 3. Import rights-cleared, dated fighter profiles and per-fight stat observations to populate the implemented age, reach, recent-form, and opponent-adjusted feature path. Review source timestamps and coverage before comparing models.
 4. Review test-set calibration, coverage, bankroll exposure, unsettled fights, and bookmaker-specific settlement rules. A positive small-sample ROI is not evidence of a durable edge.

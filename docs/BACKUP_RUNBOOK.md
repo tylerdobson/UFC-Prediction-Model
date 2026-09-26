@@ -35,11 +35,22 @@ python -m ufc_odds_model.backup create --db data/ufc.sqlite --output "$backup_fi
 python -m ufc_odds_model.backup verify --backup "$backup_file"
 ```
 
-Keep the printed JSON report with the backup, or record its SHA-256 and row counts in the operator log. Keep backups outside Git and restrict access: the database may contain a manual bet ledger. The SQLite file alone does **not** preserve retained raw source payloads, model artifacts, or evaluation reports. Archive those separately with the backup to reproduce a decision and satisfy receipt checks. Never include provider API keys in an archive.
+Keep the printed JSON report with the backup, or record its SHA-256 and row counts in the operator log. Keep backups outside Git and restrict access: the database may contain a manual bet ledger. The SQLite file alone does **not** preserve retained raw source payloads, model artifacts, or evaluation reports. Use the [portable evidence bundle](EVIDENCE_BUNDLE.md) when you need a recoverable copy of those files with the database. Never include provider API keys in an archive.
+
+## Upgrade an existing database
+
+Stop imports, alert checks, settlement commands, and the dashboard before upgrading the project code or schema. Ordinary CLI commands refuse an older schema; `init-db` only initializes a new or empty database. To apply pending migrations, supply a **new** backup path:
+
+```bash
+backup_file="backups/ufc-before-migration-$(date -u +%Y%m%dT%H%M%SZ)-$(uuidgen).sqlite"
+ufc-model --db data/ufc.sqlite migrate --backup "$backup_file"
+```
+
+`migrate` creates a standalone SQLite backup, drills a restore, verifies the published backup, and compares its hash, schema, and table counts before it applies SQL. If creation or verification fails, no migration is applied. The command prints the backup path before applying the migrations so you can recover from a later migration error. Preserve that path and the pre-upgrade code version in the operator log. After success, run the source-integrity check and `ufc-model audit` before event work. A database already at the current schema does not need another backup or migration.
 
 ## Recover to a new path
 
-Stop imports, CLI jobs, and the dashboard before switching databases. Preserve the failed database and its WAL/SHM sidecars together for investigation. Choose the reviewed backup and restore to a **new** path:
+Stop imports, CLI jobs, and the dashboard before switching databases. Preserve the failed database and its WAL/SHM sidecars together for investigation. If a migration failed, use the verified pre-migration backup with the matching older code version. Choose the reviewed backup and restore to a **new** path:
 
 ```bash
 python -m ufc_odds_model.backup verify --backup backups/SELECTED.sqlite
@@ -48,7 +59,7 @@ python -m ufc_odds_model.integrity --db data/ufc-recovered.sqlite
 ufc-model --db data/ufc-recovered.sqlite audit
 ```
 
-If source payload files were archived separately, restore them to the paths recorded in `ingestion_runs` before running the evidence check. Review any integrity or audit issue before operating. Point the CLI to the recovered database with `--db data/ufc-recovered.sqlite` and set `UFC_MODEL_DB=data/ufc-recovered.sqlite` for the dashboard. The restore command will fail if that output path already exists; use another new path. Do not copy a live SQLite main file without its WAL or replace a database while a writer is running.
+If source payload files were archived separately, restore them to the paths recorded in `ingestion_runs` before running the evidence check. A [portable evidence bundle](EVIDENCE_BUNDLE.md) instead recovers payloads into a new directory and rebinds the restored database's receipt paths. Review any integrity or audit issue before operating. Point the CLI to the recovered database with `--db data/ufc-recovered.sqlite` and set `UFC_MODEL_DB=data/ufc-recovered.sqlite` for the dashboard. The restore command will fail if that output path already exists; use another new path. Do not copy a live SQLite main file without its WAL or replace a database while a writer is running.
 
 ## What the drill proves
 

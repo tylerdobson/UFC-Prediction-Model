@@ -87,7 +87,7 @@ REPORT_FIELDS = [
     "prediction_id", "quote_id", "bookmaker", "selection", "decimal_odds",
     "break_even_probability", "model_selection_probability",
     "expected_profit_per_dollar", "quote_captured_at_utc", "decision",
-    "bookmaker_updated_at_utc", "feature_coverage_json",
+    "bookmaker_updated_at_utc", "feature_coverage_json", "history_evidence_status",
 ]
 
 
@@ -105,6 +105,10 @@ def score_event(
     if as_of.tzinfo is None or as_of.utcoffset() is None:
         raise ValueError("Prediction cutoff needs a timezone")
     as_of = as_of.astimezone(timezone.utc)
+    # An old, manually supplied cutoff is a retrospective replay. Its current
+    # result table may contain later corrections, so it cannot create a bet
+    # candidate even if a saved quote makes the arithmetic look attractive.
+    historical_replay = as_of < utc_now() - timedelta(minutes=5)
     event = connection.execute("SELECT * FROM events WHERE event_id = ?", (event_id,)).fetchone()
     if event is None:
         raise ValueError(f"Unknown event: {event_id}")
@@ -147,6 +151,7 @@ def score_event(
             "calibration_first_date": run.calibration_first_date,
             "calibration_last_date": run.calibration_last_date,
             "observation_coverage": run.observation_coverage,
+            "prior_result_evidence": run.prior_result_evidence,
             "coverage_by_bout": run.coverage_by_bout,
         }
         directory = Path(model_dir)
@@ -199,10 +204,14 @@ def score_event(
             "quote_captured_at_utc": quote["captured_at_utc"] if quote else "",
             "bookmaker_updated_at_utc": quote["bookmaker_updated_at_utc"] if quote else "",
             "decision": (
-                "candidate" if quote and quote["expected_profit_per_dollar"] >= min_expected_profit
+                "research_only" if historical_replay and quote
+                else "candidate" if quote and quote["expected_profit_per_dollar"] >= min_expected_profit
                 else "pass" if quote else "no_quote"
             ),
             "feature_coverage_json": coverage_json or "",
+            "history_evidence_status": (
+                "unverified_historical_replay" if historical_replay else "current_cutoff"
+            ),
         }
         report_rows.append(row)
     connection.commit()
@@ -224,7 +233,13 @@ def walk_forward_backtest(
     min_expected_profit: float = 0.03,
     max_quote_age_hours: float = 24.0,
 ) -> dict[str, float | int | None]:
-    """Predict later events; simulate $1 bets only where historical quotes exist."""
+    """Explore date-ordered Elo; returns are unavailable without decision receipts.
+
+    This legacy replay reads today's roster/results and quote rows without a
+    direct quote-to-source-receipt link. Its candidate count is diagnostic,
+    never a verified betting record. Use chronological ``evaluate`` and the
+    prospective paper ledger for decision evidence and returns.
+    """
     events = connection.execute(
         "SELECT event_id, event_date, start_time_utc FROM events WHERE status = 'completed' "
         "ORDER BY event_date, event_id"
@@ -233,7 +248,7 @@ def walk_forward_backtest(
     outcomes: list[int] = []
     skipped_non_binary = 0
     paper_bets = 0
-    paper_profit = 0.0
+    unresolved_paper_bets = 0
     for event in events:
         decision_time = (
             parse_utc(event["start_time_utc"]) - timedelta(hours=decision_hours_before_event)
@@ -253,29 +268,32 @@ def walk_forward_backtest(
             (event["event_id"],),
         ).fetchall()
         for bout in bouts:
+            probability_a = model.probability(bout["fighter_a_id"], bout["fighter_b_id"])
+            # The wager decision must be made before inspecting its result.
+            # Draws and no contests need bookmaker-specific manual settlement.
+            if decision_time:
+                quote = best_quote(connection, bout, probability_a, decision_time, max_quote_age_hours)
+                if quote and quote["expected_profit_per_dollar"] >= min_expected_profit:
+                    paper_bets += 1
+                    if bout["outcome"] != "win":
+                        unresolved_paper_bets += 1
             if bout["outcome"] != "win":
                 skipped_non_binary += 1
                 continue
-            probability_a = model.probability(bout["fighter_a_id"], bout["fighter_b_id"])
             # Some sources list the winner first after a fight. Evaluate against
             # a stable ID order so row orientation cannot reveal the label.
             first_id, second_id = sorted((bout["fighter_a_id"], bout["fighter_b_id"]))
             probabilities.append(model.probability(first_id, second_id))
             outcomes.append(int(bout["winner_fighter_id"] == first_id))
-            if decision_time:
-                quote = best_quote(connection, bout, probability_a, decision_time, max_quote_age_hours)
-                if quote and quote["expected_profit_per_dollar"] >= min_expected_profit:
-                    paper_bets += 1
-                    paper_profit += (
-                        quote["decimal_odds"] - 1.0
-                        if quote["selection_fighter_id"] == bout["winner_fighter_id"]
-                        else -1.0
-                    )
     count = len(outcomes)
     if not count:
-        return {"bouts": 0, "skipped_draw_or_no_contest": skipped_non_binary,
+        return {"status": "research_only", "bouts": 0,
+                "paper_return_unavailable_reason": "unverified_historical_decision_evidence",
+                "skipped_draw_or_no_contest": skipped_non_binary,
                 "accuracy": None, "brier_score": None, "log_loss": None,
-                "paper_bets": 0, "paper_profit_units": None, "paper_roi": None}
+                "paper_bets": paper_bets,
+                "paper_unresolved_bets": unresolved_paper_bets,
+                "paper_profit_units": None, "paper_roi": None}
     brier = sum((p - y) ** 2 for p, y in zip(probabilities, outcomes)) / count
     log_loss = -sum(
         y * math.log(max(min(p, 1 - 1e-15), 1e-15))
@@ -284,12 +302,15 @@ def walk_forward_backtest(
     ) / count
     accuracy = sum(int((p >= 0.5) == bool(y)) for p, y in zip(probabilities, outcomes)) / count
     return {
+        "status": "research_only",
+        "paper_return_unavailable_reason": "unverified_historical_decision_evidence",
         "bouts": count,
         "skipped_draw_or_no_contest": skipped_non_binary,
         "accuracy": round(accuracy, 4),
         "brier_score": round(brier, 4),
         "log_loss": round(log_loss, 4),
         "paper_bets": paper_bets,
-        "paper_profit_units": round(paper_profit, 4) if paper_bets else None,
-        "paper_roi": round(paper_profit / paper_bets, 4) if paper_bets else None,
+        "paper_unresolved_bets": unresolved_paper_bets,
+        "paper_profit_units": None,
+        "paper_roi": None,
     }

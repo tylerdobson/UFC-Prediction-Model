@@ -12,14 +12,19 @@ import math
 import sqlite3
 from datetime import datetime, timedelta
 
-from .features import COVERAGE_NAMES, FeatureRow, event_feature_rows
+from .features import (
+    COVERAGE_NAMES, FeatureRow, event_feature_rows, source_snapshot_available,
+)
 from .logistic import (
     binary_metrics,
     chronological_event_split,
     fit_logistic,
     fit_temperature,
 )
-from .pipeline import parse_utc
+from .pipeline import parse_utc, utc_string
+
+
+MIN_PRIOR_RESULT_EVIDENCE_COVERAGE = 1.0
 
 
 def _split_summary(rows: list[FeatureRow]) -> dict[str, int | str | None]:
@@ -53,27 +58,57 @@ def _observation_coverage(rows: list[FeatureRow]) -> dict[str, object]:
     }
 
 
+def _prior_result_evidence(rows: list[FeatureRow]) -> dict[str, int | float | bool | None]:
+    """Count source-proven prior-result instances used by these examples.
+
+    A completed prior bout contributes once for each target bout that could
+    have used it. This sample-weighted measure matches the model's exposure
+    to history rather than counting each source bout only once.
+    """
+    available = sum(row.prior_result_rows_available for row in rows)
+    observed = sum(row.prior_result_rows_observed or 0 for row in rows)
+    unknown = sum(row.prior_result_rows_observed is None for row in rows)
+    coverage = observed / available if available else None
+    return {
+        "bouts": len(rows),
+        "available_prior_result_instances": available,
+        "observed_prior_result_instances": observed,
+        "unverified_feature_rows": unknown,
+        "coverage": coverage,
+        "meets_threshold": bool(
+            available and not unknown and coverage is not None
+            and coverage >= MIN_PRIOR_RESULT_EVIDENCE_COVERAGE
+        ),
+    }
+
+
 def _point_in_time_rows(
     connection: sqlite3.Connection,
     decision_hours_before_event: float,
-) -> tuple[list[FeatureRow], dict[str, datetime], dict[str, int]]:
+) -> tuple[list[FeatureRow], dict[str, datetime], dict[str, dict[str, int]]]:
     """Build labelled rows with one conservative UTC cutoff per event.
 
     A bout on the decision date may have ended *after* the fixed decision
     time. Without reliable bout start timestamps, history is restricted to
     event dates strictly before the decision date. Events without a start
-    timestamp cannot serve as labelled targets, but their dated results can
-    still inform later events through ``event_feature_rows``.
+    timestamp cannot serve as labelled targets, but their source-observed
+    completed results can still inform later events. A labelled target also
+    needs a retained, pre-decision scheduled-card observation.
     """
     events = connection.execute(
         """
-        SELECT event_id, start_time_utc FROM events
+        SELECT event_id, event_date, start_time_utc FROM events
         WHERE status = 'completed' ORDER BY event_date, event_id
         """
     ).fetchall()
     rows: list[FeatureRow] = []
     decision_times: dict[str, datetime] = {}
-    excluded = {"events": 0, "binary_bouts": 0}
+    excluded = {
+        "missing_start_time": {"events": 0, "binary_bouts": 0},
+        "missing_prefight_snapshot": {"events": 0, "binary_bouts": 0},
+        "roster_mismatch": {"events": 0, "binary_bouts": 0},
+    }
+    receipt_cache: dict[int, bool] = {}
     for event in events:
         event_id = str(event["event_id"])
         results = connection.execute(
@@ -86,20 +121,79 @@ def _point_in_time_rows(
             (event_id,),
         ).fetchall()
         if not event["start_time_utc"]:
-            excluded["events"] += 1
-            excluded["binary_bouts"] += len(results)
+            excluded["missing_start_time"]["events"] += 1
+            excluded["missing_start_time"]["binary_bouts"] += len(results)
             continue
-        decision_time = parse_utc(str(event["start_time_utc"])) - timedelta(
-            hours=decision_hours_before_event
-        )
+        try:
+            start = parse_utc(str(event["start_time_utc"]))
+        except ValueError:
+            excluded["missing_start_time"]["events"] += 1
+            excluded["missing_start_time"]["binary_bouts"] += len(results)
+            continue
+        decision_time = start - timedelta(hours=decision_hours_before_event)
+        # A current completed card cannot prove who was scheduled at the old
+        # decision time. Choose the latest independently timed, intact source
+        # observation available then, and require its schedule to match.
+        snapshots = connection.execute(
+            """SELECT s.*, r.fetched_at_utc, r.payload_path, r.sha256
+               FROM card_event_snapshots s
+               JOIN ingestion_runs r ON r.run_id = s.ingestion_run_id
+               WHERE s.event_id = ? AND s.source_observed_at_utc < ?
+               ORDER BY s.source_observed_at_utc DESC, s.event_snapshot_id DESC""",
+            (event_id, utc_string(decision_time)),
+        ).fetchall()
+        snapshot = next((
+            candidate for candidate in snapshots
+            if source_snapshot_available(candidate, utc_string(decision_time), receipt_cache)
+        ), None)
+        if snapshot is None:
+            excluded["missing_prefight_snapshot"]["events"] += 1
+            excluded["missing_prefight_snapshot"]["binary_bouts"] += len(results)
+            continue
+        try:
+            snapshot_start = (
+                parse_utc(str(snapshot["start_time_utc"]))
+                if snapshot["start_time_utc"] else None
+            )
+        except ValueError:
+            snapshot_start = None
+        if (
+            snapshot["event_status"] != "scheduled"
+            or snapshot["event_date"] != event["event_date"]
+            or snapshot["event_provider_status"] not in (None, "scheduled", "not_started")
+            or snapshot_start != start
+        ):
+            excluded["roster_mismatch"]["events"] += 1
+            excluded["roster_mismatch"]["binary_bouts"] += len(results)
+            continue
+        known_bouts = {
+            str(bout["bout_id"]): bout for bout in connection.execute(
+                "SELECT * FROM card_bout_snapshots WHERE event_snapshot_id = ?",
+                (snapshot["event_snapshot_id"],),
+            )
+        }
         decision_times[event_id] = decision_time
         features_by_bout = {
             row.bout_id: row
             for row in event_feature_rows(
-                connection, event_id, cutoff_at_utc=decision_time
+                connection, event_id, cutoff_at_utc=decision_time,
+                require_result_observations=True, _receipt_cache=receipt_cache,
             )
         }
+        mismatched_bouts = 0
         for result in results:
+            scheduled = known_bouts.get(str(result["bout_id"]))
+            if (
+                scheduled is None
+                or scheduled["bout_status"] != "scheduled"
+                or scheduled["bout_provider_status"] not in (None, "scheduled", "not_started")
+                or scheduled["outcome"] is not None
+                or scheduled["fighter_a_id"] != result["fighter_a_id"]
+                or scheduled["fighter_b_id"] != result["fighter_b_id"]
+            ):
+                excluded["roster_mismatch"]["binary_bouts"] += 1
+                mismatched_bouts += 1
+                continue
             base = features_by_bout.get(result["bout_id"])
             if base is None:
                 raise ValueError(f"Completed result has no scoreable bout: {result['bout_id']}")
@@ -122,8 +216,12 @@ def _point_in_time_rows(
                     features=features,
                     target=int(winner == first_id),
                     coverage=coverage,
+                    prior_result_rows_available=base.prior_result_rows_available,
+                    prior_result_rows_observed=base.prior_result_rows_observed,
                 )
             )
+        if mismatched_bouts:
+            excluded["roster_mismatch"]["events"] += 1
     return rows, decision_times, excluded
 
 
@@ -157,17 +255,16 @@ def _bookmaker_probability(
 ) -> float | None:
     """Return a no-vig probability for the first, canonically ordered fighter.
 
-    The latest available quote for each fighter is selected within each book.
-    A book is usable only when both sides satisfy the same point-in-time and
-    freshness rules. Among usable books, prefer the freshest *older* side so
-    a single fresh side cannot make an old market look current.
+    A book is usable only when both sides share one source, capture time, and
+    bookmaker market update time. Among usable two-sided markets, use the
+    freshest capture that satisfies the point-in-time and freshness rules.
     """
     oldest_allowed = decision_time - timedelta(hours=max_quote_age_hours)
     fighters = {row.fighter_a_id, row.fighter_b_id}
-    latest: dict[tuple[str, str], tuple[datetime, int, float]] = {}
+    markets: dict[tuple[str, str, datetime, datetime], dict[str, set[float]]] = {}
     quotes = connection.execute(
         """
-        SELECT quote_id, bookmaker, selection_fighter_id, decimal_odds,
+        SELECT quote_id, bookmaker, source, selection_fighter_id, decimal_odds,
                captured_at_utc, bookmaker_updated_at_utc
         FROM odds_quotes WHERE bout_id = ? AND market = 'h2h'
         """,
@@ -180,33 +277,34 @@ def _bookmaker_probability(
         captured = parse_utc(quote["captured_at_utc"])
         if not oldest_allowed <= captured <= decision_time:
             continue
-        if quote["bookmaker_updated_at_utc"]:
-            updated = parse_utc(quote["bookmaker_updated_at_utc"])
-            if not oldest_allowed <= updated <= captured:
-                continue
+        if not quote["bookmaker_updated_at_utc"]:
+            continue
+        updated = parse_utc(quote["bookmaker_updated_at_utc"])
+        if not oldest_allowed <= updated <= captured:
+            continue
         odds = float(quote["decimal_odds"])
         if not math.isfinite(odds) or odds <= 1.0:
             continue
-        key = (str(quote["bookmaker"]), str(fighter_id))
-        candidate = (captured, int(quote["quote_id"]), odds)
-        if key not in latest or candidate[:2] > latest[key][:2]:
-            latest[key] = candidate
+        # Both sides must come from the same captured market and update, not
+        # two individually recent but non-contemporaneous prices.
+        key = (str(quote["bookmaker"]), str(quote["source"]), captured, updated)
+        markets.setdefault(key, {}).setdefault(str(fighter_id), set()).add(odds)
 
-    markets: list[tuple[datetime, datetime, str, float]] = []
-    for bookmaker in {key[0] for key in latest}:
-        side_a = latest.get((bookmaker, row.fighter_a_id))
-        side_b = latest.get((bookmaker, row.fighter_b_id))
-        if side_a is None or side_b is None:
+    paired: list[tuple[datetime, datetime, str, float]] = []
+    for (bookmaker, _source, captured, updated), sides in markets.items():
+        side_a = sides.get(row.fighter_a_id, set())
+        side_b = sides.get(row.fighter_b_id, set())
+        if len(side_a) != 1 or len(side_b) != 1:
             continue
-        implied_a = 1.0 / side_a[2]
-        implied_b = 1.0 / side_b[2]
+        implied_a = 1.0 / next(iter(side_a))
+        implied_b = 1.0 / next(iter(side_b))
         probability_a = implied_a / (implied_a + implied_b)
-        markets.append((min(side_a[0], side_b[0]), max(side_a[0], side_b[0]), bookmaker, probability_a))
-    if not markets:
+        paired.append((captured, updated, bookmaker, probability_a))
+    if not paired:
         return None
     # Tie-breaking by book name is deterministic and is unrelated to outcome.
-    markets.sort(key=lambda item: (-item[0].timestamp(), -item[1].timestamp(), item[2]))
-    return markets[0][3]
+    paired.sort(key=lambda item: (-item[0].timestamp(), -item[1].timestamp(), item[2]))
+    return paired[0][3]
 
 
 def evaluate_models(
@@ -226,18 +324,26 @@ def evaluate_models(
     if not math.isfinite(max_quote_age_hours) or max_quote_age_hours <= 0:
         raise ValueError("max_quote_age_hours must be positive and finite")
 
-    rows, decision_times, excluded_missing_start_time = _point_in_time_rows(
+    rows, decision_times, exclusions = _point_in_time_rows(
         connection, decision_hours_before_event
     )
     try:
         train, validation, test = chronological_event_split(rows)
     except ValueError as exc:
+        available_evidence = _prior_result_evidence(rows)
         return {
             "status": "insufficient_history",
             "reason": str(exc),
             "available": _split_summary(rows),
             "observation_coverage": {"available": _observation_coverage(rows)},
-            "excluded_missing_start_time": excluded_missing_start_time,
+            "prior_result_evidence": {
+                "threshold": MIN_PRIOR_RESULT_EVIDENCE_COVERAGE,
+                "available": available_evidence,
+                "promotion_eligible": False,
+            },
+            "excluded_missing_start_time": exclusions["missing_start_time"],
+            "excluded_missing_prefight_snapshot": exclusions["missing_prefight_snapshot"],
+            "excluded_roster_mismatch": exclusions["roster_mismatch"],
             "sample_size_flags": {
                 "fewer_than_three_event_dates": len({row.event_date for row in rows}) < 3,
                 "warning": "There is not enough event history to create separate train, validation, and test periods.",
@@ -265,8 +371,24 @@ def evaluate_models(
             book_outcomes.append(int(row.target))
             book_indices.append(index)
 
+    result_evidence = {
+        "threshold": MIN_PRIOR_RESULT_EVIDENCE_COVERAGE,
+        "train": _prior_result_evidence(train),
+        "validation": _prior_result_evidence(validation),
+        "test": _prior_result_evidence(test),
+    }
+    result_evidence["promotion_eligible"] = all(
+        result_evidence[split]["meets_threshold"]
+        for split in ("train", "validation", "test")
+    )
+    result_evidence["warning"] = (
+        None if result_evidence["promotion_eligible"] else
+        "At least one split lacks complete source-observed prior-result history; "
+        "the reported metrics are exploratory and must not promote the model."
+    )
+
     return {
-        "status": "ok",
+        "status": "ok" if result_evidence["promotion_eligible"] else "insufficient_result_evidence",
         "decision_hours_before_event": decision_hours_before_event,
         "max_quote_age_hours": max_quote_age_hours,
         "feature_history_rule": "results_from_earlier_utc_dates;_dated_observations_strictly_before_exact_decision_utc",
@@ -276,7 +398,10 @@ def evaluate_models(
             "validation": _observation_coverage(validation),
             "test": _observation_coverage(test),
         },
-        "excluded_missing_start_time": excluded_missing_start_time,
+        "prior_result_evidence": result_evidence,
+        "excluded_missing_start_time": exclusions["missing_start_time"],
+        "excluded_missing_prefight_snapshot": exclusions["missing_prefight_snapshot"],
+        "excluded_roster_mismatch": exclusions["roster_mismatch"],
         "split": {
             "train": _split_summary(train),
             "validation": _split_summary(validation),

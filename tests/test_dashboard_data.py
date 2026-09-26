@@ -146,9 +146,74 @@ class DashboardDataTests(unittest.TestCase):
         self.assertEqual(snapshot["paper_ledger"]["summary"]["bets"], 0)
         self.assertEqual(snapshot["manual_ledger"]["summary"]["bets"], 0)
         self.assertEqual(snapshot["evaluation"]["status"], "unavailable")
+        self.assertEqual(snapshot["historical_research"]["events"], 0)
         self.assertEqual(self.path.stat().st_mtime_ns, before)
         self.assertEqual(connection.execute("SELECT COUNT(*) FROM events").fetchone()[0], 0)
         json.dumps(snapshot)
+
+    def test_historical_research_counts_imported_completed_bouts_only(self) -> None:
+        connection = self._connect()
+        for fighter_id in ("one", "two", "three", "four"):
+            db.upsert_fighter(connection, fighter_id, fighter_id.title(),
+                              "wikipedia_research", fighter_id)
+        for event_id, page_id, event_date in (
+            ("old", "1101", "2011-02-05"),
+            ("new", "2501", "2025-11-15"),
+        ):
+            db.upsert_event(connection, event_id, f"UFC {event_id}", event_date,
+                            "completed", source="wikipedia_research",
+                            source_event_id=page_id)
+        for bout_id, event_id, a, b, outcome, winner in (
+            ("old-a", "old", "one", "two", "win", "one"),
+            ("old-b", "old", "three", "four", "draw", None),
+            ("new-a", "new", "one", "three", "no_contest", None),
+        ):
+            db.upsert_bout(connection, bout_id, event_id, a, b, "completed",
+                           source="wikipedia_research", source_bout_id=bout_id)
+            db.upsert_result(connection, bout_id, outcome, winner,
+                             "2026-09-26T15:00:00Z")
+        db.upsert_event(connection, "fixture", "Non-research event", "2025-01-01",
+                        "completed", source="fixture", source_event_id="fixture")
+        db.upsert_bout(connection, "fixture-bout", "fixture", "one", "two",
+                       "completed", source="fixture", source_bout_id="fixture-bout")
+        db.upsert_result(connection, "fixture-bout", "win", "two",
+                         "2026-09-26T15:00:00Z")
+        receipt_id = connection.execute(
+            "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+            "VALUES ('wikipedia_research', ?, ?, ?)",
+            ("2026-09-26T15:00:00Z", str(Path(self.temp.name) / "source.json"), "a" * 64),
+        ).lastrowid
+        connection.execute(
+            """
+            INSERT INTO wikipedia_source_receipts(
+                run_id, event_page_id, event_title, page_url, revision_id,
+                revision_timestamp_utc, license_title, license_url,
+                imported_bouts, skipped_unresolved_bouts
+            ) VALUES (?, 1101, 'UFC old', 'https://en.wikipedia.org/wiki/UFC_old',
+                      123, '2026-09-26T15:00:00Z', 'CC BY-SA 4.0',
+                      'https://creativecommons.org/licenses/by-sa/4.0/', 2, 0)
+            """, (receipt_id,),
+        )
+        connection.commit()
+        before = self.path.stat().st_mtime_ns
+
+        snapshot = load_dashboard(self.path, as_of=self.now)
+        history = snapshot["historical_research"]
+        self.assertEqual(snapshot["status"], "available")
+        self.assertEqual(snapshot["data_origin"], "research_mixed")
+        self.assertEqual((history["events"], history["bouts"], history["results"],
+                          history["fighters"], history["event_page_receipts"]),
+                         (2, 3, 3, 4, 1))
+        self.assertEqual(history["first_date"], "2011-02-05")
+        self.assertEqual(history["last_date"], "2025-11-15")
+        self.assertEqual(history["by_year"], [
+            {"year": "2011", "events": 1, "bouts": 2, "results": 2},
+            {"year": "2025", "events": 1, "bouts": 1, "results": 1},
+        ])
+        self.assertEqual([row["name"] for row in history["recent_events"]],
+                         ["UFC new", "UFC old"])
+        self.assertEqual(self.path.stat().st_mtime_ns, before)
+        json.dumps(snapshot, allow_nan=False)
 
     def test_demo_origin_cannot_be_mistaken_for_real_history(self) -> None:
         connection = self._connect()
@@ -299,7 +364,18 @@ class DashboardDataTests(unittest.TestCase):
             "source_db_path": str(self.path.resolve()),
             "source_db_mtime_ns": self.path.stat().st_mtime_ns,
             "parameters": {"decision_hours_before_event": 24.0, "max_quote_age_hours": 24.0},
-            "evaluation": {"status": "insufficient_history", "split": None, "test": None},
+            "evaluation": {
+                "status": "insufficient_history", "split": None, "test": None,
+                "available": {"bouts": 0},
+                "prior_result_evidence": {
+                    "threshold": 1.0, "promotion_eligible": False,
+                    "available": {
+                        "bouts": 0, "available_prior_result_instances": 0,
+                        "observed_prior_result_instances": 0, "unverified_feature_rows": 0,
+                        "coverage": None, "meets_threshold": False,
+                    },
+                },
+            },
         }
         report.write_text(json.dumps(saved), encoding="utf-8")
         available = load_dashboard(self.path, as_of=self.now, evaluation_report=report)
@@ -346,6 +422,17 @@ class DashboardDataTests(unittest.TestCase):
         ]
         result = {
             "status": "ok",
+            "prior_result_evidence": {
+                "threshold": 1.0, "promotion_eligible": True, "warning": None,
+                **{
+                    name: {
+                        "bouts": 1, "available_prior_result_instances": 1,
+                        "observed_prior_result_instances": 1,
+                        "unverified_feature_rows": 0, "coverage": 1.0,
+                        "meets_threshold": True,
+                    } for name in ("train", "validation", "test")
+                },
+            },
             "split": {
                 "train": {"bouts": 1, "events": 1, "first_date": "2026-01-01", "last_date": "2026-01-01"},
                 "validation": {"bouts": 1, "events": 1, "first_date": "2026-02-01", "last_date": "2026-02-01"},
@@ -385,8 +472,54 @@ class DashboardDataTests(unittest.TestCase):
         invalid = status_for(malformed)
         self.assertEqual(invalid["status"], "invalid_report")
         self.assertNotIn("result", invalid)
-        self.assertEqual(status_for({"status": "insufficient_history", "split": None,
-                                     "test": None})["status"], "insufficient_history")
+        insufficient = {
+            "status": "insufficient_history", "split": None, "test": None,
+            "available": {"bouts": 0},
+            "prior_result_evidence": {
+                "threshold": 1.0, "promotion_eligible": False,
+                "available": {
+                    "bouts": 0, "available_prior_result_instances": 0,
+                    "observed_prior_result_instances": 0, "unverified_feature_rows": 0,
+                    "coverage": None, "meets_threshold": False,
+                },
+            },
+        }
+        self.assertEqual(status_for(insufficient)["status"], "insufficient_history")
+
+        old_ok = json.loads(json.dumps(result))
+        old_ok.pop("prior_result_evidence")
+        self.assertEqual(status_for(old_ok)["status"], "invalid_report")
+
+        exploratory = json.loads(json.dumps(result))
+        exploratory["status"] = "insufficient_result_evidence"
+        evidence = exploratory["prior_result_evidence"]
+        evidence["train"].update(observed_prior_result_instances=0, coverage=0.0,
+                                 meets_threshold=False)
+        evidence["promotion_eligible"] = False
+        evidence["warning"] = "Incomplete source-observed prior results."
+        shown = status_for(exploratory)
+        self.assertEqual(shown["status"], "insufficient_result_evidence")
+        self.assertFalse(shown["result"]["prior_result_evidence"]["train"]["meets_threshold"])
+
+        for changed in (
+            {"observed_prior_result_instances": 2},
+            {"coverage": 0.5},
+            {"meets_threshold": True},
+            {"unverified_feature_rows": 2},
+        ):
+            malformed = json.loads(json.dumps(exploratory))
+            malformed["prior_result_evidence"]["train"].update(changed)
+            self.assertEqual(status_for(malformed)["status"], "invalid_report")
+        for key, value in (("threshold", 0.9), ("promotion_eligible", True)):
+            malformed = json.loads(json.dumps(exploratory))
+            malformed["prior_result_evidence"][key] = value
+            self.assertEqual(status_for(malformed)["status"], "invalid_report")
+        malformed = json.loads(json.dumps(result))
+        malformed["prior_result_evidence"]["test"]["bouts"] = 2
+        self.assertEqual(status_for(malformed)["status"], "invalid_report")
+        malformed = json.loads(json.dumps(exploratory))
+        malformed["status"] = "ok"
+        self.assertEqual(status_for(malformed)["status"], "invalid_report")
 
     def test_corrupt_stored_number_returns_invalid_data_state(self) -> None:
         connection = self._connect()

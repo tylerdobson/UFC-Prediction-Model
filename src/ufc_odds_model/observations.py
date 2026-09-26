@@ -1,9 +1,9 @@
 """Import reviewed, dated fighter observations with immutable raw receipts.
 
-The CSV's ``observed_at_utc`` must be supported by its evidence URI. It is the
-time the source snapshot existed, not the time this local import was run. A
-later import cannot make an observation eligible for an earlier decision unless
-that earlier source snapshot can be independently verified.
+The CSV's ``observed_at_utc`` is a reviewer assertion that must be supported
+by its evidence URI. The importer also retains the actual local receipt time.
+Feature replay requires both times before the decision; this importer has no
+independent historical archive verifier that can promote a later import.
 """
 
 from __future__ import annotations

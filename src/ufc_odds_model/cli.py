@@ -14,6 +14,7 @@ from pathlib import Path
 
 from . import db
 from .alerts import record_prefight_checks
+from .backup import create_backup, verify_backup
 from .integrity import verify_evidence
 from .jobs import TRACKED_COMMANDS, finish_job, start_job
 from .audit import audit_database
@@ -26,14 +27,23 @@ from .pipeline import parse_utc, score_event, utc_now
 from .pipeline import walk_forward_backtest
 from .paper import record_paper_candidates, settle_paper_bets
 from .wagers import record_bet, settle_bet
-from .wikipedia_history import import_wikipedia_history
+from .wikipedia_history import (
+    import_wikipedia_embedded_history, import_wikipedia_history,
+    import_wikipedia_years_history,
+)
 
 
 def make_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="UFC moneyline modeling starter")
     parser.add_argument("--db", default=str(db.DEFAULT_DB), help="SQLite database path")
     subcommands = parser.add_subparsers(dest="command", required=True)
-    subcommands.add_parser("init-db", help="Create the SQLite schema from versioned SQL")
+    subcommands.add_parser("init-db", help="Initialize a new or empty SQLite database")
+    migration = subcommands.add_parser(
+        "migrate", help="Verify a new backup, then apply pending SQL migrations"
+    )
+    migration.add_argument(
+        "--backup", required=True, help="New path for the verified pre-migration SQLite backup"
+    )
     subcommands.add_parser("seed-demo", help="Load fictional fights and example odds")
     subcommands.add_parser("list-events", help="Show stored events")
     csv_import = subcommands.add_parser("import-csv", help="Import events, bouts, and results from CSV")
@@ -68,6 +78,24 @@ def make_parser() -> argparse.ArgumentParser:
     wiki_import.add_argument("--crosswalk", help="Reviewed JSON identities for unlinked fighters")
     wiki_import.add_argument("--review-out", default="reports/wikipedia_identity_review.json")
     wiki_import.add_argument("--raw-dir", default="data/raw/wikipedia")
+    wiki_years = subcommands.add_parser(
+        "import-wikipedia-years",
+        help="Import 2011–2025 UFC result pages into a separate research database",
+    )
+    wiki_years.add_argument("--first-year", type=int, default=2011)
+    wiki_years.add_argument("--last-year", type=int, default=2025)
+    wiki_years.add_argument("--crosswalk", help="Reviewed JSON identities for unlinked fighters")
+    wiki_years.add_argument("--review-out", default="reports/wikipedia_years_identity_review.json")
+    wiki_years.add_argument("--raw-dir", default="data/raw/wikipedia")
+    wiki_embedded = subcommands.add_parser(
+        "import-wikipedia-embedded",
+        help="Import reviewed UFC card sections embedded in Wikipedia summary pages",
+    )
+    wiki_embedded.add_argument("--first-year", type=int, default=2011)
+    wiki_embedded.add_argument("--last-year", type=int, default=2025)
+    wiki_embedded.add_argument("--crosswalk", help="Reviewed JSON identities for unlinked fighters")
+    wiki_embedded.add_argument("--review-out", default="reports/wikipedia_embedded_review.json")
+    wiki_embedded.add_argument("--raw-dir", default="data/raw/wikipedia")
 
     scoring = subcommands.add_parser("score-event", help="Predict one scheduled event")
     scoring.add_argument("event_id")
@@ -219,21 +247,62 @@ def _safe_error_text(error: BaseException) -> str:
     return message
 
 
+def _handle_schema_command(args: argparse.Namespace) -> bool:
+    """Handle explicit schema changes before normal commands open the database."""
+    database_path = Path(args.db).expanduser()
+    if args.command == "init-db":
+        with closing(db.connect(database_path)) as connection:
+            if db.has_migration_table(connection):
+                db.require_current_schema(connection)
+                print(f"Database is already initialized: {database_path}")
+            else:
+                db.init_db(connection)
+                print(f"Initialized {database_path}")
+        return True
+    if args.command != "migrate":
+        return False
+    if not database_path.is_file():
+        raise ValueError(f"Database does not exist: {database_path}; run init-db first")
+    with closing(db.connect(database_path)) as connection:
+        pending = db.pending_migrations(connection)
+    if not pending:
+        print(f"Database schema is already current: {database_path}")
+        return True
+
+    created = create_backup(database_path, args.backup)
+    verified = verify_backup(created["backup_path"])
+    if (not created["ok"] or not verified["ok"]
+            or created["backup_sha256"] != verified["backup_sha256"]
+            or created["schema_sha256"] != verified["schema_sha256"]
+            or created["table_counts"] != verified["table_counts"]):
+        raise ValueError("Pre-migration backup verification did not match the created backup")
+    print(f"Verified pre-migration backup: {created['backup_path']}")
+    with closing(db.connect(database_path)) as connection:
+        if db.pending_migrations(connection) != pending:
+            raise ValueError("Database schema changed during backup; migration was not applied")
+        db.init_db(connection)
+        db.require_current_schema(connection)
+    print(f"Applied {len(pending)} migration(s): {', '.join(pending)}")
+    return True
+
+
 def main(argv: list[str] | None = None) -> int:
     args = make_parser().parse_args(argv)
     job_run_id: int | None = None
     try:
-        if args.command == "import-wikipedia-history" and Path(args.db).resolve() == db.DEFAULT_DB.resolve():
+        if args.command in {"import-wikipedia-history", "import-wikipedia-years", "import-wikipedia-embedded"} and Path(args.db).resolve() == db.DEFAULT_DB.resolve():
             raise ValueError("Use an explicit separate --db path for Wikipedia research history")
+        if _handle_schema_command(args):
+            return 0
+        if not Path(args.db).expanduser().is_file():
+            raise ValueError(f"Database does not exist: {args.db}; run init-db first")
         with closing(db.connect(args.db)) as connection:
-            db.init_db(connection)
+            db.require_current_schema(connection)
             if args.command in TRACKED_COMMANDS:
                 job_run_id = start_job(
                     connection, args.command, getattr(args, "event_id", None)
                 )
-            if args.command == "init-db":
-                print(f"Initialized {args.db}")
-            elif args.command == "seed-demo":
+            if args.command == "seed-demo":
                 event_id = seed_demo(connection)
                 print(f"Loaded fictional demo data. Next: ufc-model score-event {event_id}")
             elif args.command == "list-events":
@@ -266,6 +335,28 @@ def main(argv: list[str] | None = None) -> int:
                     raw_dir=args.raw_dir,
                     review_out=args.review_out,
                     crosswalk_path=args.crosswalk,
+                )
+                print(json.dumps(result, indent=2))
+            elif args.command == "import-wikipedia-years":
+                result = import_wikipedia_years_history(
+                    connection,
+                    args.first_year,
+                    args.last_year,
+                    raw_dir=args.raw_dir,
+                    review_out=args.review_out,
+                    crosswalk_path=args.crosswalk,
+                    progress=lambda message: print(message, file=sys.stderr, flush=True),
+                )
+                print(json.dumps(result, indent=2))
+            elif args.command == "import-wikipedia-embedded":
+                result = import_wikipedia_embedded_history(
+                    connection,
+                    args.first_year,
+                    args.last_year,
+                    raw_dir=args.raw_dir,
+                    review_out=args.review_out,
+                    crosswalk_path=args.crosswalk,
+                    progress=lambda message: print(message, file=sys.stderr, flush=True),
                 )
                 print(json.dumps(result, indent=2))
             elif args.command == "score-event":

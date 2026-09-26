@@ -14,7 +14,10 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from .evaluation import _observation_coverage, _point_in_time_rows
+from .evaluation import (
+    MIN_PRIOR_RESULT_EVIDENCE_COVERAGE, _observation_coverage,
+    _point_in_time_rows, _prior_result_evidence,
+)
 from .features import COVERAGE_NAMES, FEATURE_NAMES, FeatureRow, event_feature_rows
 from .logistic import (
     MODEL_VERSION,
@@ -51,6 +54,7 @@ class LiveLogisticRun:
     calibration_first_date: str
     calibration_last_date: str
     observation_coverage: dict[str, dict[str, object]]
+    prior_result_evidence: dict[str, object]
     coverage_by_bout: dict[str, dict[str, bool]]
 
 
@@ -109,12 +113,14 @@ def _model_version(
         "min_calibration_samples": MIN_VALIDATION_BOUTS,
         "training": [
             (row.bout_id, row.event_id, row.event_date, row.fighter_a_id,
-             row.fighter_b_id, row.features, row.target, row.coverage)
+             row.fighter_b_id, row.features, row.target, row.coverage,
+             row.prior_result_rows_available, row.prior_result_rows_observed)
             for row in training
         ],
         "calibration": [
             (row.bout_id, row.event_id, row.event_date, row.fighter_a_id,
-             row.fighter_b_id, row.features, row.target, row.coverage)
+             row.fighter_b_id, row.features, row.target, row.coverage,
+             row.prior_result_rows_available, row.prior_result_rows_observed)
             for row in validation
         ],
         "target_features": [
@@ -211,6 +217,16 @@ def prepare_live_logistic(
         and historical_starts[row.event_id] < as_of
     ]
     training, validation = _split_for_live(eligible)
+    result_evidence = {
+        "threshold": MIN_PRIOR_RESULT_EVIDENCE_COVERAGE,
+        "training": _prior_result_evidence(training),
+        "calibration": _prior_result_evidence(validation),
+    }
+    if not all(result_evidence[split]["meets_threshold"] for split in ("training", "calibration")):
+        raise ValueError(
+            "Live logistic unavailable: training and calibration need complete "
+            "source-observed prior-result history at their decision cutoffs"
+        )
     model = fit_logistic(training)
     validation_probabilities = [model.predict_probability(row.features) for row in validation]
     calibrator = fit_temperature(
@@ -243,6 +259,7 @@ def prepare_live_logistic(
             "calibration": _observation_coverage(validation),
             "target": _observation_coverage(target_features),
         },
+        prior_result_evidence=result_evidence,
         coverage_by_bout={
             row.bout_id: dict(zip(COVERAGE_NAMES, row.coverage)) for row in target_features
         },

@@ -2,9 +2,12 @@
 
 Fight results are replayed by event date, with all same-date results withheld
 until the next UTC date because individual bout start times are unavailable.
+Historical evaluation also requires a source-dated completed-card observation
+for each admitted result; direct current-card scoring uses the known DB state.
 Optional profile and per-fight stat values require source-dated observations
-strictly before the decision timestamp. Missing values stay neutral and are
-counted in ``FeatureRow.coverage`` rather than filled from current profiles.
+and intact local ingestion receipts strictly before the decision timestamp.
+Missing values stay neutral and are counted in ``FeatureRow.coverage`` rather
+than filled from current profiles.
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ from datetime import date, datetime, timezone
 from itertools import groupby
 from typing import Mapping
 
+from .card_history import _receipt_payload_problem
 from .elo import EloModel
 from .pipeline import parse_utc, utc_string
 
@@ -54,6 +58,8 @@ class FeatureRow:
     features: tuple[float, ...]
     target: int | None = None
     coverage: tuple[bool, bool, bool, bool, bool, bool] = (False,) * 6
+    prior_result_rows_available: int = 0
+    prior_result_rows_observed: int | None = None
 
 
 @dataclass
@@ -80,6 +86,8 @@ class FeatureBuilder:
     def __init__(self) -> None:
         self.elo = EloModel()
         self.history: dict[str, _FighterHistory] = {}
+        self.prior_result_rows_available = 0
+        self.prior_result_rows_observed: int | None = None
 
     def values_with_coverage(
         self, fighter_a_id: str, fighter_b_id: str, event_date: str,
@@ -219,15 +227,44 @@ _COMPLETED_RESULTS = """
 """
 
 
-def _profiles_as_of(connection: sqlite3.Connection, cutoff_at_utc: str) -> dict[str, _Profile]:
+def _intact_receipt(row: sqlite3.Row, receipt_cache: dict[int, bool]) -> bool:
+    receipt_id = int(row["ingestion_run_id"])
+    if receipt_id not in receipt_cache:
+        receipt_cache[receipt_id] = _receipt_payload_problem(
+            str(row["payload_path"]), str(row["sha256"])
+        ) is None
+    return receipt_cache[receipt_id]
+
+
+def _observation_available(
+    row: sqlite3.Row, cutoff: datetime, receipt_cache: dict[int, bool],
+) -> bool:
+    """Require both timestamps before cutoff and an intact local receipt."""
+    try:
+        observed = parse_utc(str(row["observed_at_utc"]))
+        fetched = parse_utc(str(row["fetched_at_utc"]))
+    except (TypeError, ValueError):
+        return False
+    return observed <= fetched < cutoff and _intact_receipt(row, receipt_cache)
+
+
+def _profiles_as_of(
+    connection: sqlite3.Connection, cutoff_at_utc: str, receipt_cache: dict[int, bool],
+) -> dict[str, _Profile]:
+    cutoff = parse_utc(cutoff_at_utc)
     snapshots: dict[str, dict[str, object]] = {}
     times: dict[tuple[str, str], tuple[str, object]] = {}
     for row in connection.execute(
-        """SELECT fighter_id, observed_at_utc, birth_date, reach_cm
-           FROM fighter_profile_observations WHERE observed_at_utc < ?
-           ORDER BY observed_at_utc, source, observation_id""",
-        (cutoff_at_utc,),
+        """SELECT o.fighter_id, o.observed_at_utc, o.birth_date, o.reach_cm,
+                  o.ingestion_run_id, r.fetched_at_utc, r.payload_path, r.sha256
+           FROM fighter_profile_observations o
+           JOIN ingestion_runs r ON r.run_id = o.ingestion_run_id
+           WHERE o.observed_at_utc < ? AND r.fetched_at_utc < ?
+           ORDER BY o.observed_at_utc, o.source, o.observation_id""",
+        (cutoff_at_utc, cutoff_at_utc),
     ):
+        if not _observation_available(row, cutoff, receipt_cache):
+            continue
         fighter_id, observed = str(row["fighter_id"]), str(row["observed_at_utc"])
         for field_name in ("birth_date", "reach_cm"):
             value = row[field_name]
@@ -249,20 +286,27 @@ def _profiles_as_of(connection: sqlite3.Connection, cutoff_at_utc: str) -> dict[
 
 def _stats_as_of(
     connection: sqlite3.Connection, history_before_date: str, cutoff_at_utc: str,
+    receipt_cache: dict[int, bool],
 ) -> dict[tuple[str, str], tuple[int, int]]:
+    cutoff = parse_utc(cutoff_at_utc)
     stats: dict[tuple[str, str], tuple[int, int]] = {}
     times: dict[tuple[str, str], str] = {}
     for row in connection.execute(
         """SELECT s.bout_id, s.fighter_id, s.observed_at_utc,
-                  s.sig_strikes_landed, s.sig_strikes_attempted
+                  s.sig_strikes_landed, s.sig_strikes_attempted,
+                  s.ingestion_run_id, r.fetched_at_utc, r.payload_path, r.sha256
            FROM fight_stat_observations s
+           JOIN ingestion_runs r ON r.run_id = s.ingestion_run_id
            JOIN bouts b ON b.bout_id = s.bout_id
            JOIN events e ON e.event_id = b.event_id
            WHERE e.event_date < ? AND s.observed_at_utc < ?
+             AND r.fetched_at_utc < ?
              AND b.status = 'completed' AND e.status = 'completed'
            ORDER BY s.observed_at_utc, s.source, s.observation_id""",
-        (history_before_date, cutoff_at_utc),
+        (history_before_date, cutoff_at_utc, cutoff_at_utc),
     ):
+        if not _observation_available(row, cutoff, receipt_cache):
+            continue
         key = (str(row["bout_id"]), str(row["fighter_id"]))
         observed = str(row["observed_at_utc"])
         value = (int(row["sig_strikes_landed"]), int(row["sig_strikes_attempted"]))
@@ -273,18 +317,125 @@ def _stats_as_of(
     return stats
 
 
+def source_snapshot_available(
+    snapshot: sqlite3.Row, cutoff_at_utc: str, receipt_cache: dict[int, bool],
+) -> bool:
+    """Accept a pre-cutoff source observation with an intact retained payload.
+
+    The retained payload must have been fetched by the historical cutoff for
+    either basis. A retrospectively entered CSV can assert an older source
+    observation time, but an unverified URL/revision cannot prove that the
+    cited content existed then. Reviewed CSVs also need attribution metadata.
+    """
+    observed_text = snapshot["source_observed_at_utc"]
+    if not observed_text:
+        return False
+    try:
+        observed = parse_utc(str(observed_text))
+        fetched = parse_utc(str(snapshot["fetched_at_utc"]))
+        cutoff = parse_utc(cutoff_at_utc)
+    except (TypeError, ValueError):
+        return False
+    if not observed < cutoff or observed > fetched or fetched >= cutoff:
+        return False
+    basis = snapshot["observation_basis"]
+    if basis == "reviewed_csv":
+        if not all(snapshot[field] for field in (
+            "source_url", "source_revision_id", "license_url", "reviewed_by",
+        )):
+            return False
+    elif basis != "local_fetch":
+        return False
+    return _intact_receipt(snapshot, receipt_cache)
+
+
+def _observed_result_ids(
+    connection: sqlite3.Connection, history_before_date: str,
+    cutoff_at_utc: str, receipt_cache: dict[int, bool],
+) -> set[str]:
+    """Find prior outcomes demonstrably published before this decision.
+
+    The mutable result row and its local import timestamp cannot establish
+    historical availability. A later correction also cannot rewrite an earlier
+    decision: the latest eligible source snapshot must match today's result.
+    """
+    snapshots = connection.execute(
+        """SELECT s.event_id, s.event_date, s.start_time_utc, s.event_status,
+                  s.source_observed_at_utc, s.observation_basis, s.source_url,
+                  s.source_revision_id, s.license_url, s.reviewed_by,
+                  s.ingestion_run_id, r.fetched_at_utc, r.payload_path, r.sha256,
+                  bs.bout_id, bs.fighter_a_id, bs.fighter_b_id, bs.bout_status,
+                  bs.outcome, bs.winner_fighter_id
+           FROM card_bout_snapshots bs
+           JOIN card_event_snapshots s ON s.event_snapshot_id = bs.event_snapshot_id
+           JOIN ingestion_runs r ON r.run_id = s.ingestion_run_id
+           WHERE s.event_date < ? AND s.source_observed_at_utc < ?
+           ORDER BY bs.bout_id, s.source_observed_at_utc DESC,
+                    s.event_snapshot_id DESC""",
+        (history_before_date, cutoff_at_utc),
+    ).fetchall()
+    latest: dict[str, sqlite3.Row] = {}
+    for snapshot in snapshots:
+        bout_id = str(snapshot["bout_id"])
+        if bout_id not in latest and source_snapshot_available(snapshot, cutoff_at_utc, receipt_cache):
+            latest[bout_id] = snapshot
+    if not latest:
+        return set()
+    current = connection.execute(
+        _COMPLETED_RESULTS + " AND e.event_date < ? ORDER BY b.bout_id",
+        (history_before_date,),
+    ).fetchall()
+    eligible: set[str] = set()
+    cutoff = parse_utc(cutoff_at_utc)
+    for result in current:
+        snapshot = latest.get(str(result["bout_id"]))
+        if snapshot is None:
+            continue
+        if snapshot["start_time_utc"]:
+            try:
+                if parse_utc(str(snapshot["start_time_utc"])) >= cutoff:
+                    continue
+            except ValueError:
+                continue
+        if (
+            snapshot["event_id"] == result["event_id"]
+            and snapshot["event_date"] == result["event_date"]
+            and snapshot["event_status"] == "completed"
+            and snapshot["bout_status"] == "completed"
+            and snapshot["fighter_a_id"] == result["fighter_a_id"]
+            and snapshot["fighter_b_id"] == result["fighter_b_id"]
+            and snapshot["outcome"] == result["outcome"]
+            and snapshot["winner_fighter_id"] == result["winner_fighter_id"]
+        ):
+            eligible.add(str(result["bout_id"]))
+    return eligible
+
+
 def _builder_as_of(
     connection: sqlite3.Connection, history_before_date: str, cutoff_at_utc: str,
+    *, require_result_observations: bool = False,
+    receipt_cache: dict[int, bool] | None = None,
 ) -> tuple[FeatureBuilder, dict[str, _Profile]]:
+    cache = receipt_cache if receipt_cache is not None else {}
     prior = connection.execute(
         _COMPLETED_RESULTS + " AND e.event_date < ? ORDER BY e.event_date, e.event_id, b.bout_id",
         (history_before_date,),
     ).fetchall()
-    stats = _stats_as_of(connection, history_before_date, cutoff_at_utc)
+    available_count = sum(row["outcome"] != "no_contest" for row in prior)
+    observed_count: int | None = None
+    if require_result_observations:
+        observed = _observed_result_ids(
+            connection, history_before_date, cutoff_at_utc, cache,
+        )
+        prior = [row for row in prior if str(row["bout_id"]) in observed]
+        observed_count = sum(row["outcome"] != "no_contest" for row in prior)
+    stats = _stats_as_of(connection, history_before_date, cutoff_at_utc, cache)
     builder = FeatureBuilder()
+    builder.prior_result_rows_available = available_count
+    builder.prior_result_rows_observed = observed_count
     for _, date_results in groupby(prior, key=lambda row: row["event_date"]):
         builder.update_group(list(date_results), stats)
-    return builder, _profiles_as_of(connection, cutoff_at_utc)
+    return builder, _profiles_as_of(connection, cutoff_at_utc, cache)
 
 
 def _row(
@@ -292,11 +443,18 @@ def _row(
     event_id: str, event_date: str, a_id: str, b_id: str, target: int | None = None,
 ) -> FeatureRow:
     values, coverage = builder.values_with_coverage(a_id, b_id, event_date, profiles)
-    return FeatureRow(bout_id, event_id, event_date, a_id, b_id, values, target, coverage)
+    return FeatureRow(
+        bout_id, event_id, event_date, a_id, b_id, values, target, coverage,
+        builder.prior_result_rows_available, builder.prior_result_rows_observed,
+    )
 
 
 def training_rows(connection: sqlite3.Connection, before_date: str | None = None) -> list[FeatureRow]:
-    """Return binary examples; rebuild observation eligibility for each date."""
+    """Return exploratory binary rows without proving historical result timing.
+
+    Use ``evaluate_models`` for source-observed historical model claims; this
+    convenience helper alone cannot establish when prior results became known.
+    """
     if before_date is not None:
         date.fromisoformat(before_date)
     query = _COMPLETED_RESULTS
@@ -307,10 +465,13 @@ def training_rows(connection: sqlite3.Connection, before_date: str | None = None
     query += " ORDER BY e.event_date, e.event_id, b.bout_id"
     results = connection.execute(query, params).fetchall()
     examples: list[FeatureRow] = []
+    receipt_cache: dict[int, bool] = {}
     for event_date, date_results in groupby(results, key=lambda row: row["event_date"]):
         # Midnight is conservative when this helper has no event start time.
         cutoff_at_utc = f"{event_date}T00:00:00Z"
-        builder, profiles = _builder_as_of(connection, event_date, cutoff_at_utc)
+        builder, profiles = _builder_as_of(
+            connection, event_date, cutoff_at_utc, receipt_cache=receipt_cache,
+        )
         for result in date_results:
             if result["outcome"] != "win":
                 continue
@@ -328,11 +489,15 @@ def event_feature_rows(
     cutoff_date: str | None = None,
     *,
     cutoff_at_utc: datetime | str | None = None,
+    require_result_observations: bool = False,
+    _receipt_cache: dict[int, bool] | None = None,
 ) -> list[FeatureRow]:
     """Score a card from strictly earlier dates and source observations.
 
     ``cutoff_at_utc`` is the exact decision time. The legacy date-only cutoff
     uses UTC midnight and therefore cannot admit same-day observations.
+    Historical callers must set ``require_result_observations`` to prevent a
+    later result correction from entering their reconstructed feature history.
     """
     event = connection.execute(
         "SELECT event_date FROM events WHERE event_id = ?", (event_id,)
@@ -355,7 +520,11 @@ def event_feature_rows(
             date.fromisoformat(cutoff_date)
         history_before = min(event_date, cutoff_date) if cutoff_date else event_date
         cutoff_str = f"{history_before}T00:00:00Z"
-    builder, profiles = _builder_as_of(connection, history_before, cutoff_str)
+    builder, profiles = _builder_as_of(
+        connection, history_before, cutoff_str,
+        require_result_observations=require_result_observations,
+        receipt_cache=_receipt_cache,
+    )
     bouts = connection.execute(
         """SELECT bout_id, fighter_a_id, fighter_b_id FROM bouts
            WHERE event_id = ? AND status != 'cancelled' ORDER BY bout_id""",

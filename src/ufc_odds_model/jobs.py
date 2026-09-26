@@ -9,7 +9,8 @@ from .pipeline import utc_now, utc_string
 
 TRACKED_COMMANDS = frozenset({
     "import-csv", "import-profile-observations", "import-fight-stat-observations",
-    "import-ufcstats", "import-wikipedia-history", "import-odds",
+    "import-ufcstats", "import-wikipedia-history", "import-wikipedia-years",
+    "import-wikipedia-embedded", "import-odds",
     "import-historical-odds", "import-sportradar", "alert-event",
     "paper-trade", "settle-paper",
 })

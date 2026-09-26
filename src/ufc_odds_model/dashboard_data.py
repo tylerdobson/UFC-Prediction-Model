@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, TypedDict
 
 from .audit import audit_database
+from .evaluation import MIN_PRIOR_RESULT_EVIDENCE_COVERAGE
 from .features import COVERAGE_NAMES
 from .integrity import database_file_state
 from .pipeline import utc_string
@@ -76,12 +77,26 @@ class EventView(TypedDict):
     bouts: list[BoutView]
 
 
+class HistoricalResearchView(TypedDict):
+    source: str
+    events: int
+    bouts: int
+    results: int
+    fighters: int
+    event_page_receipts: int
+    first_date: str | None
+    last_date: str | None
+    by_year: list[dict[str, Any]]
+    recent_events: list[dict[str, Any]]
+
+
 class DashboardView(TypedDict):
     status: str
     reason: str | None
     data_origin: str
     as_of_utc: str
     upcoming_events: list[EventView]
+    historical_research: HistoricalResearchView
     quality: dict[str, Any]
     ingestion_runs: list[dict[str, Any]]
     job_runs: list[dict[str, Any]]
@@ -140,6 +155,15 @@ def _empty_ledger() -> dict[str, Any]:
     }
 
 
+def _empty_historical_research() -> HistoricalResearchView:
+    return {
+        "source": "wikipedia_research", "events": 0, "bouts": 0,
+        "results": 0, "fighters": 0, "event_page_receipts": 0,
+        "first_date": None, "last_date": None, "by_year": [],
+        "recent_events": [],
+    }
+
+
 def _empty_view(as_of: datetime, status: str, reason: str) -> DashboardView:
     return {
         "status": status,
@@ -147,6 +171,7 @@ def _empty_view(as_of: datetime, status: str, reason: str) -> DashboardView:
         "data_origin": "empty",
         "as_of_utc": utc_string(as_of),
         "upcoming_events": [],
+        "historical_research": _empty_historical_research(),
         "quality": {"status": "unavailable", "ok": None, "summary": {}, "issues": [], "reason": reason},
         "ingestion_runs": [],
         "job_runs": [],
@@ -429,6 +454,100 @@ def _latest_gate_check(
     }
 
 
+def _historical_research(
+    connection: sqlite3.Connection, as_of: datetime, *, has_receipts: bool,
+) -> HistoricalResearchView:
+    """Summarize imported research bouts without mixing in demo or live records.
+
+    Annual rows and recent events are bounded for dashboard display. The four
+    totals are computed over the full eligible population, so they reconcile
+    independently of those display limits.
+    """
+    result = _empty_historical_research()
+    cutoff_date = as_of.date().isoformat()
+    counts = connection.execute(
+        """
+        SELECT COUNT(DISTINCT e.event_id) AS events,
+               COUNT(b.bout_id) AS bouts,
+               COUNT(r.bout_id) AS results,
+               MIN(e.event_date) AS first_date,
+               MAX(e.event_date) AS last_date
+        FROM events AS e
+        LEFT JOIN bouts AS b ON b.event_id = e.event_id
+            AND b.source = 'wikipedia_research' AND b.status = 'completed'
+        LEFT JOIN results AS r ON r.bout_id = b.bout_id
+        WHERE e.source = 'wikipedia_research' AND e.status = 'completed'
+          AND e.event_date <= ?
+        """, (cutoff_date,),
+    ).fetchone()
+    result.update(
+        events=int(counts["events"]), bouts=int(counts["bouts"]),
+        results=int(counts["results"]),
+        first_date=counts["first_date"], last_date=counts["last_date"],
+    )
+    result["fighters"] = int(connection.execute(
+        """
+        SELECT COUNT(*) FROM (
+            SELECT b.fighter_a_id AS fighter_id FROM bouts AS b
+            JOIN events AS e ON e.event_id = b.event_id
+            WHERE e.source = 'wikipedia_research' AND e.status = 'completed'
+              AND e.event_date <= ? AND b.source = 'wikipedia_research'
+              AND b.status = 'completed'
+            UNION
+            SELECT b.fighter_b_id AS fighter_id FROM bouts AS b
+            JOIN events AS e ON e.event_id = b.event_id
+            WHERE e.source = 'wikipedia_research' AND e.status = 'completed'
+              AND e.event_date <= ? AND b.source = 'wikipedia_research'
+              AND b.status = 'completed'
+        )
+        """, (cutoff_date, cutoff_date),
+    ).fetchone()[0])
+    if has_receipts:
+        result["event_page_receipts"] = int(connection.execute(
+            """
+            SELECT COUNT(DISTINCT wr.event_page_id)
+            FROM wikipedia_source_receipts AS wr
+            JOIN events AS e ON e.source = 'wikipedia_research'
+                AND CAST(SUBSTR(
+                    e.source_event_id, 1,
+                    INSTR(e.source_event_id || ':', ':') - 1
+                ) AS INTEGER) = wr.event_page_id
+            WHERE e.status = 'completed' AND e.event_date <= ?
+            """, (cutoff_date,),
+        ).fetchone()[0])
+    result["by_year"] = [dict(row) for row in connection.execute(
+        """
+        SELECT SUBSTR(e.event_date, 1, 4) AS year,
+               COUNT(DISTINCT e.event_id) AS events,
+               COUNT(b.bout_id) AS bouts,
+               COUNT(r.bout_id) AS results
+        FROM events AS e
+        LEFT JOIN bouts AS b ON b.event_id = e.event_id
+            AND b.source = 'wikipedia_research' AND b.status = 'completed'
+        LEFT JOIN results AS r ON r.bout_id = b.bout_id
+        WHERE e.source = 'wikipedia_research' AND e.status = 'completed'
+          AND e.event_date <= ?
+        GROUP BY SUBSTR(e.event_date, 1, 4)
+        ORDER BY year DESC LIMIT 100
+        """, (cutoff_date,),
+    )][::-1]
+    result["recent_events"] = [dict(row) for row in connection.execute(
+        """
+        SELECT e.event_id, e.name, e.event_date,
+               COUNT(b.bout_id) AS bouts, COUNT(r.bout_id) AS results
+        FROM events AS e
+        LEFT JOIN bouts AS b ON b.event_id = e.event_id
+            AND b.source = 'wikipedia_research' AND b.status = 'completed'
+        LEFT JOIN results AS r ON r.bout_id = b.bout_id
+        WHERE e.source = 'wikipedia_research' AND e.status = 'completed'
+          AND e.event_date <= ?
+        GROUP BY e.event_id
+        ORDER BY e.event_date DESC, e.event_id DESC LIMIT 12
+        """, (cutoff_date,),
+    )]
+    return result
+
+
 def _upcoming_events(
     connection: sqlite3.Connection, as_of: datetime, event_limit: int,
     max_age_seconds: int,
@@ -651,11 +770,72 @@ def _valid_calibration_bins(value: object, expected_bouts: int) -> bool:
     return total == expected_bouts
 
 
+def _valid_prior_result_split(value: object, expected_bouts: int, threshold: float) -> bool:
+    if not isinstance(value, dict) or value.get("bouts") != expected_bouts or not _nonnegative_int(value.get("bouts")):
+        return False
+    keys = ("available_prior_result_instances", "observed_prior_result_instances",
+            "unverified_feature_rows")
+    if not all(_nonnegative_int(value.get(key)) for key in keys):
+        return False
+    available = value["available_prior_result_instances"]
+    observed = value["observed_prior_result_instances"]
+    unknown = value["unverified_feature_rows"]
+    if observed > available or unknown > expected_bouts:
+        return False
+    expected_coverage = observed / available if available else None
+    coverage = value.get("coverage")
+    if expected_coverage is None:
+        if coverage is not None:
+            return False
+    elif (_report_number(coverage) is None or not 0 <= coverage <= 1
+          or not math.isclose(coverage, expected_coverage, rel_tol=0, abs_tol=1e-12)):
+        return False
+    meets = bool(available and unknown == 0 and expected_coverage is not None
+                 and expected_coverage >= threshold)
+    return type(value.get("meets_threshold")) is bool and value["meets_threshold"] == meets
+
+
+def _valid_prior_result_evidence(
+    value: object, split_bouts: dict[str, int] | None, status: str,
+    *, available_bouts: int | None = None,
+) -> bool:
+    if not isinstance(value, dict):
+        return False
+    threshold = _report_number(value.get("threshold"))
+    if threshold is None or not math.isclose(
+        threshold, MIN_PRIOR_RESULT_EVIDENCE_COVERAGE, rel_tol=0, abs_tol=1e-12
+    ):
+        return False
+    if type(value.get("promotion_eligible")) is not bool:
+        return False
+    if split_bouts is None:
+        return (status == "insufficient_history" and value["promotion_eligible"] is False
+                and available_bouts is not None
+                and _valid_prior_result_split(value.get("available"), available_bouts, threshold))
+    if not all(_valid_prior_result_split(value.get(name), bouts, threshold)
+               for name, bouts in split_bouts.items()):
+        return False
+    promoted = all(value[name]["meets_threshold"] for name in split_bouts)
+    if value["promotion_eligible"] != promoted:
+        return False
+    if status != ("ok" if promoted else "insufficient_result_evidence"):
+        return False
+    warning = value.get("warning")
+    return warning is None if promoted else isinstance(warning, str) and bool(warning.strip())
+
+
 def _valid_evaluation_result(result: dict[str, Any]) -> bool:
     """Check the saved metric schema before exposing a report as evidence."""
     if result.get("status") == "insufficient_history":
-        return result.get("split") is None and result.get("test") is None
-    if result.get("status") != "ok":
+        available = result.get("available")
+        return (result.get("split") is None and result.get("test") is None
+                and isinstance(available, dict)
+                and _nonnegative_int(available.get("bouts"))
+                and _valid_prior_result_evidence(
+                    result.get("prior_result_evidence"), None, "insufficient_history",
+                    available_bouts=available["bouts"],
+                ))
+    if result.get("status") not in {"ok", "insufficient_result_evidence"}:
         return False
     splits = result.get("split")
     calibration = result.get("calibration")
@@ -680,6 +860,11 @@ def _valid_evaluation_result(result: dict[str, Any]) -> bool:
     if summaries["train"]["last_date"] >= summaries["validation"]["first_date"]:
         return False
     if summaries["validation"]["last_date"] >= summaries["test"]["first_date"]:
+        return False
+    if not _valid_prior_result_evidence(
+        result.get("prior_result_evidence"),
+        {name: summaries[name]["bouts"] for name in summaries}, result["status"],
+    ):
         return False
     if (calibration.get("method") != "symmetric_temperature"
             or calibration.get("validation_bouts") != summaries["validation"]["bouts"]
@@ -730,7 +915,7 @@ def _evaluation_report(
     source_mtime = saved.get("source_db_mtime_ns")
     if (saved.get("schema_version") != 1 or generated_at is None
             or not isinstance(result, dict)
-            or result.get("status") not in {"ok", "insufficient_history"}
+            or result.get("status") not in {"ok", "insufficient_history", "insufficient_result_evidence"}
             or not isinstance(saved.get("parameters"), dict)
             or (source_mtime is not None and (not isinstance(source_mtime, int)
                                                or isinstance(source_mtime, bool)
@@ -775,7 +960,7 @@ def _evaluation_report(
         return {"status": "unavailable", "reason": "Database file changed or became inaccessible during report check."}
     return {
         "status": "possibly_stale" if possibly_stale else (
-            "available" if result["status"] == "ok" else "insufficient_history"
+            "available" if result["status"] == "ok" else result["status"]
         ),
         "reason": "Database changed after this report; rerun evaluation to confirm it." if possibly_stale else None,
         "generated_at_utc": saved["generated_at_utc"],
@@ -960,6 +1145,9 @@ def load_dashboard(
                 "data_origin": origin,
                 "as_of_utc": utc_string(as_of),
                 "upcoming_events": _upcoming_events(connection, as_of, event_limit, max_age_seconds),
+                "historical_research": _historical_research(
+                    connection, as_of, has_receipts="wikipedia_source_receipts" in tables,
+                ),
                 "quality": quality,
                 "ingestion_runs": ingestion,
                 "job_runs": _job_runs(connection, as_of),

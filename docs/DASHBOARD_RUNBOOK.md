@@ -29,6 +29,7 @@ These paths are read on the server only. Keep the SQLite database, saved reports
 ## What each view means
 
 - **Upcoming card:** displays stored UFC bouts, fighter IDs, latest stored predictions, observed quotes, quote age, and the adapter's availability reason. The source and model evidence panel shows the six optional dated inputs for each logistic prediction. A saved alert check is historical evidence; the dashboard compares its roster snapshot with the latest stored matchup and labels a changed roster. This does not prove that the market is still executable. Use the CLI pre-fight gate at the decision time.
+- **Historical data:** displays the completed Wikipedia research database's imported events, bouts, fighters, results, annual totals, recent cards, and distinct source-page receipts. It labels this history research-only. The [dataset card](RESEARCH_DATASET_CARD.md) measures unresolved fighter rows and the excluded event-date conflicts; the UI counts only imported bouts, not every row visible in a source table.
 - **Model evidence:** displays a saved chronological evaluation from `reports/evaluation.json` when present, plus optional dated-input coverage for upcoming predictions. Missing, invalid, insufficient-history, and possibly stale reports are labelled. The dashboard does not evaluate models on page load.
 - **Data quality:** displays ingestion receipts, the ten most recent operator jobs including failed or still-started jobs, current database audit issues, price coverage, and the last saved source-integrity check. Job rows contain only an error category, never a provider response. Run `python -m ufc_odds_model.integrity --db data/ufc.sqlite --output reports/integrity.json` before an event; the dashboard labels an absent, expired, failed, different-database, or database-changed check. The checker records both the main SQLite file and any nonempty write-ahead log so later WAL-only writes make its result stale. A saved receipt alone does not prove the payload remains intact.
 - **Ledgers:** displays capped simulated paper decisions and separately recorded actual wagers. Paper rows say whether a roster snapshot was recorded at the gate; older rows without one are labelled legacy/unverified. The dashboard cannot write either ledger. Binary results may settle automatically in the CLI; nonbinary and unresolved cases need review.
@@ -38,7 +39,7 @@ The page is a snapshot, not a live market feed. Refresh it to see later stored r
 
 ## Local smoke check
 
-After installation, run the app and verify all four tabs. With an empty database, each view should show unavailable or no-entry states. With `data/demo.sqlite`, the dashboard must label demo data, and it must not show an executable wager. In a second terminal, the Streamlit health endpoint should return `ok`:
+After installation, run the app and verify all five tabs. With an empty database, each view should show unavailable or no-entry states. With `data/demo.sqlite`, the dashboard must label demo data, and it must not show an executable wager. Set `UFC_MODEL_DB=data/ufc_research_2011_2025.sqlite` to inspect the real research history; the Historical data tab should show its counts while Upcoming card remains unavailable. In a second terminal, the Streamlit health endpoint should return `ok`:
 
 ```bash
 curl -fsS http://127.0.0.1:8501/_stcore/health

@@ -19,6 +19,8 @@ class EvaluationReportTests(unittest.TestCase):
             root = Path(temporary)
             database = root / "ufc.sqlite"
             report = root / "reports" / "evaluation.json"
+            with redirect_stdout(io.StringIO()):
+                self.assertEqual(main(["--db", str(database), "init-db"]), 0)
             with redirect_stdout(io.StringIO()) as output:
                 status = main([
                     "--db", str(database),
@@ -42,6 +44,7 @@ class EvaluationReportTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             database = Path(temporary) / "ufc.sqlite"
             with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                self.assertEqual(main(["--db", str(database), "init-db"]), 0)
                 status = main([
                     "--db", str(database), "evaluate", "--output", str(database)
                 ])

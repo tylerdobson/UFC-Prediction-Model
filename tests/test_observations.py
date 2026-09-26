@@ -7,6 +7,7 @@ import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from ufc_odds_model import db
 from ufc_odds_model.features import FEATURE_NAMES, event_feature_rows, training_rows
@@ -14,6 +15,7 @@ from ufc_odds_model.observations import (
     import_fight_stat_observations_csv,
     import_profile_observations_csv,
 )
+from ufc_odds_model.pipeline import parse_utc
 
 
 LICENSE = "https://example.test/permission/reviewed-research"
@@ -60,26 +62,40 @@ class ObservationTests(unittest.TestCase):
             writer.writerows(rows)
         return path
 
-    def profiles(self, rows: list[dict], name: str = "profiles.csv") -> int:
+    def profiles(
+        self, rows: list[dict], name: str = "profiles.csv",
+        captured_at: str | None = None,
+    ) -> int:
         path = self._csv(
             name,
             ["fighter_id", "observed_at_utc", "source_evidence_uri", "birth_date", "reach_cm"],
             [{"source_evidence_uri": EVIDENCE, **row} for row in rows],
         )
-        return import_profile_observations_csv(
-            self.connection, path, "reviewed-archive", LICENSE, self.root / "raw-profiles",
+        captured = parse_utc(captured_at) if captured_at else max(
+            parse_utc(row["observed_at_utc"]) for row in rows
         )
+        with patch("ufc_odds_model.observations.utc_now", return_value=captured):
+            return import_profile_observations_csv(
+                self.connection, path, "reviewed-archive", LICENSE, self.root / "raw-profiles",
+            )
 
-    def stats(self, rows: list[dict], name: str = "stats.csv") -> int:
+    def stats(
+        self, rows: list[dict], name: str = "stats.csv",
+        captured_at: str | None = None,
+    ) -> int:
         path = self._csv(
             name,
             ["bout_id", "fighter_id", "observed_at_utc", "source_evidence_uri",
              "sig_strikes_landed", "sig_strikes_attempted"],
             [{"source_evidence_uri": EVIDENCE, **row} for row in rows],
         )
-        return import_fight_stat_observations_csv(
-            self.connection, path, "reviewed-archive", LICENSE, self.root / "raw-stats",
+        captured = parse_utc(captured_at) if captured_at else max(
+            parse_utc(row["observed_at_utc"]) for row in rows
         )
+        with patch("ufc_odds_model.observations.utc_now", return_value=captured):
+            return import_fight_stat_observations_csv(
+                self.connection, path, "reviewed-archive", LICENSE, self.root / "raw-stats",
+            )
 
     def test_source_timestamps_gate_age_reach_and_missingness(self):
         self.profiles([
@@ -184,6 +200,64 @@ class ObservationTests(unittest.TestCase):
         by_bout = {row.bout_id: row for row in training_rows(self.connection)}
         self.assertEqual(by_bout["ab"].coverage[:4], (False,) * 4)
         self.assertEqual(by_bout["ac"].coverage[:4], (True,) * 4)
+
+    def test_late_csv_receipts_cannot_backdate_profiles_or_fight_stats(self):
+        self.profiles([
+            {"fighter_id": "a", "observed_at_utc": "2024-01-05T00:00:00Z",
+             "birth_date": "1990-04-01", "reach_cm": "180"},
+            {"fighter_id": "c", "observed_at_utc": "2024-01-05T00:00:00Z",
+             "birth_date": "1995-05-01", "reach_cm": "190"},
+        ], captured_at="2024-01-15T12:00:00Z")
+        self.stats([
+            {"bout_id": "ab", "fighter_id": "a", "observed_at_utc": "2024-01-02T01:00:00Z",
+             "sig_strikes_landed": "70", "sig_strikes_attempted": "100"},
+            {"bout_id": "ab", "fighter_id": "b", "observed_at_utc": "2024-01-02T01:00:00Z",
+             "sig_strikes_landed": "20", "sig_strikes_attempted": "80"},
+        ], captured_at="2024-01-15T12:00:00Z")
+        historical = event_feature_rows(
+            self.connection, "e3", cutoff_at_utc="2024-01-12T12:00:00Z",
+        )[0]
+        self.assertEqual(historical.coverage, (False,) * 6)
+        training = {row.bout_id: row for row in training_rows(self.connection)}
+        self.assertEqual(training["ac"].coverage[:4], (False,) * 4)
+        current = event_feature_rows(
+            self.connection, "e3", cutoff_at_utc="2024-01-16T12:00:00Z",
+        )[0]
+        self.assertEqual(current.coverage[:4], (False, True, False, True))
+        self.assertEqual(current.coverage[4:], (True, False))
+
+    def test_missing_or_changed_observation_receipts_remove_features(self):
+        self.profiles([
+            {"fighter_id": "b", "observed_at_utc": "2024-01-05T00:00:00Z",
+             "birth_date": "1990-04-01", "reach_cm": "180"},
+            {"fighter_id": "c", "observed_at_utc": "2024-01-05T00:00:00Z",
+             "birth_date": "1995-05-01", "reach_cm": "190"},
+        ])
+        self.stats([
+            {"bout_id": "ab", "fighter_id": "a", "observed_at_utc": "2024-01-02T01:00:00Z",
+             "sig_strikes_landed": "70", "sig_strikes_attempted": "100"},
+            {"bout_id": "ab", "fighter_id": "b", "observed_at_utc": "2024-01-02T01:00:00Z",
+             "sig_strikes_landed": "20", "sig_strikes_attempted": "80"},
+        ])
+        before = event_feature_rows(
+            self.connection, "e3", cutoff_at_utc="2024-01-12T12:00:00Z",
+        )[0]
+        self.assertEqual(before.coverage, (True, True, True, True, True, False))
+        receipts = self.connection.execute(
+            """SELECT source, payload_path FROM ingestion_runs
+               WHERE source LIKE 'reviewed-profile-csv:%'
+                  OR source LIKE 'reviewed-fight-stats-csv:%'"""
+        ).fetchall()
+        for receipt in receipts:
+            path = Path(receipt["payload_path"])
+            if receipt["source"].startswith("reviewed-profile-csv:"):
+                path.write_bytes(b"changed profile source")
+            else:
+                path.unlink()
+        after = event_feature_rows(
+            self.connection, "e3", cutoff_at_utc="2024-01-12T12:00:00Z",
+        )[0]
+        self.assertEqual(after.coverage, (False,) * 6)
 
     def test_import_replay_receipts_and_immutability(self):
         rows = [{"fighter_id": "b", "observed_at_utc": "2024-01-05T00:00:00Z",

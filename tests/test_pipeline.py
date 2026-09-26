@@ -9,7 +9,7 @@ from pathlib import Path
 
 from ufc_odds_model import db
 from ufc_odds_model.demo import seed_demo
-from ufc_odds_model.pipeline import score_event, utc_string, walk_forward_backtest
+from ufc_odds_model.pipeline import score_event, utc_now, utc_string, walk_forward_backtest
 
 
 class PipelineTests(unittest.TestCase):
@@ -41,6 +41,19 @@ class PipelineTests(unittest.TestCase):
         _, after = score_event(self.connection, "demo-upcoming", self.now, self.root / "reports")
         self.assertEqual(after[0]["p_fighter_a"], probability)
 
+    def test_retrospective_score_never_marks_old_quote_as_candidate(self):
+        with db.connect(self.root / "retrospective.sqlite") as connection:
+            db.init_db(connection)
+            today = utc_now()
+            seed_demo(connection, today)
+            cutoff = today - timedelta(days=1)
+            db.add_quote(connection, "demo-upcoming-1", "old-book", "demo-a", 4.0,
+                         utc_string(cutoff - timedelta(minutes=1)), "test")
+            _, rows = score_event(connection, "demo-upcoming", cutoff, self.root / "old-reports")
+        self.assertTrue(all(row["history_evidence_status"] == "unverified_historical_replay"
+                            for row in rows))
+        self.assertTrue(all(row["decision"] != "candidate" for row in rows))
+
     def test_backtest_rejects_quotes_after_decision_time(self):
         event = self.connection.execute(
             "SELECT start_time_utc FROM events WHERE event_id = 'demo-past-6'"
@@ -59,7 +72,28 @@ class PipelineTests(unittest.TestCase):
         self.connection.commit()
         result = walk_forward_backtest(self.connection)
         self.assertEqual(result["paper_bets"], 1)
-        self.assertEqual(result["paper_profit_units"], 2.0)
+        self.assertEqual(result["status"], "research_only")
+        self.assertEqual(result["paper_return_unavailable_reason"], "unverified_historical_decision_evidence")
+        self.assertIsNone(result["paper_profit_units"])
+        self.assertIsNone(result["paper_roi"])
+
+    def test_backtest_keeps_draw_candidate_unresolved_instead_of_omitting_it(self):
+        event_day = self.now.date() - timedelta(days=1)
+        start = datetime.combine(event_day, datetime.min.time(), tzinfo=timezone.utc)
+        start = start.replace(hour=20)
+        db.upsert_event(
+            self.connection, "draw-event", "Draw event", event_day.isoformat(),
+            "completed", start_time_utc=utc_string(start),
+        )
+        db.upsert_bout(self.connection, "draw-bout", "draw-event", "demo-a", "demo-b", "completed")
+        db.upsert_result(self.connection, "draw-bout", "draw", None, utc_string(start + timedelta(hours=4)))
+        db.add_quote(self.connection, "draw-bout", "draw-book", "demo-a", 4.0,
+                     utc_string(start - timedelta(hours=25)), "test")
+        result = walk_forward_backtest(self.connection)
+        self.assertEqual(result["paper_bets"], 1)
+        self.assertEqual(result["paper_unresolved_bets"], 1)
+        self.assertIsNone(result["paper_profit_units"])
+        self.assertIsNone(result["paper_roi"])
 
     def test_live_logistic_does_not_score_tiny_demo_history(self):
         with self.assertRaisesRegex(ValueError, "need at least 100 earlier binary bouts"):

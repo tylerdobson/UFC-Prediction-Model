@@ -21,12 +21,13 @@ The local Streamlit prototype is now implemented in `app.py` with a read-only SQ
 
 ```mermaid
 flowchart LR
-  SR[Sportradar MMA<br/>cards and results] --> RAW[Raw dated snapshots]
-  ODDS[The Odds API<br/>live and historical prices] --> RAW
+  RIGHTS{Fight-history rights<br/>and timestamp review} --> SOURCE[Reviewed CSV or licensed feed]
+  SOURCE --> RAW[Immutable dated payloads<br/>and card snapshots]
+  ODDS[The Odds API<br/>prospective quotes] --> RAW
   RAW --> SQL[(SQLite with versioned SQL)]
-  SQL --> AUDIT[Data audit]
-  SQL --> MODEL[Point-in-time features<br/>Elo and logistic]
-  MODEL --> REPORT[Timestamped predictions]
+  SQL --> AUDIT[Source and identity audit]
+  SQL --> MODEL[Verified historical replay<br/>Elo and logistic]
+  MODEL --> REPORT[Timestamped predictions<br/>and coverage]
   SQL --> REPORT
   AUDIT --> WEB[Read-only web dashboard]
   REPORT --> WEB
@@ -44,4 +45,4 @@ flowchart LR
 
 ## Current limits
 
-The repository has no licensed live data credentials, so the adapters are covered by offline fixtures and cannot yet prove end-to-end live coverage. The current database has no historical age, reach, or per-fight stat snapshots. Do not display those as model inputs until they can be reconstructed at each prediction cutoff. Event start is a conservative time reference for all bouts on a card; individual bout start times and bookmaker settlement rules need separate source data for more exact simulations.
+The repository has no selected rights-cleared operating fight-history source or licensed live credentials, so the adapters are covered by offline fixtures and cannot yet prove end-to-end live coverage. The local operating database has no real historical age, reach, or per-fight stat snapshots. Do not display those as model inputs until they can be reconstructed at each prediction cutoff. Event start is a conservative time reference for all bouts on a card; individual bout start times and bookmaker settlement rules need separate source data for more exact simulations.

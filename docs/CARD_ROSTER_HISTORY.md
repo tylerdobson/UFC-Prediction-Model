@@ -35,6 +35,14 @@ The timestamp is still a reviewer assertion, not cryptographic proof; retain
 the source evidence and review notes privately. If using Wikimedia content,
 include the relevant attribution and license metadata and review its terms.
 
+For strict historical evaluation, the retained CSV receipt must also have
+been captured **before the decision cutoff**. A CSV imported today with an
+older `source_observed_at_utc`, source URL, and revision ID remains useful for
+research and audit, but cannot establish what this application could have
+known at an earlier decision. An archived revision can only support that
+claim after a separate source-specific verifier checks its publication time
+and exact content; this importer does not perform that verification.
+
 The optional UFCStats and Sportradar adapters record their own local fetch
 time with basis `local_fetch`, linked to each raw response receipt. That means
 "this application saw these rows then," not that the provider published them
