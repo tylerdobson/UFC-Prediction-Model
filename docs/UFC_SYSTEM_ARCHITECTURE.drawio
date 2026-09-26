@@ -1,0 +1,191 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" agent="Codex" version="24.7.17">
+  <diagram id="ufc-system" name="UFC Prediction Model | End to End">
+    <mxGraphModel dx="1800" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2700" pageHeight="1620" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="header" value="&lt;b&gt;UFC PREDICTION MODEL&lt;/b&gt;  |  end-to-end operating system" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#102338;strokeColor=#102338;fontColor=#FFFFFF;fontSize=29;align=left;verticalAlign=middle;spacingLeft=24;" vertex="1" parent="1">
+          <mxGeometry x="42" y="22" width="2578" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="subheader" value="Pre-fight research → checked data → point-in-time models → fresh-price checks → paper evidence → read-only dashboard" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontColor=#475569;fontSize=18;align=left;" vertex="1" parent="1">
+          <mxGeometry x="48" y="108" width="2566" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_sources" value="" style="rounded=1;arcSize=10;fillColor=#EAF3FC;strokeColor=#C5DDF4;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="42" y="166" width="393" height="1132" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_title_sources" value="01  DATA SOURCES" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontColor=#102338;fontStyle=1;fontSize=20;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="59" y="180" width="359" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_capture" value="" style="rounded=1;arcSize=10;fillColor=#EEF7F6;strokeColor=#C7E5E1;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="477" y="166" width="393" height="1132" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_title_capture" value="02  CAPTURE &amp; IDENTITY" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontColor=#102338;fontStyle=1;fontSize=20;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="494" y="180" width="359" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_storage" value="" style="rounded=1;arcSize=10;fillColor=#F2F5F9;strokeColor=#D4DEE9;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="912" y="166" width="393" height="1132" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_title_storage" value="03  SQL &amp; QUALITY" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontColor=#102338;fontStyle=1;fontSize=20;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="929" y="180" width="359" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_models" value="" style="rounded=1;arcSize=10;fillColor=#F2EFFA;strokeColor=#D9D1F1;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="1347" y="166" width="393" height="1132" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_title_models" value="04  MODEL EVIDENCE" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontColor=#102338;fontStyle=1;fontSize=20;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1364" y="180" width="359" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_decisions" value="" style="rounded=1;arcSize=10;fillColor=#FFF5E8;strokeColor=#F5D8AF;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="1782" y="166" width="393" height="1132" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_title_decisions" value="05  PRE-FIGHT DECISIONS" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontColor=#102338;fontStyle=1;fontSize=20;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1799" y="180" width="359" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_surface" value="" style="rounded=1;arcSize=10;fillColor=#EDF7F1;strokeColor=#C8E5D1;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="2217" y="166" width="403" height="1132" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_title_surface" value="06  OUTPUTS &amp; REVIEW" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontColor=#102338;fontStyle=1;fontSize=20;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="2234" y="180" width="369" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="sportradar" value="&lt;b&gt;◇ Sportradar MMA API&lt;/b&gt;&lt;br&gt;UFC cards, status, results&lt;br&gt;Adapter built; key / licensed access needed" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFBF3;strokeColor=#C67C16;strokeWidth=2;dashed=1;dashPattern=7 4;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="61" y="245" width="355" height="143" as="geometry" />
+        </mxCell>
+        <mxCell id="ufcstats" value="&lt;b&gt;● UFCStats / reviewed CSV&lt;/b&gt;&lt;br&gt;Historical bouts and cards&lt;br&gt;Parser built; direct fetch may be blocked" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="61" y="417" width="355" height="143" as="geometry" />
+        </mxCell>
+        <mxCell id="oddsapi" value="&lt;b&gt;◇ The Odds API&lt;/b&gt;&lt;br&gt;Current h2h prices + dated snapshots&lt;br&gt;Adapter built; key needed; history is paid" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFBF3;strokeColor=#C67C16;strokeWidth=2;dashed=1;dashPattern=7 4;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="61" y="589" width="355" height="163" as="geometry" />
+        </mxCell>
+        <mxCell id="source_review" value="&lt;b&gt;● Source review&lt;/b&gt;&lt;br&gt;Choose primary fight history&lt;br&gt;Check licensing, UFC coverage, full cards" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="61" y="793" width="355" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="fetch" value="&lt;b&gt;● Fetch or import&lt;/b&gt;&lt;br&gt;Scheduled CLI runs, date windows&lt;br&gt;Record source, UTC fetch / update times" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="496" y="245" width="355" height="143" as="geometry" />
+        </mxCell>
+        <mxCell id="raw" value="&lt;b&gt;● Immutable source snapshots&lt;/b&gt;&lt;br&gt;Raw JSON / HTML / CSV under data/raw&lt;br&gt;Hash + ingestion_runs receipt" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="496" y="417" width="355" height="143" as="geometry" />
+        </mxCell>
+        <mxCell id="normalize" value="&lt;b&gt;● Normalize UFC bouts &amp; odds&lt;/b&gt;&lt;br&gt;Preserve provider status and quote time&lt;br&gt;Ambiguous fighter / date match is held" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="496" y="589" width="355" height="163" as="geometry" />
+        </mxCell>
+        <mxCell id="identity" value="&lt;b&gt;● Stable fighter ID mapping&lt;/b&gt;&lt;br&gt;Explicit reviewed cross-provider links&lt;br&gt;Never merge fighters on name alone" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="496" y="793" width="355" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="sqlite" value="&lt;b&gt;● SQLite + versioned SQL&lt;/b&gt;&lt;br&gt;fighters · events · bouts · results&lt;br&gt;odds_quotes · predictions · ingestion_runs&lt;br&gt;fighter_external_ids · paper_bets · bets" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="931" y="245" width="355" height="185" as="geometry" />
+        </mxCell>
+        <mxCell id="audit" value="&lt;b&gt;● Audit gate: stop or review&lt;/b&gt;&lt;br&gt;IDs, card completeness, substitutions&lt;br&gt;cancelled / draw / no contest outcomes&lt;br&gt;timestamps, two-sided price coverage" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="931" y="475" width="355" height="196" as="geometry" />
+        </mxCell>
+        <mxCell id="fix" value="&lt;b&gt;! Fix source issues first&lt;/b&gt;&lt;br&gt;Keep uncertain bouts / prices out of&lt;br&gt;model decisions; rerun the audit" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFF1EC;strokeColor=#DB765C;strokeWidth=2;fontColor=#5B2830;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="931" y="728" width="355" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="cutoff" value="&lt;b&gt;● Time contract&lt;/b&gt;&lt;br&gt;UTC event start is a conservative&lt;br&gt;card-level cutoff, not bout start time" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="931" y="915" width="355" height="149" as="geometry" />
+        </mxCell>
+        <mxCell id="features" value="&lt;b&gt;● Point-in-time features&lt;/b&gt;&lt;br&gt;Replay earlier fights only: Elo, bout&lt;br&gt;count, smoothed win rate, rest" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="1366" y="245" width="355" height="163" as="geometry" />
+        </mxCell>
+        <mxCell id="missing_stats" value="&lt;b&gt;○ Dated stats needed later&lt;/b&gt;&lt;br&gt;Age, reach and per-fight metrics are&lt;br&gt;not model inputs yet" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#F8F6FF;strokeColor=#7557B8;strokeWidth=2;dashed=1;dashPattern=7 4;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="1366" y="437" width="355" height="133" as="geometry" />
+        </mxCell>
+        <mxCell id="compare" value="&lt;b&gt;● Probability candidates&lt;/b&gt;&lt;br&gt;Elo + regularized logistic&lt;br&gt;No-vig bookmaker baseline where available" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="1366" y="602" width="355" height="151" as="geometry" />
+        </mxCell>
+        <mxCell id="evaluate" value="&lt;b&gt;● Chronological evaluation&lt;/b&gt;&lt;br&gt;Early train → later validation / calibration&lt;br&gt;→ untouched later test events&lt;br&gt;Brier, log loss, quote coverage and&lt;br&gt;return only when historical prices qualify" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="1366" y="788" width="355" height="217" as="geometry" />
+        </mxCell>
+        <mxCell id="score" value="&lt;b&gt;● Score upcoming UFC card&lt;/b&gt;&lt;br&gt;Verified scheduled bout + model version&lt;br&gt;and UTC feature cutoff; save prediction" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="1801" y="245" width="355" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="refresh" value="&lt;b&gt;● Refresh bookmaker prices&lt;/b&gt;&lt;br&gt;Capture the latest UFC h2h quote&lt;br&gt;Keep bookmaker update and capture times" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="1801" y="429" width="355" height="151" as="geometry" />
+        </mxCell>
+        <mxCell id="gate" value="&lt;b&gt;● Local pre-fight alert gate&lt;/b&gt;&lt;br&gt;Future known card start · same fresh run&lt;br&gt;quote-age limit · adverse price stress&lt;br&gt;minimum expected profit after stress&lt;br&gt;Pass / reject; human rechecks the line" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="1801" y="615" width="355" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="paper" value="&lt;b&gt;● Capped paper ledger&lt;/b&gt;&lt;br&gt;Freeze quote, prediction, stake, result&lt;br&gt;Default cap: 1% per bet / 5% per event" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="1801" y="875" width="355" height="163" as="geometry" />
+        </mxCell>
+        <mxCell id="manual" value="&lt;b&gt;● Separate manual ledger&lt;/b&gt;&lt;br&gt;Human enters actual accepted price,&lt;br&gt;stake and payout; no auto placement" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="1801" y="1061" width="355" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="reports" value="&lt;b&gt;● CLI + timestamped CSV&lt;/b&gt;&lt;br&gt;Event scores, audit, evaluation and&lt;br&gt;paper / manual ledger reports" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F766E;strokeWidth=2;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="2236" y="245" width="365" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="dashboard" value="&lt;b&gt;○ Read-only Streamlit dashboard&lt;/b&gt;&lt;br&gt;Upcoming card · model evidence&lt;br&gt;data quality · paper and actual ledgers&lt;br&gt;Reads stored, verified data" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#F8F6FF;strokeColor=#7557B8;strokeWidth=2;dashed=1;dashPattern=7 4;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="2236" y="429" width="365" height="178" as="geometry" />
+        </mxCell>
+        <mxCell id="review" value="&lt;b&gt;○ Recurring operating loop&lt;/b&gt;&lt;br&gt;Import → audit → evaluate → score&lt;br&gt;refresh quote → alert check → settle&lt;br&gt;review drift, calibration and exposure" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#F8F6FF;strokeColor=#7557B8;strokeWidth=2;dashed=1;dashPattern=7 4;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="2236" y="650" width="365" height="186" as="geometry" />
+        </mxCell>
+        <mxCell id="scale" value="&lt;b&gt;○ Scale only if needed&lt;/b&gt;&lt;br&gt;PostgreSQL + API / auth / worker for&lt;br&gt;shared or unattended operation" style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#F8F6FF;strokeColor=#7557B8;strokeWidth=2;dashed=1;dashPattern=7 4;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="2236" y="880" width="365" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="e_source1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4290B0;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="sportradar" target="fetch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_source2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4290B0;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="ufcstats" target="fetch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_source3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4290B0;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="oddsapi" target="fetch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fetch_raw" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E9A91;strokeWidth=2.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="fetch" target="raw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_raw_norm" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E9A91;strokeWidth=2.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="raw" target="normalize">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_norm_ids" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E9A91;strokeWidth=2.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="normalize" target="identity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ids_sql" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E9A91;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="identity" target="sqlite">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_sql_audit" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#60738E;strokeWidth=2.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="sqlite" target="audit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_audit_features" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7557B8;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="audit" target="features">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_features_compare" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7557B8;strokeWidth=2.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="features" target="compare">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_compare_eval" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7557B8;strokeWidth=2.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="compare" target="evaluate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_eval_score" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C67C16;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="evaluate" target="score">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_score_gate" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C67C16;strokeWidth=2.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="score" target="gate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_refresh_gate" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C67C16;strokeWidth=2.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="refresh" target="gate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_gate_paper" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C67C16;strokeWidth=2.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="gate" target="paper">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_paper_reports" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2B9A60;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="paper" target="reports">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_reports_dashboard" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7557B8;strokeWidth=2.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="reports" target="dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_dashboard_review" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7557B8;strokeWidth=2.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="dashboard" target="review">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary" value="&lt;b&gt;RELEASE BOUNDARY&lt;/b&gt;  Pre-fight only · local alerts are informational · no automatic orders · credentials and checked real history are not in this repository" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#102338;strokeColor=#102338;fontColor=#FFFFFF;fontSize=19;align=left;verticalAlign=middle;spacingLeft=20;" vertex="1" parent="1">
+          <mxGeometry x="42" y="1321" width="2578" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="inplay_future" value="&lt;b&gt;○ Future in-play work — blocked / not implemented&lt;/b&gt;&lt;br&gt;Needs observed, published and fetched metric timestamps plus a contemporaneous executable quote and settlement checks. A wider modeled edge cannot correct unknown data latency." style="rounded=1;arcSize=9;whiteSpace=wrap;html=1;fillColor=#F8F6FF;strokeColor=#7557B8;strokeWidth=2;dashed=1;dashPattern=7 4;fontColor=#153047;fontSize=18;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="42" y="1410" width="1685" height="137" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="&lt;b&gt;Legend&lt;/b&gt;  ● Built code / tested offline     ◇ Adapter built, external access needed     ○ Planned or future     &lt;b&gt;!&lt;/b&gt; Hold and review data" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#233247;fontSize=18;align=left;verticalAlign=middle;spacingLeft=20;spacingRight=15;" vertex="1" parent="1">
+          <mxGeometry x="1765" y="1410" width="855" height="137" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

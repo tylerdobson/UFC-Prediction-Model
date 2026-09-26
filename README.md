@@ -26,6 +26,7 @@ UFC-Prediction-Model/
 ├── examples/bouts_template.csv          # CSV exchange format
 ├── docs/WEB_APP_PLAN.md                  # dashboard build plan
 ├── docs/LATENCY_POLICY.md                # pre-fight alert safeguards
+├── docs/UFC_SYSTEM_ARCHITECTURE.drawio    # editable end-to-end workflow
 ├── tests/
 ├── data/ufc.sqlite                      # created locally; ignored by Git
 ├── data/raw/                            # source snapshots; ignored by Git
@@ -33,6 +34,8 @@ UFC-Prediction-Model/
 ```
 
 SQLite is appropriate for one person's local project, including a serious first version. The SQL schema is committed; the live database, raw data, API key, and reports stay on your machine. If the project later needs several users or concurrent jobs, the repository can move to PostgreSQL without changing the basic table design.
+
+The [system architecture diagram](docs/UFC_SYSTEM_ARCHITECTURE.drawio) opens in diagrams.net. It distinguishes implemented code from API access still needed and later dashboard or in-play work.
 
 ## Run the starter
 
