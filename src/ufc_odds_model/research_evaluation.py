@@ -30,6 +30,7 @@ from .logistic import (
     fit_logistic,
     fit_temperature,
 )
+from .wikipedia_recount import reviewed_same_revision_recount
 
 
 RESEARCH_EVALUATION_VERSION = "wikipedia-result-holdout-v2"
@@ -238,10 +239,12 @@ def _held_bouts_by_event(
     missing = {event_id for event_id, _ in seen} - known_events
     if missing:
         raise ValueError(f"Identity review names events absent from this database: {len(missing)}")
+    recovered = _reconcile_identity_receipts(connection, seen)
+    if recovered - seen:
+        raise ValueError("Reviewed recovered position is absent from the identity worksheet")
     counts: dict[str, int] = {}
-    for event_id, _ in seen:
+    for event_id, position in seen - recovered:
         counts[event_id] = counts.get(event_id, 0) + 1
-    _reconcile_identity_receipts(connection, counts)
     return counts
 
 
@@ -285,14 +288,14 @@ def _intact_payload(path_text: str, stated_hash: str) -> bool:
 
 
 def _reconcile_identity_receipts(
-    connection: sqlite3.Connection, held_by_event: dict[str, int],
-) -> None:
-    """Require exact, intact source receipts before reporting held-bout coverage."""
+    connection: sqlite3.Connection, held_positions: set[tuple[str, int]],
+) -> set[tuple[str, int]]:
+    """Reconcile a historical worksheet against checked identity replays."""
     latest: dict[tuple[int, str], sqlite3.Row] = {}
-    revision_values: dict[tuple[tuple[int, str], int], set[tuple[int, int, str]]] = {}
+    revision_rows: dict[tuple[tuple[int, str], int], list[sqlite3.Row]] = {}
     for row in connection.execute(
-        """SELECT w.event_page_id, w.page_url, w.revision_id,
-                  w.imported_bouts, w.skipped_unresolved_bouts,
+        """SELECT w.run_id, w.event_page_id, w.page_url, w.revision_id,
+                  w.imported_bouts, w.skipped_unresolved_bouts, w.crosswalk_run_id,
                   i.payload_path, i.sha256
            FROM wikipedia_source_receipts w
            JOIN ingestion_runs i ON i.run_id = w.run_id
@@ -302,33 +305,45 @@ def _reconcile_identity_receipts(
         if key is None:
             continue
         revision = int(row["revision_id"])
-        values = (int(row["imported_bouts"]), int(row["skipped_unresolved_bouts"]),
-                  str(row["sha256"]))
-        revision_values.setdefault((key, revision), set()).add(values)
+        revision_rows.setdefault((key, revision), []).append(row)
         latest[key] = row
 
     checked_payloads: dict[tuple[str, str], bool] = {}
+    recovered: set[tuple[str, int]] = set()
     for event in connection.execute(
-        """SELECT e.event_id, e.source_event_id, COUNT(b.bout_id) AS imported_bouts
+        """SELECT e.event_id, e.source_event_id, COUNT(b.bout_id) AS imported_bouts,
+                  COUNT(r.bout_id) AS result_bouts
            FROM events e LEFT JOIN bouts b ON b.event_id = e.event_id
              AND b.source = ? AND b.status = 'completed'
+           LEFT JOIN results r ON r.bout_id = b.bout_id
            WHERE e.source = ? AND e.status = 'completed'
            GROUP BY e.event_id""", (SOURCE, SOURCE),
     ):
         event_id = str(event["event_id"])
         key = _source_page_key(str(event["source_event_id"]))
         receipt = latest.get(key) if key is not None else None
-        if (receipt is None
-                or len(revision_values[(key, int(receipt["revision_id"]))]) != 1
-                or int(receipt["imported_bouts"]) != int(event["imported_bouts"])):
+        if (receipt is None or int(receipt["imported_bouts"]) != int(event["imported_bouts"])
+                or int(event["result_bouts"]) != int(event["imported_bouts"])):
+            raise ValueError(f"Missing, conflicting, or mismatched source receipt for {event_id}")
+        recovered_here = reviewed_same_revision_recount(
+            connection, revision_rows[(key, int(receipt["revision_id"]))],
+            event_id, checked_payloads, _intact_payload,
+        )
+        if recovered_here is None:
             raise ValueError(f"Missing, conflicting, or mismatched source receipt for {event_id}")
         payload = str(receipt["payload_path"]), str(receipt["sha256"])
         if payload not in checked_payloads:
             checked_payloads[payload] = _intact_payload(*payload)
         if not checked_payloads[payload]:
             raise ValueError(f"Changed or unreadable source receipt payload for {event_id}")
-        if int(receipt["skipped_unresolved_bouts"]) != held_by_event.get(event_id, 0):
+        remaining = sum(
+            1 for held_event, position in held_positions
+            if held_event == event_id and position not in recovered_here
+        )
+        if int(receipt["skipped_unresolved_bouts"]) != remaining:
             raise ValueError(f"Identity worksheet disagrees with source receipt for {event_id}")
+        recovered.update((event_id, position) for position in recovered_here)
+    return recovered
 
 
 def _coverage_by_period(

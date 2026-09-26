@@ -12,6 +12,7 @@ from pathlib import Path
 
 from ufc_odds_model import db
 from ufc_odds_model.research_evaluation import (
+    _held_bouts_by_event,
     evaluate_research_history,
     main,
     research_feature_rows,
@@ -182,6 +183,88 @@ class ResearchEvaluationTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(ValueError, "worksheet disagrees with source receipt"):
             evaluate_research_history(self.connection, identity_review=stale)
+
+    def test_reviewed_replay_reconciles_old_held_worksheet_and_detects_tampering(self):
+        event_id = "wikipedia_research:31"
+        self.add_result(event_id, "2024-01-31", "bout-31", "wikipedia:74765470", "b", "b")
+        self.connection.execute(
+            "UPDATE fighters SET canonical_name = 'Denise Gomes' WHERE fighter_id = 'wikipedia:74765470'"
+        )
+        self.connection.execute(
+            "UPDATE fighters SET canonical_name = 'Loma Lookboonmee' WHERE fighter_id = 'b'"
+        )
+        self.connection.execute(
+            "UPDATE bouts SET weight_class = ?, source_bout_id = ? "
+            "WHERE bout_id = 'bout-31'",
+            ("Women's Strawweight", "31:b:wikipedia:74765470"),
+        )
+        self.connection.execute(
+            "UPDATE results SET winner_fighter_id = 'wikipedia:74765470', "
+            "method = 'Decision (unanimous)' WHERE bout_id = 'bout-31'"
+        )
+        source = self.root / "source.json"
+        source.write_text(json.dumps({
+            "id": 31, "title": "UFC 31",
+            "latest": {"id": 1, "timestamp": "2024-01-31T00:00:00Z"},
+            "license": {"title": "CC BY-SA 4.0",
+                        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"},
+            "source": "{{Infobox MMA event\n|name=UFC 31\n|date={{start date|2024|1|31}}\n}}\n"
+                      "==Results==\n{{MMAevent}}\n"
+                      "{{MMAevent bout|Women's Strawweight|Denise Gomes|def.|"
+                      "[[Loma Lookboonmee]]|Decision (unanimous)|3|5:00|}}\n"
+                      "==References==",
+        }))
+        source_sha = hashlib.sha256(source.read_bytes()).hexdigest()
+
+        def source_receipt(imported: int, held: int, crosswalk_run_id: int | None = None) -> None:
+            run = self.connection.execute(
+                "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+                "VALUES ('wikipedia_research', '2026-09-26T00:00:00Z', ?, ?)",
+                (str(source), source_sha),
+            ).lastrowid
+            self.connection.execute(
+                """INSERT INTO wikipedia_source_receipts(
+                   run_id, event_page_id, event_title, page_url, revision_id,
+                   revision_timestamp_utc, license_title, license_url,
+                   imported_bouts, skipped_unresolved_bouts, crosswalk_run_id)
+                   VALUES (?, 31, 'UFC 31', 'https://en.wikipedia.org/wiki/UFC_31',
+                           1, '2026-09-26T00:00:00Z', 'CC BY-SA 4.0',
+                           'https://creativecommons.org/licenses/by-sa/4.0/', ?, ?, ?)""",
+                (run, imported, held, crosswalk_run_id),
+            )
+
+        source_receipt(0, 1)
+        review_path = self.root / "crosswalk.json"
+        review_path.write_text(json.dumps({"schema_version": 2, "decisions": [{
+            "event_id": event_id, "bout_position": 1, "fighter_name": "Denise Gomes",
+            "source_revision_id": 1, "source_receipt_sha256": source_sha,
+            "fighter_id": "wikipedia:74765470", "canonical_name": "Denise Gomes",
+            "page_title": "Denise Gomes", "reviewed_by": "reviewer",
+            "evidence_urls": ["https://www.ufc.com/event/ufc-31"],
+        }]}))
+        crosswalk_run = self.connection.execute(
+            "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+            "VALUES ('wikipedia_identity_crosswalk', '2026-09-26T00:00:00Z', ?, ?)",
+            (str(review_path), hashlib.sha256(review_path.read_bytes()).hexdigest()),
+        ).lastrowid
+        source_receipt(1, 0, crosswalk_run)
+        worksheet = {
+            "schema_version": 1, "source": "wikipedia_research", "review_required": True,
+            "summary": {"held_bouts": 1},
+            "fighters": [{"occurrences": [{"event_id": event_id, "bout_position": 1}]}],
+        }
+        self.assertEqual(_held_bouts_by_event(self.connection, worksheet), {})
+        empty_worksheet = dict(worksheet, summary={"held_bouts": 0}, fighters=[])
+        with self.assertRaisesRegex(ValueError, "absent from the identity worksheet"):
+            _held_bouts_by_event(self.connection, empty_worksheet)
+        self.connection.execute("DELETE FROM results WHERE bout_id = 'bout-31'")
+        with self.assertRaisesRegex(ValueError, "mismatched source receipt"):
+            _held_bouts_by_event(self.connection, worksheet)
+        db.upsert_result(self.connection, "bout-31", "win", "wikipedia:74765470",
+                         "2024-01-31T23:00:00Z", "Decision (unanimous)")
+        review_path.write_text('{"tampered":true}')
+        with self.assertRaisesRegex(ValueError, "conflicting.*source receipt"):
+            _held_bouts_by_event(self.connection, worksheet)
 
     def test_cli_opens_database_read_only_and_writes_separate_report(self):
         path = self.root / "research.sqlite"

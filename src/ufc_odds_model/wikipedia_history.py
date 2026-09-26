@@ -418,28 +418,55 @@ def _record_action_lookups(
 
 def _load_crosswalk(
     path: str | Path | None,
-) -> tuple[dict[str, dict[str, str]], bytes | None]:
+) -> tuple[dict[tuple[str, int, str], dict], bytes | None]:
     if path is None:
         return {}, None
     raw_bytes = Path(path).read_bytes()
     payload = json.loads(raw_bytes.decode("utf-8"))
-    if payload.get("schema_version") != 1 or not isinstance(payload.get("fighters"), dict):
-        raise ValueError("Crosswalk needs schema_version 1 and a fighters object")
-    for name, entry in payload["fighters"].items():
+    version = payload.get("schema_version")
+    if version == 1:
+        raise ValueError("Global-name schema_version 1 crosswalk is unsafe; use bout-scoped schema_version 2 decisions")
+    if version == 2 and isinstance(payload.get("decisions"), list):
+        scoped = {}
+        for entry in payload["decisions"]:
+            if not isinstance(entry, dict):
+                raise ValueError("Scoped crosswalk decisions must be objects")
+            event_id = entry.get("event_id")
+            position = entry.get("bout_position")
+            name = entry.get("fighter_name")
+            revision = entry.get("source_revision_id")
+            digest = entry.get("source_receipt_sha256")
+            if (not isinstance(event_id, str)
+                    or re.fullmatch(r"wikipedia_research:\d+(?::.+)?", event_id) is None
+                    or type(position) is not int or position <= 0
+                    or not isinstance(name, str) or not name.strip()
+                    or type(revision) is not int or revision <= 0
+                    or not isinstance(digest, str)
+                    or re.fullmatch(r"[0-9a-f]{64}", digest) is None):
+                raise ValueError("Scoped crosswalk decision needs a bout and exact source revision/hash")
+            key = (event_id, position, name)
+            if key in scoped:
+                raise ValueError(f"Duplicate scoped crosswalk decision: {key}")
+            scoped[key] = entry
+    else:
+        raise ValueError("Crosswalk needs schema_version 2 decisions")
+    for (_, _, name), entry in scoped.items():
         if not isinstance(name, str) or not name.strip() or not isinstance(entry, dict):
             raise ValueError("Crosswalk fighter entries must be keyed by a non-empty name")
-        if not all(isinstance(entry.get(key), str) and entry[key].strip()
-                   for key in ("fighter_id", "canonical_name", "evidence_url", "reviewed_by")):
+        required = ("fighter_id", "canonical_name", "reviewed_by")
+        if not all(isinstance(entry.get(key), str) and entry[key].strip() for key in required):
             raise ValueError(f"Crosswalk entry for {name!r} lacks reviewed identity evidence")
-        if not entry["evidence_url"].startswith("https://"):
-            raise ValueError(f"Crosswalk evidence for {name!r} must be an HTTPS URL")
+        evidence = entry.get("evidence_urls")
+        if (not isinstance(evidence, list) or not evidence
+                or any(not isinstance(url, str) or not url.startswith("https://") for url in evidence)):
+            raise ValueError(f"Crosswalk evidence for {name!r} must use HTTPS URLs")
         if entry["fighter_id"].startswith("wikipedia:") and not (
             isinstance(entry.get("page_title"), str) and entry["page_title"].strip()
         ):
             raise ValueError(
                 f"Crosswalk entry for {name!r} needs page_title to verify the Wikipedia page ID"
             )
-    return payload["fighters"], raw_bytes
+    return scoped, raw_bytes
 
 
 def _atomic_json(path: Path, payload: object) -> None:
@@ -498,7 +525,31 @@ def import_wikipedia_pages(
 ) -> dict[str, object]:
     """Import already checked event pages into the isolated research database."""
     fetch = fetch_json or MediaWikiClient()
-    crosswalk, crosswalk_bytes = _load_crosswalk(crosswalk_path)
+    review_path = Path(review_out)
+    database_path = Path(connection.execute("PRAGMA database_list").fetchone()[2])
+    if database_path and review_path.resolve() == database_path.resolve():
+        raise ValueError("Review output must not replace the research database")
+    if crosswalk_path is not None and review_path.resolve() == Path(crosswalk_path).resolve():
+        raise ValueError("Review output must not replace the identity crosswalk")
+    scoped_crosswalk, crosswalk_bytes = _load_crosswalk(crosswalk_path)
+    events_by_id = {_research_event_id(event): (payload, event) for payload, event in page_payloads}
+    applicable_scoped = {
+        key: entry for key, entry in scoped_crosswalk.items() if key[0] in events_by_id
+    }
+    for (event_id, position, name), entry in applicable_scoped.items():
+        payload, event = events_by_id[event_id]
+        source_sha = hashlib.sha256(json.dumps(
+            payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")).hexdigest()
+        if (event.revision_id != entry["source_revision_id"]
+                or source_sha != entry["source_receipt_sha256"]):
+            raise ValueError(f"Scoped crosswalk source revision/hash mismatch for {event_id} bout {position}")
+        matching_bout = next((bout for bout in event.bouts if bout.position == position), None)
+        if (matching_bout is None or not any(
+            fighter.name == name and fighter.title is None
+            for fighter in (matching_bout.fighter_a, matching_bout.fighter_b)
+        )):
+            raise ValueError(f"Scoped crosswalk fighter/bout mismatch for {event_id} bout {position}")
     crosswalk_receipt: dict[str, object] | None = None
     if crosswalk_bytes is not None:
         raw_path, digest = retain_snapshot(
@@ -520,11 +571,11 @@ def import_wikipedia_pages(
     }
     linked_titles.update(
         entry["page_title"].strip()
-        for entry in crosswalk.values()
+        for entry in applicable_scoped.values()
         if entry["fighter_id"].startswith("wikipedia:")
     )
     page_ids = _resolve_page_ids(_record_action_lookups(connection, fetch, raw_dir), linked_titles)
-    for name, entry in crosswalk.items():
+    for (_, _, name), entry in applicable_scoped.items():
         if entry["fighter_id"].startswith("wikipedia:"):
             title = entry["page_title"].strip()
             actual_id = page_ids.get(title)
@@ -547,8 +598,10 @@ def import_wikipedia_pages(
                     fighter_id = f"wikipedia:{source_id}"
                     identities.setdefault(fighter_id, (fighter.name, "wikipedia", source_id))
                     fighter_ids.append(fighter_id)
-                elif fighter.title is None and fighter.name in crosswalk:
-                    entry = crosswalk[fighter.name]
+                elif fighter.title is None and (
+                    event_id, bout.position, fighter.name
+                ) in applicable_scoped:
+                    entry = applicable_scoped[(event_id, bout.position, fighter.name)]
                     fighter_id = entry["fighter_id"].strip()
                     if fighter_id.startswith("wikipedia:"):
                         identities.setdefault(
@@ -586,11 +639,7 @@ def import_wikipedia_pages(
                 raise ValueError(f"{event.title} bout {bout.position}: both fighters resolve to one ID")
             resolved_bouts[event_id].append((bout, str(fighter_a_id), str(fighter_b_id)))
 
-    review_path = Path(review_out)
-    database_path = Path(connection.execute("PRAGMA database_list").fetchone()[2])
-    if database_path and review_path.resolve() == database_path.resolve():
-        raise ValueError("Review output must not replace the research database")
-    _atomic_json(review_path, {
+    review_document = {
         "schema_version": 1,
         "source": "wikipedia_research",
         **(review_scope or {}),
@@ -598,18 +647,21 @@ def import_wikipedia_pages(
         "skipped_bouts": skipped_bouts,
         "crosswalk_receipt": crosswalk_receipt,
         "crosswalk_format": {
-            "schema_version": 1,
-            "fighters": {
-                "Example unlinked name": {
-                    "fighter_id": "manual:reviewed-stable-id",
-                    "canonical_name": "Example unlinked name",
-                    "evidence_url": "https://example.org/identity-evidence",
-                    "reviewed_by": "reviewer name",
-                    "page_title": "Optional only when fighter_id is wikipedia:<verified page ID>",
-                }
-            },
+            "schema_version": 2,
+            "decisions": [{
+                "event_id": "wikipedia_research:<page ID>",
+                "bout_position": 1,
+                "fighter_name": "Exact unlinked printed name",
+                "source_revision_id": 123,
+                "source_receipt_sha256": "<exact saved event payload SHA-256>",
+                "fighter_id": "wikipedia:<verified fighter page ID>",
+                "canonical_name": "Reviewed fighter name",
+                "page_title": "Fighter page title when using wikipedia:<ID>",
+                "evidence_urls": ["https://example.org/identity-evidence"],
+                "reviewed_by": "reviewer name",
+            }],
         },
-    })
+    }
     directory = Path(raw_dir)
     directory.mkdir(parents=True, exist_ok=True)
     imported = 0
@@ -705,8 +757,8 @@ def import_wikipedia_pages(
                 INSERT INTO wikipedia_source_receipts(
                     run_id, event_page_id, event_title, page_url, revision_id,
                     revision_timestamp_utc, license_title, license_url,
-                    imported_bouts, skipped_unresolved_bouts
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    imported_bouts, skipped_unresolved_bouts, crosswalk_run_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     run_id, event.page_id, event.title,
@@ -715,9 +767,11 @@ def import_wikipedia_pages(
                     event.license_title, event.license_url,
                     len(resolved_bouts[event_id]),
                     sum(1 for row in skipped_bouts if row["event_id"] == event_id),
+                    crosswalk_receipt["ingestion_run_id"] if crosswalk_receipt else None,
                 ),
             )
         receipt_ids.append(run_id)
+    _atomic_json(review_path, review_document)
     return {
         "source": "wikipedia_research",
         "research_only": True,

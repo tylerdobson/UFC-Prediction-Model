@@ -18,6 +18,7 @@ from ufc_odds_model.demo import seed_demo
 from ufc_odds_model.integrity import verify_evidence
 from ufc_odds_model.pipeline import utc_string
 from ufc_odds_model.research_evaluation import RESEARCH_EVALUATION_VERSION, research_feature_rows
+from ufc_odds_model.wikipedia_history import import_wikipedia_pages, parse_event_page_title
 
 
 class DashboardDataTests(unittest.TestCase):
@@ -297,6 +298,138 @@ class DashboardDataTests(unittest.TestCase):
         conflicted = load_dashboard(self.path, as_of=self.now)["historical_research"]
         self.assertEqual(conflicted["receipt_status"], "unavailable")
         self.assertIsNone(conflicted["held_identity_rows"])
+
+    def test_reviewed_identity_replay_requires_intact_scoped_crosswalk(self) -> None:
+        connection = self._connect()
+        page = {
+            "id": 74123456, "title": "UFC 999",
+            "latest": {"id": 123, "timestamp": "2024-01-01T00:00:00Z"},
+            "license": {"title": "CC BY-SA 4.0",
+                        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"},
+            "source": (
+                "{{Infobox MMA event\n|name=UFC 999\n|date={{start date|2023|11|11}}\n}}\n"
+                "==Results==\n{{MMAevent}}\n"
+                "{{MMAevent bout|Women's Strawweight|[[Loma Lookboonmee]]|def.|"
+                "Denise Gomes|Decision (unanimous)|3|5:00|}}\n==References=="
+            ),
+        }
+        parsed = parse_event_page_title(page, "UFC 999")
+
+        def fetch(url: str) -> dict:
+            self.assertIn("/w/api.php?", url)
+            return {"query": {"pages": [
+                {"pageid": 62158685, "title": "Loma Lookboonmee", "ns": 0},
+                {"pageid": 74765470, "title": "Denise Gomes", "ns": 0},
+            ]}}
+
+        raw_dir = Path(self.temp.name) / "raw"
+        import_wikipedia_pages(connection, [(page, parsed)], raw_dir=raw_dir,
+                               review_out=Path(self.temp.name) / "before.json", fetch_json=fetch)
+        initial = load_dashboard(self.path, as_of=self.now)["historical_research"]
+        self.assertEqual((initial["bouts"], initial["held_identity_rows"]), (0, 1))
+
+        crosswalk = Path(self.temp.name) / "decision.json"
+        crosswalk.write_text(json.dumps({"schema_version": 2, "decisions": [{
+            "event_id": "wikipedia_research:74123456", "bout_position": 1,
+            "fighter_name": "Denise Gomes", "source_revision_id": 123,
+            "source_receipt_sha256": hashlib.sha256(json.dumps(
+                page, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            ).encode()).hexdigest(),
+            "fighter_id": "wikipedia:74765470", "canonical_name": "Denise Gomes",
+            "page_title": "Denise Gomes", "reviewed_by": "reviewer",
+            "evidence_urls": ["https://www.ufc.com/event/ufc-999"],
+        }]}))
+        import_wikipedia_pages(connection, [(page, parsed)], raw_dir=raw_dir,
+                               review_out=Path(self.temp.name) / "after.json",
+                               crosswalk_path=crosswalk, fetch_json=fetch)
+        reviewed = load_dashboard(self.path, as_of=self.now)["historical_research"]
+        self.assertEqual(reviewed["receipt_status"], "verified")
+        self.assertEqual((reviewed["bouts"], reviewed["source_bout_rows"],
+                          reviewed["held_identity_rows"]), (1, 1, 0))
+
+        receipt = connection.execute(
+            "SELECT payload_path FROM ingestion_runs WHERE source = 'wikipedia_identity_crosswalk'"
+        ).fetchone()
+        Path(receipt["payload_path"]).write_text('{"tampered":true}')
+        tampered = load_dashboard(self.path, as_of=self.now)["historical_research"]
+        self.assertEqual(tampered["receipt_status"], "unavailable")
+        self.assertIsNone(tampered["source_bout_rows"])
+
+    def test_successive_identity_replays_preserve_prior_reviewed_positions(self) -> None:
+        connection = self._connect()
+        page = {
+            "id": 74123457, "title": "UFC 1000",
+            "latest": {"id": 124, "timestamp": "2024-01-01T00:00:00Z"},
+            "license": {"title": "CC BY-SA 4.0",
+                        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"},
+            "source": (
+                "{{Infobox MMA event\n|name=UFC 1000\n|date={{start date|2023|11|11}}\n}}\n"
+                "==Results==\n{{MMAevent}}\n"
+                "{{MMAevent bout|Women's Strawweight|[[Loma Lookboonmee]]|def.|"
+                "Denise Gomes|Decision (unanimous)|3|5:00|}}\n"
+                "{{MMAevent bout|Lightweight|[[Alex Pereira]]|def.|"
+                "Second Newcomer|Decision (split)|3|5:00|}}\n==References=="
+            ),
+        }
+        parsed = parse_event_page_title(page, "UFC 1000")
+
+        def fetch(url: str) -> dict:
+            return {"query": {"pages": [
+                {"pageid": 62158685, "title": "Loma Lookboonmee", "ns": 0},
+                {"pageid": 74765470, "title": "Denise Gomes", "ns": 0},
+                {"pageid": 57730000, "title": "Alex Pereira", "ns": 0},
+            ]}}
+
+        root = Path(self.temp.name)
+        raw_dir = root / "raw"
+        source_sha = hashlib.sha256(json.dumps(
+            page, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode()).hexdigest()
+        first = {
+            "event_id": "wikipedia_research:74123457", "bout_position": 1,
+            "fighter_name": "Denise Gomes", "source_revision_id": 124,
+            "source_receipt_sha256": source_sha,
+            "fighter_id": "wikipedia:74765470", "canonical_name": "Denise Gomes",
+            "page_title": "Denise Gomes", "reviewed_by": "reviewer",
+            "evidence_urls": ["https://www.ufc.com/event/ufc-1000"],
+        }
+        second = {
+            "event_id": "wikipedia_research:74123457", "bout_position": 2,
+            "fighter_name": "Second Newcomer", "source_revision_id": 124,
+            "source_receipt_sha256": source_sha,
+            "fighter_id": "reviewed:second-newcomer", "canonical_name": "Second Newcomer",
+            "reviewed_by": "reviewer",
+            "evidence_urls": ["https://www.ufc.com/event/ufc-1000"],
+        }
+        import_wikipedia_pages(connection, [(page, parsed)], raw_dir=raw_dir,
+                               review_out=root / "baseline.json", fetch_json=fetch)
+        self.assertEqual(load_dashboard(self.path, as_of=self.now)["historical_research"]["held_identity_rows"], 2)
+        crosswalk = root / "decision.json"
+        crosswalk.write_text(json.dumps({"schema_version": 2, "decisions": [first]}))
+        import_wikipedia_pages(connection, [(page, parsed)], raw_dir=raw_dir,
+                               review_out=root / "first.json", crosswalk_path=crosswalk,
+                               fetch_json=fetch)
+        first_view = load_dashboard(self.path, as_of=self.now)["historical_research"]
+        self.assertEqual((first_view["receipt_status"], first_view["bouts"],
+                          first_view["held_identity_rows"]), ("verified", 1, 1))
+        crosswalk.write_text(json.dumps({"schema_version": 2, "decisions": [second]}))
+        with self.assertRaisesRegex(ValueError, "prior imported bout is now absent or unresolved"):
+            import_wikipedia_pages(connection, [(page, parsed)], raw_dir=raw_dir,
+                                   review_out=root / "invalid.json", crosswalk_path=crosswalk,
+                                   fetch_json=fetch)
+        crosswalk.write_text(json.dumps({"schema_version": 2, "decisions": [first, second]}))
+        import_wikipedia_pages(connection, [(page, parsed)], raw_dir=raw_dir,
+                               review_out=root / "second.json", crosswalk_path=crosswalk,
+                               fetch_json=fetch)
+        second_view = load_dashboard(self.path, as_of=self.now)["historical_research"]
+        self.assertEqual((second_view["receipt_status"], second_view["bouts"],
+                          second_view["held_identity_rows"]), ("verified", 2, 0))
+        connection.execute("DELETE FROM results WHERE bout_id IN (SELECT bout_id FROM bouts WHERE event_id = ?)",
+                           ("wikipedia_research:74123457",))
+        connection.commit()
+        missing_result = load_dashboard(self.path, as_of=self.now)["historical_research"]
+        self.assertEqual(missing_result["receipt_status"], "unavailable")
+        self.assertIsNone(missing_result["accepted_bout_coverage"])
 
     def test_demo_origin_cannot_be_mistaken_for_real_history(self) -> None:
         connection = self._connect()

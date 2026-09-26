@@ -31,30 +31,34 @@ ufc-model --db data/ufc_research_2011_2025.sqlite backtest
 
 The first pass imports only bouts whose two fighter identities resolve to stable Wikipedia page IDs. Plain-text fighter names and broken or ambiguous page links are listed in the review JSON; affected bouts are skipped. Catalog rows that are canceled are excluded. The embedded-card command accepts only a named section with one bounded result table and an event date matching the catalog; reviewed overrides cover older anchors whose text no longer matches a heading. Event pages whose results cannot be parsed or whose page ID/date differs from the catalog are skipped and counted. Do not assume that a plain-text name uniquely identifies a person.
 
-Review each unresolved name against source evidence and create a JSON crosswalk. A manually assigned ID must be stable and must be reused for that person across all events. If a plain-text name belongs to a fighter with a Wikipedia page, use its verified page ID instead; the importer checks `page_title` against the official API before accepting it.
+Review each unresolved name against source evidence and create a JSON crosswalk. Schema version 2 binds each decision to one printed name in one bout of one exact event revision and saved payload hash. A manually assigned ID must be stable and reused for that person across events, but each occurrence needs its own reviewed decision. If a plain-text name belongs to a fighter with a Wikipedia page, use its verified page ID; the importer checks `page_title` against the official API before accepting it. Schema version 1 global-name crosswalks are rejected because a shared printed name can refer to different people.
 
 ```json
 {
-  "schema_version": 1,
-  "fighters": {
-    "Example unlinked name": {
-      "fighter_id": "manual:person-specific-stable-id",
-      "canonical_name": "Example unlinked name",
-      "evidence_url": "https://example.org/identity-evidence",
-      "reviewed_by": "your name"
-    },
-    "Example with a Wikipedia page": {
+  "schema_version": 2,
+  "decisions": [
+    {
+      "event_id": "wikipedia_research:123456",
+      "bout_position": 4,
+      "fighter_name": "Exact printed name",
+      "source_revision_id": 987654321,
+      "source_receipt_sha256": "<SHA-256 of the saved event payload>",
       "fighter_id": "wikipedia:12345678",
-      "canonical_name": "Example with a Wikipedia page",
-      "page_title": "Example with a Wikipedia page",
-      "evidence_url": "https://en.wikipedia.org/wiki/Example_with_a_Wikipedia_page",
+      "canonical_name": "Reviewed fighter name",
+      "page_title": "Verified fighter page title",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=987654321",
+        "https://www.ufc.com/event/example"
+      ],
       "reviewed_by": "your name"
     }
-  }
+  ]
 }
 ```
 
-Then rerun the command with `--crosswalk path/to/reviewed_crosswalk.json` against the same research database. Its exact JSON bytes are retained under `data/raw/wikipedia/crosswalk/` with an ingestion receipt linked in the review report. Check the review report's catalog, event-page, fighter, and bout counts before claiming coverage. Audit changed outcomes, aliases, draws, no contests, and any opponent substitutions against independent records. Ambiguous result templates stop that event-page import rather than guessing.
+Then rerun the importer with `--crosswalk path/to/reviewed_crosswalk.json` against the same research database, after a verified backup and migration. Its exact JSON bytes are retained under `data/raw/wikipedia/crosswalk/` with an ingestion receipt linked both in the review report and the new event-page receipt. The dashboard and research evaluator accept a changed imported/held count for the same source revision only when that later receipt points to an intact, bout-scoped schema version 2 crosswalk whose recovered positions reconcile with the count change. Missing, changed, or unreviewed evidence suppresses coverage. Check the review report's catalog, event-page, fighter, and bout counts before claiming coverage. Audit changed outcomes, aliases, draws, no contests, and any opponent substitutions against independent records. Ambiguous result templates stop that event-page import rather than guessing. A [bounded reviewed decision](REVIEWED_IDENTITY_CROSSWALK_2022.json) illustrates this workflow for one 2022 result.
+
+An event-page batch commits **one event at a time**. If a later page fails, earlier events and lookup receipts may already be committed while the prior review JSON remains unchanged. Treat that as a partial import: inspect the new event and ingestion receipts, verify their saved payload hashes and database integrity, and do not use the old review report as proof that the batch finished. Either rerun the exact input and crosswalk to completion, then regenerate the review, audit, integrity, and research evaluation reports, or restore the verified pre-run backup into a new database path and retry there. Keep the failed attempt's receipts for audit; do not edit receipt paths or crosswalk bytes in place.
 
 ## What this history cannot prove
 

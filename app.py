@@ -929,6 +929,8 @@ def _render_historical_data(snapshot: Mapping[str, Any]) -> None:
         ]
         st.markdown(
             "<section class='panel'><h2>Identity coverage by year</h2>"
+            "<p class='table-note mobile-scroll-hint'>Swipe the table sideways to see held rows "
+            "and accepted coverage.</p>"
             + _table(["Year", "Events", "Imported bouts", "Held identity rows", "Accepted"],
                      coverage_rows, "No annual coverage available")
             + "<p class='table-note'>Accepted = imported bouts / parsed source bout rows. "

@@ -24,6 +24,7 @@ from .features import COVERAGE_NAMES
 from .integrity import database_file_state
 from .pipeline import utc_string
 from .research_evaluation import RESEARCH_EVALUATION_VERSION, SOURCE as RESEARCH_SOURCE, _source_results
+from .wikipedia_recount import reviewed_same_revision_recount
 
 
 class PredictionView(TypedDict):
@@ -614,16 +615,19 @@ def _research_receipt_coverage(
     """Show source-row coverage only when each displayed event has checked evidence.
 
     Repeated imports produce multiple receipts. The latest receipt for each
-    exact page/section is used, while conflicting counts for the same source
-    revision fail closed. This avoids adding duplicate imports to the held-row
-    total or assigning an embedded card's count to its sibling sections.
+    exact page/section is used. Changed counts for the same revision need a
+    checked, scoped identity crosswalk receipt; other conflicts fail closed.
+    Embedded-card sections retain separate receipt keys.
     """
     events = connection.execute(
         """
-        SELECT e.source_event_id, e.event_date, COUNT(b.bout_id) AS imported_bouts
+        SELECT e.event_id, e.source_event_id, e.event_date,
+               COUNT(b.bout_id) AS imported_bouts,
+               COUNT(r.bout_id) AS result_bouts
         FROM events AS e
         LEFT JOIN bouts AS b ON b.event_id = e.event_id
             AND b.source = 'wikipedia_research' AND b.status = 'completed'
+        LEFT JOIN results AS r ON r.bout_id = b.bout_id
         WHERE e.source = 'wikipedia_research' AND e.status = 'completed'
           AND e.event_date <= ?
         GROUP BY e.event_id
@@ -637,11 +641,11 @@ def _research_receipt_coverage(
         return
 
     latest: dict[tuple[int, str], sqlite3.Row] = {}
-    revision_values: dict[tuple[tuple[int, str], int], set[tuple[int, int, str]]] = {}
+    revision_rows: dict[tuple[tuple[int, str], int], list[sqlite3.Row]] = {}
     for row in connection.execute(
         """
         SELECT w.run_id, w.event_page_id, w.page_url, w.revision_id,
-               w.imported_bouts, w.skipped_unresolved_bouts,
+               w.imported_bouts, w.skipped_unresolved_bouts, w.crosswalk_run_id,
                i.payload_path, i.sha256
         FROM wikipedia_source_receipts AS w
         JOIN ingestion_runs AS i ON i.run_id = w.run_id
@@ -653,9 +657,7 @@ def _research_receipt_coverage(
         if key is None:
             continue
         revision = int(row["revision_id"])
-        values = (int(row["imported_bouts"]), int(row["skipped_unresolved_bouts"]),
-                  str(row["sha256"]))
-        revision_values.setdefault((key, revision), set()).add(values)
+        revision_rows.setdefault((key, revision), []).append(row)
         latest[key] = row
 
     bad = 0
@@ -665,8 +667,12 @@ def _research_receipt_coverage(
     for event in events:
         key = _research_event_receipt_key(event["source_event_id"])
         row = latest.get(key) if key is not None else None
-        if (row is None or len(revision_values[(key, int(row["revision_id"]))]) != 1
-                or int(row["imported_bouts"]) != int(event["imported_bouts"])):
+        if (row is None or int(row["imported_bouts"]) != int(event["imported_bouts"])
+                or int(event["result_bouts"]) != int(event["imported_bouts"])
+                or reviewed_same_revision_recount(
+                    connection, revision_rows[(key, int(row["revision_id"]))],
+                    str(event["event_id"]), checked_hashes, _receipt_payload_matches,
+                ) is None):
             bad += 1
             continue
         payload = (str(row["payload_path"]), str(row["sha256"]))

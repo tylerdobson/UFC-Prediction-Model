@@ -1,0 +1,49 @@
+name: ufc-prediction-model
+
+services:
+  dashboard:
+    build: .
+    image: ufc-prediction-dashboard:local
+    # Match the host owner so private (0600) source payloads remain readable.
+    user: "${UFC_DEPLOY_UID:?Set UFC_DEPLOY_UID from id -u}:${UFC_DEPLOY_GID:?Set UFC_DEPLOY_GID from id -g}"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+    environment:
+      UFC_DEPLOY_ROOT: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT to the absolute checkout path}
+      UFC_MODEL_DB: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/data/${UFC_DB_FILE:-ufc.sqlite}
+      UFC_MODEL_EVALUATION_REPORT: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/reports/evaluation.json
+      UFC_MODEL_RESEARCH_REPORT: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/reports/ufc_research_1993_2026_holdout.json
+      UFC_MODEL_INTEGRITY_REPORT: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/reports/integrity.json
+      STREAMLIT_SERVER_HEADLESS: "true"
+      STREAMLIT_SERVER_FILE_WATCHER_TYPE: none
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+    volumes:
+      - type: bind
+        source: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/data
+        target: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/data
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/reports
+        target: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/reports
+        read_only: true
+        bind:
+          create_host_path: false
+    ports:
+      - "127.0.0.1:8501:8501"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=3).read()"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

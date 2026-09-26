@@ -1,0 +1,25 @@
+{
+  "schema_version": 2,
+  "research_only": true,
+  "decisions": [
+    {
+      "event_id": "wikipedia_research:71036766",
+      "bout_position": 9,
+      "fighter_name": "Denise Gomes",
+      "source_revision_id": 1352246293,
+      "source_receipt_sha256": "7fc899d21e276b4723653b413d4f73515d824c38834a98947ad2ca9a2faf2142",
+      "fighter_id": "wikipedia:74765470",
+      "canonical_name": "Denise Gomes",
+      "page_title": "Denise Gomes",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1352246293",
+        "https://en.wikipedia.org/w/index.php?oldid=1374029786",
+        "https://www.ufc.com/event/ufc-fight-night-september-17-2022"
+      ],
+      "reviewed_by": "Codex source review, 2026-09-26",
+      "evidence_note": "The retained event revision links Denise Gomes by page title in prose about her Loma Lookboonmee bout; the page ID already exists in the research database, its retained revision records the same opponent and date, and the UFC event result lists that bout. This decision applies to this one event bout only.",
+      "candidate_page_receipt_sha256": "31e583970d8a19679f36978710432ce89062689100b71c0f80e2af0ef9fbba3b",
+      "title_lookup_receipt_sha256": "07bec091ecdbe4622e3fcda00d430c137458f0da137a9f53ee903c04a82d9709"
+    }
+  ]
+}

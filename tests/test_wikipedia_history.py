@@ -329,26 +329,32 @@ class WikipediaHistoryTests(unittest.TestCase):
                 ).fetchone()[0], 2)
 
     def test_reviewed_crosswalk_recovers_draw_without_name_generated_id(self) -> None:
+        page = _page("\n".join((WIN, DRAW)))
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             crosswalk = root / "crosswalk.json"
             crosswalk.write_text(json.dumps({
-                "schema_version": 1,
-                "fighters": {
-                    "Viacheslav Borshchev": {
-                        "fighter_id": "manual:borshchev-verified",
-                        "canonical_name": "Viacheslav Borshchev",
-                        "evidence_url": "https://example.org/identity-check",
-                        "reviewed_by": "human reviewer",
-                    }
-                },
+                "schema_version": 2,
+                "decisions": [{
+                    "event_id": "wikipedia_research:74123456",
+                    "bout_position": 2,
+                    "fighter_name": "Viacheslav Borshchev",
+                    "source_revision_id": 123,
+                    "source_receipt_sha256": hashlib.sha256(json.dumps(
+                        page, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+                    ).encode()).hexdigest(),
+                    "fighter_id": "manual:borshchev-verified",
+                    "canonical_name": "Viacheslav Borshchev",
+                    "evidence_urls": ["https://example.org/identity-check"],
+                    "reviewed_by": "human reviewer",
+                }],
             }))
             with db.connect(root / "research.sqlite") as connection:
                 db.init_db(connection)
                 result = import_wikipedia_history(
                     connection, 295, 295, raw_dir=root / "raw",
                     review_out=root / "review.json", crosswalk_path=crosswalk,
-                    fetch_json=FakeMediaWiki(_page("\n".join((WIN, DRAW)))),
+                    fetch_json=FakeMediaWiki(page),
                 )
                 self.assertEqual(result["imported_bouts"], 2)
                 self.assertEqual(result["skipped_unresolved_bouts"], 0)
@@ -377,25 +383,33 @@ class WikipediaHistoryTests(unittest.TestCase):
                 ).fetchone())
 
     def test_crosswalk_can_verify_existing_wikipedia_page_id(self) -> None:
+        page = _page("\n".join((WIN, DRAW)))
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             crosswalk = root / "crosswalk.json"
             entry = {
+                "event_id": "wikipedia_research:74123456",
+                "bout_position": 2,
+                "fighter_name": "Viacheslav Borshchev",
+                "source_revision_id": 123,
+                "source_receipt_sha256": hashlib.sha256(json.dumps(
+                    page, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+                ).encode()).hexdigest(),
                 "fighter_id": "wikipedia:1004",
                 "canonical_name": "Viacheslav Borshchev",
                 "page_title": "Viacheslav Borshchev",
-                "evidence_url": "https://en.wikipedia.org/wiki/Viacheslav_Borshchev",
+                "evidence_urls": ["https://en.wikipedia.org/wiki/Viacheslav_Borshchev"],
                 "reviewed_by": "human reviewer",
             }
             crosswalk.write_text(json.dumps({
-                "schema_version": 1, "fighters": {"Viacheslav Borshchev": entry}
+                "schema_version": 2, "decisions": [entry]
             }))
             with db.connect(root / "research.sqlite") as connection:
                 db.init_db(connection)
                 imported = import_wikipedia_history(
                     connection, 295, 295, raw_dir=root / "raw",
                     review_out=root / "review.json", crosswalk_path=crosswalk,
-                    fetch_json=FakeMediaWiki(_page("\n".join((WIN, DRAW)))),
+                    fetch_json=FakeMediaWiki(page),
                 )
                 self.assertEqual(imported["imported_bouts"], 2)
                 self.assertIsNotNone(connection.execute(
@@ -403,14 +417,202 @@ class WikipediaHistoryTests(unittest.TestCase):
                 ).fetchone())
                 entry["fighter_id"] = "wikipedia:9999"
                 crosswalk.write_text(json.dumps({
-                    "schema_version": 1, "fighters": {"Viacheslav Borshchev": entry}
+                    "schema_version": 2, "decisions": [entry]
                 }))
                 with self.assertRaisesRegex(ValueError, "page ID mismatch"):
                     import_wikipedia_history(
                         connection, 295, 295, raw_dir=root / "raw",
                         review_out=root / "review.json", crosswalk_path=crosswalk,
+                        fetch_json=FakeMediaWiki(page),
+                    )
+
+    def test_scoped_crosswalk_resolves_only_reviewed_bout_and_exact_revision(self) -> None:
+        second_draw = DRAW.replace("[[Nazim Sadykhov]]", "[[Alex Pereira]]")
+        page = _page("\n".join((WIN, DRAW, second_draw)))
+        fingerprint = hashlib.sha256(json.dumps(
+            page, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode()).hexdigest()
+        decision = {
+            "event_id": "wikipedia_research:74123456",
+            "bout_position": 2,
+            "fighter_name": "Viacheslav Borshchev",
+            "source_revision_id": 123,
+            "source_receipt_sha256": fingerprint,
+            "fighter_id": "wikipedia:1004",
+            "canonical_name": "Viacheslav Borshchev",
+            "page_title": "Viacheslav Borshchev",
+            "evidence_urls": ["https://en.wikipedia.org/w/index.php?oldid=123"],
+            "reviewed_by": "test reviewer",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            crosswalk = root / "crosswalk.json"
+            crosswalk.write_text(json.dumps({"schema_version": 2, "decisions": [decision]}))
+            with db.connect(root / "research.sqlite") as connection:
+                db.init_db(connection)
+                result = import_wikipedia_history(
+                    connection, 295, 295, raw_dir=root / "raw",
+                    review_out=root / "review.json", crosswalk_path=crosswalk,
+                    fetch_json=FakeMediaWiki(page),
+                )
+                self.assertEqual((result["imported_bouts"], result["skipped_unresolved_bouts"]), (2, 1))
+                self.assertEqual(connection.execute("SELECT COUNT(*) FROM results").fetchone()[0], 2)
+                self.assertEqual(
+                    json.loads((root / "review.json").read_text())["unresolved_fighters"][0]["bout_position"],
+                    3,
+                )
+                replay_receipt = connection.execute(
+                    "SELECT crosswalk_run_id FROM wikipedia_source_receipts ORDER BY run_id DESC LIMIT 1"
+                ).fetchone()
+                self.assertEqual(connection.execute(
+                    "SELECT source FROM ingestion_runs WHERE run_id = ?",
+                    (replay_receipt["crosswalk_run_id"],),
+                ).fetchone()["source"], "wikipedia_identity_crosswalk")
+            decision["source_revision_id"] = 124
+            crosswalk.write_text(json.dumps({"schema_version": 2, "decisions": [decision]}))
+            with db.connect(root / "new.sqlite") as connection:
+                db.init_db(connection)
+                with self.assertRaisesRegex(ValueError, "source revision/hash mismatch"):
+                    import_wikipedia_history(
+                        connection, 295, 295, raw_dir=root / "raw2",
+                        review_out=root / "review2.json", crosswalk_path=crosswalk,
+                        fetch_json=FakeMediaWiki(page),
+                    )
+                self.assertEqual(connection.execute("SELECT COUNT(*) FROM ingestion_runs").fetchone()[0], 0)
+
+    def test_scoped_crosswalk_rejects_wrong_bout_and_duplicate_decision(self) -> None:
+        page = _page("\n".join((WIN, DRAW)))
+        decision = {
+            "event_id": "wikipedia_research:74123456", "bout_position": 1,
+            "fighter_name": "Viacheslav Borshchev", "source_revision_id": 123,
+            "source_receipt_sha256": hashlib.sha256(json.dumps(
+                page, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            ).encode()).hexdigest(),
+            "fighter_id": "wikipedia:1004", "canonical_name": "Viacheslav Borshchev",
+            "page_title": "Viacheslav Borshchev",
+            "evidence_urls": ["https://en.wikipedia.org/w/index.php?oldid=123"],
+            "reviewed_by": "test reviewer",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            crosswalk = root / "crosswalk.json"
+            with db.connect(root / "research.sqlite") as connection:
+                db.init_db(connection)
+                crosswalk.write_text(json.dumps({"schema_version": 2, "decisions": [decision]}))
+                with self.assertRaisesRegex(ValueError, "fighter/bout mismatch"):
+                    import_wikipedia_history(
+                        connection, 295, 295, raw_dir=root / "raw",
+                        review_out=root / "review.json", crosswalk_path=crosswalk,
+                        fetch_json=FakeMediaWiki(page),
+                    )
+                decision["bout_position"] = 2
+                crosswalk.write_text(json.dumps({"schema_version": 2, "decisions": [decision, decision]}))
+                with self.assertRaisesRegex(ValueError, "Duplicate scoped crosswalk decision"):
+                    import_wikipedia_history(
+                        connection, 295, 295, raw_dir=root / "raw",
+                        review_out=root / "review.json", crosswalk_path=crosswalk,
+                        fetch_json=FakeMediaWiki(page),
+                    )
+                self.assertEqual(connection.execute("SELECT COUNT(*) FROM ingestion_runs").fetchone()[0], 0)
+
+    def test_same_printed_name_on_second_event_stays_held(self) -> None:
+        first = _page("\n".join((WIN, DRAW)))
+        second = _page("\n".join((WIN, DRAW)))
+        second["id"] = 74123457
+        second["title"] = "UFC 296"
+        decision = {
+            "event_id": "wikipedia_research:74123456", "bout_position": 2,
+            "fighter_name": "Viacheslav Borshchev", "source_revision_id": 123,
+            "source_receipt_sha256": hashlib.sha256(json.dumps(
+                first, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            ).encode()).hexdigest(),
+            "fighter_id": "wikipedia:1004", "canonical_name": "Viacheslav Borshchev",
+            "page_title": "Viacheslav Borshchev",
+            "evidence_urls": ["https://en.wikipedia.org/w/index.php?oldid=123"],
+            "reviewed_by": "test reviewer",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            crosswalk = root / "crosswalk.json"
+            crosswalk.write_text(json.dumps({"schema_version": 2, "decisions": [decision]}))
+            with db.connect(root / "research.sqlite") as connection:
+                db.init_db(connection)
+                imported = import_wikipedia_pages(
+                    connection,
+                    [(first, parse_event_page_title(first, "UFC 295")),
+                     (second, parse_event_page_title(second, "UFC 296"))],
+                    raw_dir=root / "raw", review_out=root / "review.json",
+                    crosswalk_path=crosswalk, fetch_json=FakeMediaWiki(first),
+                )
+                self.assertEqual((imported["imported_bouts"], imported["skipped_unresolved_bouts"]), (3, 1))
+                held = json.loads((root / "review.json").read_text())["unresolved_fighters"]
+                self.assertEqual([(item["event_id"], item["fighter_name"]) for item in held], [
+                    ("wikipedia_research:74123457", "Viacheslav Borshchev")
+                ])
+
+    def test_global_name_crosswalk_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            crosswalk = root / "global.json"
+            crosswalk.write_text(json.dumps({
+                "schema_version": 1,
+                "fighters": {"Viacheslav Borshchev": {
+                    "fighter_id": "wikipedia:1004", "canonical_name": "Viacheslav Borshchev",
+                    "page_title": "Viacheslav Borshchev",
+                    "evidence_url": "https://en.wikipedia.org/wiki/Viacheslav_Borshchev",
+                    "reviewed_by": "test reviewer",
+                }},
+            }))
+            with db.connect(root / "research.sqlite") as connection:
+                db.init_db(connection)
+                with self.assertRaisesRegex(ValueError, "Global-name schema_version 1 crosswalk is unsafe"):
+                    import_wikipedia_history(
+                        connection, 295, 295, raw_dir=root / "raw",
+                        review_out=root / "review.json", crosswalk_path=crosswalk,
                         fetch_json=FakeMediaWiki(_page("\n".join((WIN, DRAW)))),
                     )
+                self.assertEqual(connection.execute("SELECT COUNT(*) FROM ingestion_runs").fetchone()[0], 0)
+
+    def test_review_output_is_preserved_on_late_page_failure(self) -> None:
+        first = _page(WIN)
+        second = _page(WIN)
+        second["id"] = 74123457
+        second["title"] = "UFC 296"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            report = root / "review.json"
+            report.write_text('{"previous":"review"}')
+            with db.connect(root / "research.sqlite") as connection:
+                db.init_db(connection)
+                db.upsert_event(connection, "wikipedia_research:74123457", "UFC 296",
+                                "2023-11-12", "completed", source="wikipedia_research",
+                                source_event_id="74123457")
+                with self.assertRaisesRegex(ValueError, "source event date changed"):
+                    import_wikipedia_pages(
+                        connection,
+                        [(first, parse_event_page_title(first, "UFC 295")),
+                         (second, parse_event_page_title(second, "UFC 296"))],
+                        raw_dir=root / "raw", review_out=report,
+                        fetch_json=FakeMediaWiki(first),
+                    )
+                self.assertEqual(report.read_text(), '{"previous":"review"}')
+
+    def test_review_output_cannot_replace_crosswalk(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            crosswalk = root / "crosswalk.json"
+            original = '{"schema_version":2,"decisions":[]}'
+            crosswalk.write_text(original)
+            with db.connect(root / "research.sqlite") as connection:
+                db.init_db(connection)
+                with self.assertRaisesRegex(ValueError, "Review output.*crosswalk"):
+                    import_wikipedia_history(
+                        connection, 295, 295, raw_dir=root / "raw",
+                        review_out=crosswalk, crosswalk_path=crosswalk,
+                        fetch_json=FakeMediaWiki(_page(WIN)),
+                    )
+                self.assertEqual(crosswalk.read_text(), original)
+                self.assertEqual(connection.execute("SELECT COUNT(*) FROM ingestion_runs").fetchone()[0], 0)
 
     def test_disambiguation_page_is_unresolved(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

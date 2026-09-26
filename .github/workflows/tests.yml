@@ -45,3 +45,66 @@ jobs:
           done
           cat streamlit.log
           exit 1
+
+  container-smoke:
+    runs-on: ubuntu-latest
+    env:
+      UFC_DEPLOY_ROOT: ${{ github.workspace }}
+      UFC_DB_FILE: ci-dashboard.sqlite
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Match container user to private host files
+        run: |
+          echo "UFC_DEPLOY_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "UFC_DEPLOY_GID=$(id -g)" >> "$GITHUB_ENV"
+      - name: Create checked local fixture
+        run: |
+          python - <<'PY'
+          import hashlib
+          import sys
+          from pathlib import Path
+
+          root = Path.cwd().resolve()
+          sys.path.insert(0, str(root / "src"))
+          from ufc_odds_model import db
+          from ufc_odds_model.demo import seed_demo
+
+          raw = root / "data/raw/ci-source.json"
+          raw.parent.mkdir(parents=True)
+          (root / "reports").mkdir(exist_ok=True)
+          raw.write_bytes(b'{"fixture":"ci"}')
+          raw.chmod(0o600)
+          with db.connect(root / "data/ci-dashboard.sqlite") as connection:
+              db.init_db(connection)
+              seed_demo(connection)
+              connection.execute(
+                  "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+                  "VALUES (?, ?, ?, ?)",
+                  ("ci-fixture", "2026-01-01T00:00:00Z", str(raw),
+                   hashlib.sha256(raw.read_bytes()).hexdigest()),
+              )
+              connection.commit()
+          PY
+      - run: docker compose build dashboard
+      - name: Serve verified snapshot from read-only mounts
+        run: |
+          trap 'docker compose down --remove-orphans' EXIT
+          docker compose up -d --no-build
+          for attempt in {1..40}; do
+            if curl -fsS http://127.0.0.1:8501/_stcore/health; then
+              break
+            fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8501/_stcore/health
+          docker compose exec -T dashboard python - <<'PY'
+          import os
+          from ufc_odds_model.dashboard_data import load_dashboard
+
+          view = load_dashboard(os.environ["UFC_MODEL_DB"])
+          assert view["status"] == "available", view["status"]
+          assert view["data_origin"] == "demo_only", view["data_origin"]
+          PY

@@ -318,6 +318,8 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
   margin: 12px 0 20px;
 }
 
+.mobile-scroll-hint { display: none; }
+
 .evidence-line {
   color: var(--body);
   font: 400 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -476,6 +478,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
   [role="tablist"] { gap: 0; overflow-x: auto; }
   [data-testid="stTab"] { white-space: nowrap; font-size: 14px; padding: 0 9px; }
   [data-testid="stTab"] p { font-size: 14px !important; }
+  .mobile-scroll-hint { display: block; }
   .history-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .history-identity-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .history-stat { padding: 14px; }
