@@ -273,7 +273,7 @@ def add_quote(
     captured_at_utc: str,
     source: str,
     bookmaker_updated_at_utc: str | None = None,
-) -> None:
+) -> int:
     if not math.isfinite(decimal_odds) or decimal_odds <= 1:
         raise ValueError("Decimal odds must be finite and greater than 1")
     bout = connection.execute(
@@ -293,6 +293,20 @@ def add_quote(
             bookmaker_updated_at_utc, captured_at_utc, source,
         ),
     )
+    stored = connection.execute(
+        """SELECT quote_id, source, bookmaker_updated_at_utc FROM odds_quotes
+           WHERE bout_id = ? AND bookmaker = ? AND selection_fighter_id = ?
+             AND captured_at_utc = ? AND decimal_odds = ?""",
+        (bout_id, bookmaker, selection_fighter_id, captured_at_utc, decimal_odds),
+    ).fetchone()
+    if stored is None:
+        raise RuntimeError("Inserted quote could not be read")
+    if stored["bookmaker_updated_at_utc"] != bookmaker_updated_at_utc:
+        raise ValueError(
+            "Conflicting bookmaker update at one quote capture time; "
+            "review the source snapshot"
+        )
+    return int(stored["quote_id"])
 
 
 def event_bouts(connection: sqlite3.Connection, event_id: str) -> list[sqlite3.Row]:

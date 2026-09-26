@@ -121,10 +121,16 @@ def import_odds_payload(
         else:
             unmatched_quotes += 1
             continue
-        db.add_quote(
+        quote_id = db.add_quote(
             connection, bout["bout_id"], quote["bookmaker_key"], selection_id,
             float(quote["decimal_odds"]), quote["captured_at_utc"], source,
             quote["bookmaker_updated_at"],
+        )
+        connection.execute(
+            """INSERT OR IGNORE INTO odds_quote_receipts(
+                   quote_id, ingestion_run_id, source_event_id
+               ) VALUES (?, ?, ?)""",
+            (quote_id, int(receipt.lastrowid), quote["source_event_id"]),
         )
         matched_quotes += 1
     connection.commit()

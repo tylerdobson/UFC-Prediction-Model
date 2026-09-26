@@ -1,6 +1,6 @@
 # Wikipedia historical result bootstrap
 
-This importer is **research-only**. It uses English Wikipedia's official [MediaWiki REST page-source API](https://www.mediawiki.org/wiki/API:REST_API/Reference#Get_page_source), which returns wikitext plus a page ID, revision ID, and license. It reads the numbered event catalog on each `YYYY in UFC` page and the `MMAevent bout` result templates on linked event pages, never website HTML. A second command reads explicitly reviewed event sections embedded in year and *The Ultimate Fighter* season pages. Both commands default to 2011–2025 (15 complete calendar years). The original UFC 295–304 command remains available as a small smoke test. This is outcome history for a date-conservative Elo experiment **after identity and result review**; it is not evidence of a betting edge. The [dataset card](RESEARCH_DATASET_CARD.md) records measured coverage and exceptions from the 2026-09-26 import.
+This importer is **research-only**. It uses English Wikipedia's official [MediaWiki REST page-source API](https://www.mediawiki.org/wiki/API:REST_API/Reference#Get_page_source), which returns wikitext plus a page ID, revision ID, and license. It reads the numbered event catalog on each `YYYY in UFC` page and the `MMAevent bout` result templates on linked event pages, never website HTML. A second command reads explicitly reviewed event sections embedded in year and *The Ultimate Fighter* season pages. Both commands default to 2011–2025, but accept 1993 through the current year; a separate [reviewed date import](WIKIPEDIA_DATE_RECONCILIATION.md) covers four conflicting calendar dates. The original UFC 295–304 command remains available as a small smoke test. This is outcome history for a date-conservative Elo experiment **after identity and result review**; it is not evidence of a betting edge. The [dataset card](RESEARCH_DATASET_CARD.md) records measured 1993–2026 coverage and exceptions from the 2026-09-26 import.
 
 ## Source and license
 
@@ -8,7 +8,7 @@ The event pages are available under [Creative Commons Attribution-ShareAlike 4.0
 
 Event IDs use Wikipedia page IDs (`wikipedia_research:<page id>`). Linked fighters use their resolved page IDs (`wikipedia:<page id>`). A bout ID combines the event ID and sorted reviewed fighter IDs. The source page ID is stable across ordinary title changes; each source revision is separately recorded. Wikipedia supplies no native bout ID.
 
-## Fifteen-year import and review
+## Historical import and review
 
 Use a **separate research database**. The CLI rejects the default operating database path, and pre-fight alerts and paper bets refuse any database containing `wikipedia_research` events.
 

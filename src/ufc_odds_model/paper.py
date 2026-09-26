@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 
 from .card_history import latest_prefight_roster
 from .pipeline import parse_utc, utc_now, utc_string
+from .quote_evidence import linked_quote_rows, quote_receipt_matches
 
 
 def _positive_finite(value: float, name: str, *, at_most_one: bool = False) -> float:
@@ -61,6 +62,14 @@ def _candidate_details(
     ).fetchone()[0]
     if latest_import != gate["ingestion_run_id"]:
         raise ValueError("A newer live odds import superseded this gate check")
+    receipt_cache: dict = {}
+    if not any(
+        evidence["quote_id"] == quote_id and quote_receipt_matches(
+            evidence, recorded_time, receipt_cache, live_only=True,
+        )
+        for evidence in linked_quote_rows(connection, bout_id, int(gate["ingestion_run_id"]))
+    ):
+        raise ValueError("The checked paper quote source is missing or changed")
     decision_time = parse_utc(as_of_utc)
     match = connection.execute(
         """

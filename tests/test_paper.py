@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import hashlib
+import json
 import tempfile
 import unittest
 from datetime import timedelta
@@ -35,6 +36,8 @@ class PaperLedgerTests(unittest.TestCase):
             start_time_utc=self.event_start,
         )
         self.report_rows = []
+        raw_events = []
+        quote_links = []
         for index in range(6):
             fighter_a = f"fighter-{index}-a"
             fighter_b = f"fighter-{index}-b"
@@ -50,6 +53,20 @@ class PaperLedgerTests(unittest.TestCase):
             quote_id = self.connection.execute(
                 "SELECT quote_id FROM odds_quotes WHERE bout_id = ?", (bout_id,)
             ).fetchone()["quote_id"]
+            source_event_id = f"odds-fight-{index}"
+            quote_links.append((quote_id, source_event_id))
+            raw_events.append({
+                "id": source_event_id,
+                "home_team": fighter_a, "away_team": fighter_b,
+                "commence_time": self.event_start,
+                "bookmakers": [{"key": "fixture-book", "markets": [{
+                    "key": "h2h", "last_update": self.book_time,
+                    "outcomes": [
+                        {"name": fighter_a, "price": price},
+                        {"name": fighter_b, "price": 1.8},
+                    ],
+                }]}],
+            })
             prediction_id = db.save_prediction(
                 self.connection, bout_id, "fixture-v1", self.cutoff,
                 self.cutoff, 0.6,
@@ -65,13 +82,19 @@ class PaperLedgerTests(unittest.TestCase):
                 "decimal_odds": price,
             })
         raw = Path(self.temp.name) / "odds.json"
-        raw.write_text("[]", encoding="utf-8")
+        raw.write_text(json.dumps(raw_events), encoding="utf-8")
         self.receipt_id = self.connection.execute(
             "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256, snapshot_at_utc) "
             "VALUES (?, ?, ?, ?, ?)",
-            ("the-odds-api", self.quote_time, str(raw), hashlib.sha256(b"[]").hexdigest(),
+            ("the-odds-api", self.quote_time, str(raw), hashlib.sha256(raw.read_bytes()).hexdigest(),
              self.quote_time),
         ).lastrowid
+        for quote_id, source_event_id in quote_links:
+            self.connection.execute(
+                "INSERT INTO odds_quote_receipts(quote_id, ingestion_run_id, source_event_id) "
+                "VALUES (?, ?, ?)",
+                (quote_id, self.receipt_id, source_event_id),
+            )
         roster_observed = utc_string(self.now - timedelta(seconds=20))
         roster_raw = Path(self.temp.name) / "roster.csv"
         roster_raw.write_text("fixture roster observed before the card", encoding="utf-8")
@@ -293,6 +316,30 @@ class PaperLedgerTests(unittest.TestCase):
         )
         self.assertEqual(drift_failure[0]["alert_reason"], "edge_below_floor")
         self.assertEqual(record_paper_candidates(self.connection, drift_failure, 1000), [])
+        self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM paper_bets").fetchone()[0], 0)
+
+    def test_fresh_unlinked_quote_receipt_is_rejected_and_cannot_be_paper_traded(self):
+        duplicate_receipt = self._receipt(self.quote_time)
+        checked = record_prefight_checks(
+            self.connection, [self.report_rows[0]], ingestion_run_id=duplicate_receipt,
+        )
+        self.assertFalse(checked[0]["alert_eligible"])
+        self.assertEqual(checked[0]["alert_reason"], "quote_source_unverified")
+        self.assertEqual(record_paper_candidates(self.connection, checked, 1000), [])
+        saved = self.connection.execute(
+            "SELECT gate_decision, gate_reason FROM prefight_gate_checks WHERE gate_check_id = ?",
+            (checked[0]["gate_check_id"],),
+        ).fetchone()
+        self.assertEqual((saved["gate_decision"], saved["gate_reason"]),
+                         ("reject", "quote_source_unverified"))
+
+    def test_quote_payload_changed_after_gate_blocks_paper_record(self):
+        receipt = self.connection.execute(
+            "SELECT payload_path FROM ingestion_runs WHERE run_id = ?", (self.receipt_id,),
+        ).fetchone()
+        Path(receipt["payload_path"]).write_text("changed", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "quote source is missing or changed"):
+            record_paper_candidates(self.connection, self.report_rows[:1], 1000)
         self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM paper_bets").fetchone()[0], 0)
 
     def test_gate_checks_are_immutable_and_scored_evidence_cannot_be_changed(self):

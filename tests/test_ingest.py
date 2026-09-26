@@ -50,6 +50,13 @@ class OddsIngestTests(unittest.TestCase):
         self.assertEqual({row["selection_fighter_id"] for row in rows}, {"a", "b"})
         self.assertTrue(all(row["captured_at_utc"] == snapshot for row in rows))
         self.assertTrue(all(row["source"] == "the-odds-api-historical" for row in rows))
+        links = self.connection.execute(
+            "SELECT quote_id, ingestion_run_id, source_event_id FROM odds_quote_receipts"
+        ).fetchall()
+        self.assertEqual(len(links), 4)
+        self.assertEqual({link["ingestion_run_id"] for link in links},
+                         {first["ingestion_run_id"], second["ingestion_run_id"]})
+        self.assertEqual({link["source_event_id"] for link in links}, {"odds-fight"})
 
     def test_future_bookmaker_update_is_not_saved(self):
         snapshot = "2026-10-03T00:00:00Z"

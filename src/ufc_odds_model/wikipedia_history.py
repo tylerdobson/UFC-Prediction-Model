@@ -50,7 +50,8 @@ _HEADING = re.compile(r"^==\s*Results\s*==\s*$", re.I | re.M)
 _NEXT_HEADING = re.compile(r"^==[^=].*?==\s*$", re.M)
 _BOUT_OPEN = re.compile(r"\{\{\s*MMAevent bout(?=\s|\|)", re.I)
 _LINKED_FIGHTER = re.compile(
-    r"^\[\[([^\]|#]+)(?:\|([^\]]+))?\]\](?:\s*\((?:c|ic)\))?$", re.I
+    r"^\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]"
+    r"(?:\s*\((?:c|ic|UFC Champion|Pride Champion)\))?$", re.I
 )
 _PLAIN_FIGHTER = re.compile(r"^[^{}\[\]<>|]+$")
 _INFOBOX_OPEN = re.compile(r"\{\{\s*Infobox MMA event(?=\s|\|)", re.I)
@@ -236,7 +237,7 @@ def _fighter_ref(value: str) -> FighterRef:
         return FighterRef(name, title)
     if not clean or not _PLAIN_FIGHTER.fullmatch(clean):
         raise ValueError(f"Ambiguous unlinked fighter: {value!r}")
-    name = re.sub(r"\s*\((?:c|ic)\)$", "", clean, flags=re.I).strip()
+    name = re.sub(r"\s*\((?:c|ic|UFC Champion|Pride Champion)\)$", "", clean, flags=re.I).strip()
     if not name:
         raise ValueError(f"Empty fighter: {value!r}")
     return FighterRef(name, None)
@@ -251,6 +252,9 @@ def _event_date(raw: str) -> str:
     plain = re.match(r"^([A-Za-z]+\s+\d{1,2},\s*\d{4})\b", value)
     if plain:
         return datetime.strptime(plain.group(1), "%B %d, %Y").date().isoformat()
+    day_first = re.match(r"^(\d{1,2}\s+[A-Za-z]+\s+\d{4})\b", value)
+    if day_first:
+        return datetime.strptime(day_first.group(1), "%d %B %Y").date().isoformat()
     raise ValueError(f"Unsupported event date format: {raw!r}")
 
 
@@ -746,8 +750,8 @@ def import_wikipedia_years_history(
     """
     if (isinstance(first_year, bool) or isinstance(last_year, bool)
             or not isinstance(first_year, int) or not isinstance(last_year, int)
-            or not 2011 <= first_year <= last_year <= date.today().year):
-        raise ValueError("Year range must be 2011 through the current year")
+            or not 1993 <= first_year <= last_year <= date.today().year):
+        raise ValueError("Year range must be 1993 through the current year")
     from .wikipedia_catalog import enumerate_event_catalog
 
     fetch = fetch_json or MediaWikiClient()
@@ -871,8 +875,8 @@ def import_wikipedia_embedded_history(
     """
     if (isinstance(first_year, bool) or isinstance(last_year, bool)
             or not isinstance(first_year, int) or not isinstance(last_year, int)
-            or not 2011 <= first_year <= last_year <= date.today().year):
-        raise ValueError("Year range must be 2011 through the current year")
+            or not 1993 <= first_year <= last_year <= date.today().year):
+        raise ValueError("Year range must be 1993 through the current year")
     from .wikipedia_catalog import _canonical_pages, enumerate_event_catalog
     from .wikipedia_embedded import parse_embedded_event, target_from_catalog_review
 

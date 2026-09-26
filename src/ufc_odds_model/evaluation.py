@@ -22,6 +22,7 @@ from .logistic import (
     fit_temperature,
 )
 from .pipeline import parse_utc, utc_string
+from .quote_evidence import linked_quote_rows, quote_receipt_matches
 
 
 MIN_PRIOR_RESULT_EVIDENCE_COVERAGE = 1.0
@@ -252,6 +253,7 @@ def _bookmaker_probability(
     row: FeatureRow,
     decision_time: datetime,
     max_quote_age_hours: float,
+    receipt_cache: dict,
 ) -> float | None:
     """Return a no-vig probability for the first, canonically ordered fighter.
 
@@ -261,16 +263,11 @@ def _bookmaker_probability(
     """
     oldest_allowed = decision_time - timedelta(hours=max_quote_age_hours)
     fighters = {row.fighter_a_id, row.fighter_b_id}
-    markets: dict[tuple[str, str, datetime, datetime], dict[str, set[float]]] = {}
-    quotes = connection.execute(
-        """
-        SELECT quote_id, bookmaker, source, selection_fighter_id, decimal_odds,
-               captured_at_utc, bookmaker_updated_at_utc
-        FROM odds_quotes WHERE bout_id = ? AND market = 'h2h'
-        """,
-        (row.bout_id,),
-    ).fetchall()
+    markets: dict[tuple[str, int, datetime, datetime], dict[str, set[float]]] = {}
+    quotes = linked_quote_rows(connection, row.bout_id)
     for quote in quotes:
+        if not quote_receipt_matches(quote, decision_time, receipt_cache):
+            continue
         fighter_id = quote["selection_fighter_id"]
         if fighter_id not in fighters:
             continue
@@ -287,11 +284,11 @@ def _bookmaker_probability(
             continue
         # Both sides must come from the same captured market and update, not
         # two individually recent but non-contemporaneous prices.
-        key = (str(quote["bookmaker"]), str(quote["source"]), captured, updated)
+        key = (str(quote["bookmaker"]), int(quote["ingestion_run_id"]), captured, updated)
         markets.setdefault(key, {}).setdefault(str(fighter_id), set()).add(odds)
 
     paired: list[tuple[datetime, datetime, str, float]] = []
-    for (bookmaker, _source, captured, updated), sides in markets.items():
+    for (bookmaker, _receipt_id, captured, updated), sides in markets.items():
         side_a = sides.get(row.fighter_a_id, set())
         side_b = sides.get(row.fighter_b_id, set())
         if len(side_a) != 1 or len(side_b) != 1:
@@ -363,9 +360,13 @@ def evaluate_models(
     book_probabilities: list[float] = []
     book_outcomes: list[int] = []
     book_indices: list[int] = []
+    quote_receipt_cache: dict = {}
     for index, row in enumerate(test):
         decision_time = decision_times[row.event_id]
-        book_probability = _bookmaker_probability(connection, row, decision_time, max_quote_age_hours)
+        book_probability = _bookmaker_probability(
+            connection, row, decision_time, max_quote_age_hours,
+            quote_receipt_cache,
+        )
         if book_probability is not None:
             book_probabilities.append(book_probability)
             book_outcomes.append(int(row.target))

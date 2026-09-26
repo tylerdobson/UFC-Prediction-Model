@@ -99,10 +99,61 @@ class EvaluationTests(unittest.TestCase):
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA foreign_keys = ON")
         db.init_db(self.connection)
+        self._market_counter = 0
 
     def tearDown(self) -> None:
         self.connection.close()
         self.temp.cleanup()
+
+    def add_historical_market(
+        self, bout_id: str, bookmaker: str, captured: str, updated: str,
+        odds_a: float, odds_b: float, selections: tuple[str, ...] | None = None,
+    ) -> Path:
+        """Save a realistic provider payload and link only supplied fixture sides."""
+        bout = self.connection.execute(
+            """SELECT b.fighter_a_id, b.fighter_b_id, e.start_time_utc
+               FROM bouts b JOIN events e ON e.event_id = b.event_id
+               WHERE b.bout_id = ?""", (bout_id,),
+        ).fetchone()
+        names = (str(bout["fighter_a_id"]), str(bout["fighter_b_id"]))
+        self._market_counter += 1
+        source_event_id = f"source-{bout_id}"
+        payload = {
+            "timestamp": captured,
+            "data": [{
+                "id": source_event_id, "commence_time": bout["start_time_utc"],
+                "home_team": names[0], "away_team": names[1],
+                "bookmakers": [{"key": bookmaker, "markets": [{
+                    "key": "h2h", "last_update": updated,
+                    "outcomes": [
+                        {"name": names[0], "price": odds_a},
+                        {"name": names[1], "price": odds_b},
+                    ],
+                }]}],
+            }],
+        }
+        raw = json.dumps(payload).encode()
+        path = self.root / f"market-{self._market_counter}.json"
+        path.write_bytes(raw)
+        receipt = self.connection.execute(
+            """INSERT INTO ingestion_runs(
+                   source, fetched_at_utc, payload_path, sha256, snapshot_at_utc
+               ) VALUES ('the-odds-api-historical', '2024-02-01T00:00:00Z', ?, ?, ?)""",
+            (str(path), hashlib.sha256(raw).hexdigest(), captured),
+        )
+        for fighter_id, odds in zip(names, (odds_a, odds_b)):
+            if selections is not None and fighter_id not in selections:
+                continue
+            quote_id = db.add_quote(
+                self.connection, bout_id, bookmaker, fighter_id, odds,
+                captured, "the-odds-api-historical", updated,
+            )
+            self.connection.execute(
+                "INSERT INTO odds_quote_receipts(quote_id, ingestion_run_id, source_event_id) "
+                "VALUES (?, ?, ?)",
+                (quote_id, receipt.lastrowid, source_event_id),
+            )
+        return path
 
     def test_insufficient_history_is_explicit(self):
         result = evaluate_models(self.connection)
@@ -180,9 +231,10 @@ class EvaluationTests(unittest.TestCase):
     def test_bookmaker_requires_both_sides_of_one_book_before_cutoff(self):
         make_history(self.connection, self.root)
         # Event 9 starts Jan 9 at 12:00, so the default decision is Jan 8 at 12:00.
-        for fighter_id, odds in (("a-09", 2.0), ("b-09", 4.0)):
-            db.add_quote(self.connection, "bout-09", "valid", fighter_id, odds,
-                         "2024-01-08T11:00:00Z", "test", "2024-01-08T10:55:00Z")
+        self.add_historical_market(
+            "bout-09", "valid", "2024-01-08T11:00:00Z",
+            "2024-01-08T10:55:00Z", 2.0, 4.0,
+        )
         for fighter_id, odds in (("a-09", 9.0), ("b-09", 1.2)):
             db.add_quote(self.connection, "bout-09", "future", fighter_id, odds,
                          "2024-01-08T13:00:00Z", "test")
@@ -211,14 +263,36 @@ class EvaluationTests(unittest.TestCase):
 
     def test_bookmaker_rejects_noncontemporaneous_sides(self):
         make_history(self.connection, self.root)
-        db.add_quote(self.connection, "bout-09", "book", "a-09", 2.0,
-                     "2024-01-08T11:00:00Z", "test", "2024-01-08T10:55:00Z")
-        db.add_quote(self.connection, "bout-09", "book", "b-09", 4.0,
-                     "2024-01-08T10:00:00Z", "test", "2024-01-08T09:55:00Z")
+        self.add_historical_market(
+            "bout-09", "book", "2024-01-08T11:00:00Z",
+            "2024-01-08T10:55:00Z", 2.0, 4.0, ("a-09",),
+        )
+        self.add_historical_market(
+            "bout-09", "book", "2024-01-08T10:00:00Z",
+            "2024-01-08T09:55:00Z", 2.0, 4.0, ("b-09",),
+        )
         self.assertEqual(evaluate_models(self.connection)["test"]["bookmaker"]["available_bouts"], 0)
-        db.add_quote(self.connection, "bout-09", "book", "b-09", 4.0,
-                     "2024-01-08T11:00:00Z", "test", "2024-01-08T10:55:00Z")
+        self.add_historical_market(
+            "bout-09", "book", "2024-01-08T11:00:00Z",
+            "2024-01-08T10:55:00Z", 2.0, 4.0, ("b-09",),
+        )
+        # The two 11:00 sides are still from different receipts.
+        self.assertEqual(evaluate_models(self.connection)["test"]["bookmaker"]["available_bouts"], 0)
+        self.add_historical_market(
+            "bout-09", "book", "2024-01-08T11:00:00Z",
+            "2024-01-08T10:55:00Z", 2.0, 4.0,
+        )
         self.assertEqual(evaluate_models(self.connection)["test"]["bookmaker"]["available_bouts"], 1)
+
+    def test_bookmaker_rejects_tampered_quote_source(self):
+        make_history(self.connection, self.root)
+        source = self.add_historical_market(
+            "bout-09", "book", "2024-01-08T11:00:00Z",
+            "2024-01-08T10:55:00Z", 2.0, 4.0,
+        )
+        self.assertEqual(evaluate_models(self.connection)["test"]["bookmaker"]["available_bouts"], 1)
+        source.write_text("changed", encoding="utf-8")
+        self.assertEqual(evaluate_models(self.connection)["test"]["bookmaker"]["available_bouts"], 0)
 
     def test_missing_or_changed_prefight_snapshot_excludes_historical_targets(self):
         make_history(self.connection, self.root)

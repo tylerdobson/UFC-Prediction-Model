@@ -80,7 +80,7 @@ def make_parser() -> argparse.ArgumentParser:
     wiki_import.add_argument("--raw-dir", default="data/raw/wikipedia")
     wiki_years = subcommands.add_parser(
         "import-wikipedia-years",
-        help="Import 2011–2025 UFC result pages into a separate research database",
+        help="Import 1993–present UFC result pages into a separate research database",
     )
     wiki_years.add_argument("--first-year", type=int, default=2011)
     wiki_years.add_argument("--last-year", type=int, default=2025)

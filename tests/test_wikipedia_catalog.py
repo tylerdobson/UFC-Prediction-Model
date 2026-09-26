@@ -29,6 +29,27 @@ def _page(year: int, rows: str, *, prefix: str = "") -> dict:
 
 
 class CatalogParserTests(unittest.TestCase):
+    def test_current_year_uses_past_events_after_scheduled_table(self) -> None:
+        page = _page(2026, (
+            '|800\n|[[UFC 324]]\n|{{dts|2026|Jan|24}}\n|Venue'
+        ))
+        scheduled = (
+            '=== Scheduled events ===\n'
+            '{| class="sortable wikitable"\n'
+            '! scope="col" | Event\n! scope="col" | Date\n'
+            '|-\n|[[UFC 335]]\n|{{dts|2026|Oct|10}}\n|}\n'
+            '=== Past events ===\n'
+        )
+        page['source'] = page['source'].replace(
+            '{{Main|List of UFC events}}\n',
+            '{{Main|List of UFC events}}\n' + scheduled,
+        )
+
+        result = parse_year_page(page, 2026)
+
+        self.assertEqual([event.page_title for event in result.events], ['UFC 324'])
+        self.assertEqual([event.event_date for event in result.events], ['2026-01-24'])
+
     def test_parses_only_event_table_with_nested_sort_and_flags_canceled_row(self) -> None:
         rows = (
             '|193\n|[[UFC 141|UFC 141: Lesnar vs. Overeem]]\n|{{dts|2011|Dec|30}}\n|Venue\n|-\n'

@@ -99,11 +99,11 @@ def _event_table(section: str) -> str:
         table = section[opening.end():closing.start()]
         first_row = _ROW.search(table)
         headers = table[:first_row.start()] if first_row else table
-        if re.search(r'(?im)^!\s*[^\n]*\|\s*Event\s*$', headers) and re.search(
-            r'(?im)^!\s*[^\n]*\|\s*Date\s*$', headers
-        ):
+        if (re.search(r'(?im)^!\s*[^\n]*\|\s*#\s*$', headers)
+                and re.search(r'(?im)^!\s*[^\n]*\|\s*Event\s*$', headers)
+                and re.search(r'(?im)^!\s*[^\n]*\|\s*Date\s*$', headers)):
             return table
-    raise ValueError("Events list has no wikitable with Event and Date columns")
+    raise ValueError("Events list has no numbered wikitable with Event and Date columns")
 
 
 def _split_double_pipes(value: str) -> list[str]:

@@ -188,6 +188,78 @@ class WikipediaEmbeddedTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "verified event number"):
             target_from_catalog_review(linked)
 
+    def test_pre_2011_canonical_redirects_require_exact_reviewed_event_and_date(self) -> None:
+        reviewed = [
+            (2005, 64, "The Ultimate Fighter 2 Finale", "2005-11-05", "The Ultimate Fighter 2", "The Ultimate Fighter 2 Finale"),
+            (2005, 57, "The Ultimate Fighter 1 Finale", "2005-04-09", "The Ultimate Fighter 1", "The Ultimate Fighter: Team Couture vs. Team Liddell Finale"),
+            (2006, 80, "The Ultimate Fighter 4 Finale", "2006-11-11", "The Ultimate Fighter 4", "The Ultimate Fighter 4 Finale"),
+            (2006, 72, "The Ultimate Fighter 3 Finale", "2006-06-24", "The Ultimate Fighter 3", "The Ultimate Fighter 3 Finale"),
+            (2007, 101, "The Ultimate Fighter: Team Hughes vs. Team Serra Finale", "2007-12-08", "The Ultimate Fighter: Team Hughes vs. Team Serra", "The Ultimate Fighter 6 Finale"),
+            (2007, 93, "The Ultimate Fighter 5 Finale", "2007-06-23", "The Ultimate Fighter 5", "The Ultimate Fighter 5 Finale"),
+            (2007, 87, "UFC Fight Night: Stevenson vs. Guillard", "2007-04-05", "2007 in UFC", "UFC Fight Night: Stevenson vs. Guillard"),
+            (2008, 121, "The Ultimate Fighter: Team Nogueira vs. Team Mir Finale", "2008-12-13", "The Ultimate Fighter: Team Nogueira vs. Team Mir", "The Ultimate Fighter 8 Finale"),
+            (2009, 141, "The Ultimate Fighter: Heavyweights Finale", "2009-12-05", "The Ultimate Fighter: Heavyweights", "The Ultimate Fighter 10 Finale"),
+            (2009, 132, "The Ultimate Fighter: United States vs. United Kingdom Finale", "2009-06-20", "The Ultimate Fighter: United States vs. United Kingdom", "The Ultimate Fighter 9 Finale"),
+            (2010, 165, "The Ultimate Fighter: Team GSP vs. Team Koscheck Finale", "2010-12-04", "The Ultimate Fighter: Team GSP vs. Team Koscheck", "The Ultimate Fighter 12 Finale"),
+            (2010, 154, "The Ultimate Fighter: Team Liddell vs. Team Ortiz Finale", "2010-06-19", "The Ultimate Fighter: Team Liddell vs. Team Ortiz", "The Ultimate Fighter 11 Finale"),
+        ]
+        for year, number, label, event_date, source_title, heading in reviewed:
+            row = {
+                "year": year,
+                "raw_number": str(number),
+                "reason": "canonical_not_event_page",
+                "raw_event": label,
+                "raw_date": event_date,
+            }
+            with self.subTest(year=year, event=number):
+                target = target_from_catalog_review(row)
+                self.assertEqual(target.source_page_title, source_title)
+                self.assertEqual(target.target_heading, heading)
+                self.assertEqual(target.expected_date, event_date)
+                with self.assertRaisesRegex(ValueError, "no reviewed section mapping"):
+                    target_from_catalog_review({**row, "raw_date": f"{year}-01-01"})
+                with self.assertRaisesRegex(ValueError, "no reviewed section mapping"):
+                    target_from_catalog_review({**row, "raw_event": "Unreviewed finale"})
+
+        reviewed_bridge = {
+            "year": 2008,
+            "raw_number": "111",
+            "reason": "canonical_not_event_page",
+            "raw_event": "The Ultimate Fighter: Team Rampage vs. Team Forrest Finale",
+            "raw_date": "2008-06-21",
+        }
+        self.assertEqual(
+            target_from_catalog_review(reviewed_bridge).target_heading,
+            "The Ultimate Fighter 7 Finale",
+        )
+
+    def test_reviewed_2008_background_bridge_requires_exact_results_boundary(self) -> None:
+        payload = _payload("June 21, 2008")
+        payload["id"] = 14625011
+        payload["title"] = "The Ultimate Fighter: Team Rampage vs. Team Forrest"
+        payload["source"] = payload["source"].replace(
+            "The Ultimate Fighter 16 Finale", "The Ultimate Fighter 7 Finale"
+        ).replace(
+            "===Background===\n===Results===", "==Background==\nBackground text.\n==Results=="
+        )
+        options = {
+            "source_page_title": payload["title"],
+            "target_heading": "The Ultimate Fighter 7 Finale",
+            "expected_date": "2008-06-21",
+            "expected_page_id": payload["id"],
+        }
+        self.assertEqual(len(parse_embedded_event(payload, **options).bouts), 1)
+        altered = dict(payload, source=payload["source"].replace(
+            "Background text.\n==Results==", "Background text.\n==Other card==\n==Results=="
+        ))
+        with self.assertRaisesRegex(ValueError, "not followed by Results"):
+            parse_embedded_event(altered, **options)
+        altered = dict(payload, source=payload["source"].replace(
+            "Background text.\n==Results==", "Background text.\n" + WIN + "==Results=="
+        ))
+        with self.assertRaisesRegex(ValueError, "another event or bout"):
+            parse_embedded_event(altered, **options)
+
 
 if __name__ == "__main__":
     unittest.main()

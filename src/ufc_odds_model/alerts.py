@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Iterable, Mapping
 
 from .card_history import latest_prefight_roster
+from .quote_evidence import linked_quote_rows, quote_receipt_matches
 
 
 def _utc(value: object) -> datetime | None:
@@ -201,8 +202,13 @@ def record_prefight_checks(
     if not event["start_time_utc"]:
         raise ValueError("A known event start is required for a pre-fight gate run")
 
+    quote_receipt_cache: dict = {}
+    verified_quotes = []
     for row in source_rows:
-        _verify_saved_score(connection, row, edge_floor)
+        verified_quotes.append(_verify_saved_score(
+            connection, row, edge_floor, ingestion_run_id, now,
+            quote_receipt_cache,
+        ))
     checked = gate_prefight_alerts(
         source_rows,
         snapshot_at_utc=receipt["snapshot_at_utc"],
@@ -212,7 +218,11 @@ def record_prefight_checks(
         decimal_odds_drift=decimal_odds_drift,
         min_edge=min_edge,
     )
-    for row in checked:
+    for row, verified_quote in zip(checked, verified_quotes):
+        if row["alert_eligible"] and not verified_quote:
+            row["alert_eligible"] = False
+            row["alert_decision"] = "reject"
+            row["alert_reason"] = "quote_source_unverified"
         roster = latest_prefight_roster(connection, event_id, str(row["bout_id"]), now)
         row["roster_snapshot_id"] = roster.get("event_snapshot_id") if roster["accepted"] else None
         if not roster["accepted"]:
@@ -268,8 +278,9 @@ def record_prefight_checks(
 
 
 def _verify_saved_score(
-    connection: sqlite3.Connection, row: Mapping[str, object], min_edge: float
-) -> None:
+    connection: sqlite3.Connection, row: Mapping[str, object], min_edge: float,
+    ingestion_run_id: int, cutoff_at_utc: datetime, receipt_cache: dict,
+) -> bool:
     try:
         prediction_id = int(row["prediction_id"])
         bout_id = str(row["bout_id"])
@@ -297,7 +308,7 @@ def _verify_saved_score(
     if not quote_id:
         if row.get("decision") != "no_quote":
             raise ValueError("A scored candidate needs a saved quote")
-        return
+        return False
     try:
         quote_id = int(quote_id)
     except (TypeError, ValueError) as exc:
@@ -305,6 +316,13 @@ def _verify_saved_score(
     quote = connection.execute("SELECT * FROM odds_quotes WHERE quote_id = ?", (quote_id,)).fetchone()
     if quote is None or quote["bout_id"] != bout_id or quote["market"] != "h2h":
         raise ValueError("The scored quote does not match the saved bout")
+    evidence = linked_quote_rows(connection, bout_id, ingestion_run_id)
+    verified_quote = any(
+        item["quote_id"] == quote_id and quote_receipt_matches(
+            item, cutoff_at_utc, receipt_cache, live_only=True,
+        )
+        for item in evidence
+    )
     if quote["selection_fighter_id"] == saved["fighter_a_id"]:
         probability = float(saved["p_fighter_a"])
     elif quote["selection_fighter_id"] == saved["fighter_b_id"]:
@@ -323,3 +341,4 @@ def _verify_saved_score(
     expected_decision = "candidate" if probability * price - 1 >= min_edge else "pass"
     if row.get("decision") != expected_decision:
         raise ValueError("The scored model decision differs from saved evidence")
+    return verified_quote

@@ -180,6 +180,22 @@ class WikipediaHistoryTests(unittest.TestCase):
                 ).fetchone()[0],
                     "https://en.wikipedia.org/wiki/UFC_Fight_Night:_Research_vs._Example")
 
+    def test_old_day_first_date_and_champion_annotations_preserve_linked_ids(self) -> None:
+        page = _page(WIN.replace(
+            "[[Alex Pereira]]", "[[Alex Pereira]] (UFC Champion)"
+        ).replace(
+            "[[Jiří Procházka]]", "[[Jiří Procházka]] (Pride Champion)"
+        ))
+        page["source"] = page["source"].replace(
+            "{{start date|2023|11|11}}", "17 January 2009"
+        )
+        parsed = parse_event_page(page, 295)
+        self.assertEqual(parsed.event_date, "2009-01-17")
+        self.assertEqual(parsed.bouts[0].fighter_a.title, "Alex Pereira")
+        self.assertEqual(parsed.bouts[0].fighter_a.name, "Alex Pereira")
+        self.assertEqual(parsed.bouts[0].fighter_b.title, "Jiří Procházka")
+        self.assertEqual(parsed.bouts[0].fighter_b.name, "Jiří Procházka")
+
     def test_indented_infobox_fields_are_read(self) -> None:
         page = _page(WIN)
         page["source"] = page["source"].replace("|name=", "  | name=").replace(
