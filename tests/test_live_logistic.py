@@ -138,6 +138,32 @@ class LiveLogisticTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "source-observed prior-result history"):
             prepare_live_logistic(self.connection, "target", AS_OF)
 
+    def test_later_observed_result_cannot_enter_target_features(self):
+        self.add_eligible_history()
+        original = prepare_live_logistic(self.connection, "target", AS_OF)
+        self.assertTrue(original.prior_result_evidence["target"]["meets_threshold"])
+
+        # This completed fight belongs to the final historical event, so it
+        # cannot affect any training or calibration feature row. Its first
+        # source observation is after the target's Jan 12 noon forecast.
+        db.upsert_fighter(self.connection, "late-opponent", "Late Opponent")
+        db.upsert_bout(
+            self.connection, "late-result", "history-11",
+            "anchor", "late-opponent", "completed",
+        )
+        db.upsert_result(
+            self.connection, "late-result", "win", "anchor",
+            "2024-01-11T23:00:00Z",
+        )
+        add_card_snapshot(
+            self.connection, self.root, "history-11", "2024-01-13T00:00:00Z",
+            "completed",
+        )
+        self.connection.commit()
+
+        with self.assertRaisesRegex(ValueError, "target features need complete source-observed"):
+            prepare_live_logistic(self.connection, "target", AS_OF)
+
     def test_observation_availability_changes_version_only_after_cutoff(self):
         self.add_eligible_history()
         original = prepare_live_logistic(self.connection, "target", AS_OF)

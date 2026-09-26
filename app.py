@@ -25,6 +25,9 @@ EVALUATION_PATH = Path(
 INTEGRITY_PATH = Path(
     os.environ.get("UFC_MODEL_INTEGRITY_REPORT", "reports/integrity.json")
 )
+RESEARCH_REPORT_PATH = Path(
+    os.environ.get("UFC_MODEL_RESEARCH_REPORT", "reports/ufc_research_1993_2026_holdout.json")
+)
 CSS_PATH = Path(__file__).with_name("dashboard.css")
 
 
@@ -679,6 +682,67 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
             "validation period; the report records the fixed chronological splits.</p>",
             unsafe_allow_html=True,
         )
+    _render_research_holdout(snapshot)
+
+
+def _render_research_holdout(snapshot: Mapping[str, Any]) -> None:
+    """Keep retrospective research scores visibly separate from operating evaluation."""
+    report = _mapping(snapshot.get("research_evaluation"))
+    if report.get("status") != "available":
+        if snapshot.get("data_origin") in {"research_only", "research_mixed"}:
+            reason = report.get("reason") or "No checked retrospective holdout is available."
+            st.markdown(
+                "<section class='panel'><h2>Retrospective research holdout · unavailable</h2>"
+                "<p>Research scores appear only when the saved report matches the current accepted "
+                "results and all source receipts reconcile.</p>"
+                f"<div class='notice'>{_esc(reason)}</div></section>",
+                unsafe_allow_html=True,
+            )
+        return
+    splits = _mapping(report.get("split"))
+    train, validation, test_split = (
+        _mapping(splits.get(name)) for name in ("train", "validation", "test")
+    )
+    test = _mapping(report.get("test"))
+    rows = []
+    for label, key in (("Elo", "elo"), ("Calibrated logistic", "logistic_calibrated")):
+        metrics = _mapping(_mapping(test.get(key)).get("metrics"))
+        rows.append([
+            label, _number(metrics.get("brier_score"), 4),
+            _number(metrics.get("log_loss"), 4), _text(metrics.get("bouts")),
+        ])
+    identity = _mapping(report.get("identity_coverage"))
+    test_coverage = _mapping(_mapping(identity.get("by_split_dates")).get("test"))
+    uncertainty = _mapping(report.get("test_uncertainty"))
+    brier_interval = uncertainty.get("logistic_minus_elo_brier_score_95pct_interval")
+    interval_text = (
+        f"[{_number(brier_interval[0], 4)}, {_number(brier_interval[1], 4)}]"
+        if isinstance(brier_interval, list) and len(brier_interval) == 2 else "Unavailable"
+    )
+    coverage_text = (
+        f"{_percent(test_coverage.get('accepted_share_of_accepted_plus_held'))} "
+        f"({test_coverage.get('accepted_bouts_all_outcomes')} accepted, "
+        f"{test_coverage.get('held_source_bout_rows')} held)"
+        if test_coverage else "Unavailable: no checked identity worksheet"
+    )
+    st.markdown(
+        "<section class='panel'><h2>Retrospective research holdout · not operational evidence</h2>"
+        "<p>Saved Wikipedia result history only. Current source receipts and accepted-result "
+        "fingerprint match this report. These scores cannot promote a model or trigger an alert.</p>"
+        + _table(["Model", "Test Brier", "Test log loss", "Win/loss bouts"], rows, "No research scores")
+        + "<p class='table-note'>"
+        f"Train {_esc(train.get('first_date'))}–{_esc(train.get('last_date'))}: "
+        f"{_esc(train.get('binary_bouts'))} bouts · "
+        f"Validation {_esc(validation.get('first_date'))}–{_esc(validation.get('last_date'))}: "
+        f"{_esc(validation.get('binary_bouts'))} bouts · "
+        f"Untouched test {_esc(test_split.get('first_date'))}–{_esc(test_split.get('last_date'))}: "
+        f"{_esc(test_split.get('binary_bouts'))} bouts.</p>"
+        f"<p class='table-note'>Test-period source-row acceptance: {_esc(coverage_text)}. "
+        f"Paired event-date bootstrap, logistic minus Elo Brier 95% interval: {_esc(interval_text)} "
+        "(negative favors logistic). No historical point-in-time prices were evaluated, "
+        "so this is not evidence of a betting edge or return.</p></section>",
+        unsafe_allow_html=True,
+    )
 
 
 def _render_quality(snapshot: Mapping[str, Any]) -> None:
@@ -834,10 +898,52 @@ def _render_historical_data(snapshot: Mapping[str, Any]) -> None:
         "<p class='evidence-line'><strong>Coverage:</strong> "
         f"{_esc(history.get('first_date'))} to {_esc(history.get('last_date'))}. "
         f"<strong>Distinct source pages:</strong> {_esc(f'{receipt_count:,}')}. "
-        "Counts include only completed research-source events and matched completed bouts; "
-        "inspect the import review file for unresolved identities.</p>",
+        "Counts include only completed research-source events and matched completed bouts.</p>",
         unsafe_allow_html=True,
     )
+
+    if history.get("receipt_status") == "verified":
+        identity_summary = (
+            ("Parsed source bout rows", f"{int(history['source_bout_rows']):,}"),
+            ("Held for identity review", f"{int(history['held_identity_rows']):,}"),
+            ("Accepted bout coverage", _percent(history.get("accepted_bout_coverage"))),
+        )
+        identity_cards = "".join(
+            "<div class='history-stat'><span>" + _esc(label) + "</span>"
+            "<strong>" + _esc(value) + "</strong></div>"
+            for label, value in identity_summary
+        )
+        st.markdown(
+            "<section class='panel'><h2>Identity and source-row coverage</h2>"
+            "<div class='history-stats history-identity-stats'>" + identity_cards + "</div>"
+            "<p class='table-note'>Held rows are parsed fight results excluded because one or both "
+            "fighters lack a reviewed stable ID. Totals come from the latest matching receipt "
+            "for each completed card; saved payload hashes and imported-bout counts were checked. "
+            "They are receipt-reported counts, not an independent recount of page text.</p></section>",
+            unsafe_allow_html=True,
+        )
+        coverage_rows = [
+            [row.get("year"), row.get("events"), row.get("bouts"),
+             row.get("held_identity_rows"), _percent(row.get("accepted_bout_coverage"))]
+            for row in reversed(years)
+        ]
+        st.markdown(
+            "<section class='panel'><h2>Identity coverage by year</h2>"
+            + _table(["Year", "Events", "Imported bouts", "Held identity rows", "Accepted"],
+                     coverage_rows, "No annual coverage available")
+            + "<p class='table-note'>Accepted = imported bouts / parsed source bout rows. "
+            "A low share means the historical model excludes many recorded fights that year.</p>"
+            "</section>",
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            "<div class='notice'><strong>Identity coverage unavailable.</strong> "
+            + _esc(history.get("receipt_reason"), "The source receipts could not be reconciled.")
+            + " Imported bout counts remain visible above; held-row totals are suppressed "
+            "until every completed card has matching, readable evidence.</div>",
+            unsafe_allow_html=True,
+        )
 
     max_bouts = max(1, max((int(row.get("bouts") or 0) for row in years), default=0))
     bars = "".join(
@@ -957,7 +1063,8 @@ def main() -> None:
     st.markdown("<style>" + CSS_PATH.read_text(encoding="utf-8") + "</style>", unsafe_allow_html=True)
     try:
         snapshot = load_dashboard(
-            DB_PATH, evaluation_report=EVALUATION_PATH, integrity_report=INTEGRITY_PATH
+            DB_PATH, evaluation_report=EVALUATION_PATH,
+            research_report=RESEARCH_REPORT_PATH, integrity_report=INTEGRITY_PATH,
         )
     except (OSError, ValueError):
         st.error("The dashboard could not read its saved data. Check the local database and report configuration.")

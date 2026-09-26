@@ -8,6 +8,7 @@ pre-fight alert gate before it can be treated as an alert candidate.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import sqlite3
@@ -15,12 +16,14 @@ from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, TypedDict
+from urllib.parse import unquote, urlsplit
 
 from .audit import audit_database
 from .evaluation import MIN_PRIOR_RESULT_EVIDENCE_COVERAGE
 from .features import COVERAGE_NAMES
 from .integrity import database_file_state
 from .pipeline import utc_string
+from .research_evaluation import RESEARCH_EVALUATION_VERSION, SOURCE as RESEARCH_SOURCE, _source_results
 
 
 class PredictionView(TypedDict):
@@ -84,6 +87,12 @@ class HistoricalResearchView(TypedDict):
     results: int
     fighters: int
     event_page_receipts: int
+    source_bout_rows: int | None
+    held_identity_rows: int | None
+    accepted_bout_coverage: float | None
+    receipt_events_verified: int
+    receipt_status: str
+    receipt_reason: str | None
     first_date: str | None
     last_date: str | None
     by_year: list[dict[str, Any]]
@@ -103,6 +112,7 @@ class DashboardView(TypedDict):
     paper_ledger: dict[str, Any]
     manual_ledger: dict[str, Any]
     evaluation: dict[str, Any]
+    research_evaluation: dict[str, Any]
     integrity: dict[str, Any]
 
 
@@ -159,6 +169,9 @@ def _empty_historical_research() -> HistoricalResearchView:
     return {
         "source": "wikipedia_research", "events": 0, "bouts": 0,
         "results": 0, "fighters": 0, "event_page_receipts": 0,
+        "source_bout_rows": None, "held_identity_rows": None,
+        "accepted_bout_coverage": None, "receipt_events_verified": 0,
+        "receipt_status": "unavailable", "receipt_reason": "No completed research events.",
         "first_date": None, "last_date": None, "by_year": [],
         "recent_events": [],
     }
@@ -178,6 +191,7 @@ def _empty_view(as_of: datetime, status: str, reason: str) -> DashboardView:
         "paper_ledger": _empty_ledger(),
         "manual_ledger": _empty_ledger(),
         "evaluation": {"status": "unavailable", "reason": "No saved evaluation report was supplied."},
+        "research_evaluation": {"status": "unavailable", "reason": "Research database is unavailable."},
         "integrity": {"status": "unavailable", "reason": "No saved integrity check was supplied."},
     }
 
@@ -545,7 +559,148 @@ def _historical_research(
         ORDER BY e.event_date DESC, e.event_id DESC LIMIT 12
         """, (cutoff_date,),
     )]
+    _research_receipt_coverage(connection, result, cutoff_date, has_receipts=has_receipts)
     return result
+
+
+def _research_event_receipt_key(source_event_id: object) -> tuple[int, str] | None:
+    """Match a stored research event to its exact source page or section."""
+    if not isinstance(source_event_id, str):
+        return None
+    page, separator, section = source_event_id.partition(":")
+    if not page.isdecimal() or (separator and not section):
+        return None
+    return int(page), unquote(section).replace("_", " ").casefold() if separator else ""
+
+
+def _research_page_receipt_key(page_id: object, page_url: object) -> tuple[int, str] | None:
+    if not isinstance(page_id, int) or isinstance(page_id, bool) or page_id <= 0:
+        return None
+    if not isinstance(page_url, str):
+        return None
+    try:
+        parsed = urlsplit(page_url)
+    except ValueError:
+        return None
+    if parsed.scheme != "https" or parsed.netloc != "en.wikipedia.org":
+        return None
+    return page_id, unquote(parsed.fragment).replace("_", " ").casefold()
+
+
+def _receipt_payload_matches(path_text: object, stated_hash: object) -> bool:
+    if (not isinstance(path_text, str) or not path_text
+            or not isinstance(stated_hash, str) or len(stated_hash) != 64
+            or any(char not in "0123456789abcdef" for char in stated_hash)):
+        return False
+    path = Path(path_text).expanduser()
+    if not path.is_absolute():
+        path = Path.cwd() / path
+    try:
+        if path.is_symlink() or not path.is_file():
+            return False
+        digest = hashlib.sha256()
+        with path.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest() == stated_hash
+    except (OSError, ValueError):
+        return False
+
+
+def _research_receipt_coverage(
+    connection: sqlite3.Connection, result: HistoricalResearchView,
+    cutoff_date: str, *, has_receipts: bool,
+) -> None:
+    """Show source-row coverage only when each displayed event has checked evidence.
+
+    Repeated imports produce multiple receipts. The latest receipt for each
+    exact page/section is used, while conflicting counts for the same source
+    revision fail closed. This avoids adding duplicate imports to the held-row
+    total or assigning an embedded card's count to its sibling sections.
+    """
+    events = connection.execute(
+        """
+        SELECT e.source_event_id, e.event_date, COUNT(b.bout_id) AS imported_bouts
+        FROM events AS e
+        LEFT JOIN bouts AS b ON b.event_id = e.event_id
+            AND b.source = 'wikipedia_research' AND b.status = 'completed'
+        WHERE e.source = 'wikipedia_research' AND e.status = 'completed'
+          AND e.event_date <= ?
+        GROUP BY e.event_id
+        """, (cutoff_date,),
+    ).fetchall()
+    if not events or not has_receipts:
+        result["receipt_reason"] = (
+            "No completed research events." if not events
+            else "Research source receipt table is unavailable."
+        )
+        return
+
+    latest: dict[tuple[int, str], sqlite3.Row] = {}
+    revision_values: dict[tuple[tuple[int, str], int], set[tuple[int, int, str]]] = {}
+    for row in connection.execute(
+        """
+        SELECT w.run_id, w.event_page_id, w.page_url, w.revision_id,
+               w.imported_bouts, w.skipped_unresolved_bouts,
+               i.payload_path, i.sha256
+        FROM wikipedia_source_receipts AS w
+        JOIN ingestion_runs AS i ON i.run_id = w.run_id
+        WHERE i.source = 'wikipedia_research'
+        ORDER BY w.run_id
+        """
+    ):
+        key = _research_page_receipt_key(row["event_page_id"], row["page_url"])
+        if key is None:
+            continue
+        revision = int(row["revision_id"])
+        values = (int(row["imported_bouts"]), int(row["skipped_unresolved_bouts"]),
+                  str(row["sha256"]))
+        revision_values.setdefault((key, revision), set()).add(values)
+        latest[key] = row
+
+    bad = 0
+    held = 0
+    held_by_year: Counter[str] = Counter()
+    checked_hashes: dict[tuple[str, str], bool] = {}
+    for event in events:
+        key = _research_event_receipt_key(event["source_event_id"])
+        row = latest.get(key) if key is not None else None
+        if (row is None or len(revision_values[(key, int(row["revision_id"]))]) != 1
+                or int(row["imported_bouts"]) != int(event["imported_bouts"])):
+            bad += 1
+            continue
+        payload = (str(row["payload_path"]), str(row["sha256"]))
+        if payload not in checked_hashes:
+            checked_hashes[payload] = _receipt_payload_matches(*payload)
+        if not checked_hashes[payload]:
+            bad += 1
+            continue
+        result["receipt_events_verified"] += 1
+        skipped = int(row["skipped_unresolved_bouts"])
+        held += skipped
+        held_by_year[str(event["event_date"])[:4]] += skipped
+    if bad:
+        result["receipt_reason"] = (
+            f"{bad} of {len(events)} completed research events have missing, "
+            "conflicting, mismatched, or unreadable source receipts."
+        )
+        return
+
+    imported = int(result["bouts"])
+    source_rows = imported + held
+    result.update(
+        source_bout_rows=source_rows,
+        held_identity_rows=held,
+        accepted_bout_coverage=imported / source_rows if source_rows else None,
+        receipt_status="verified",
+        receipt_reason=None,
+    )
+    for year in result["by_year"]:
+        skipped = held_by_year[str(year["year"])]
+        parsed = int(year["bouts"]) + skipped
+        year["held_identity_rows"] = skipped
+        year["source_bout_rows"] = parsed
+        year["accepted_bout_coverage"] = int(year["bouts"]) / parsed if parsed else None
 
 
 def _upcoming_events(
@@ -892,6 +1047,241 @@ def _valid_evaluation_result(result: dict[str, Any]) -> bool:
             and _valid_calibration_bins(book.get("calibration_bins"), priced))
 
 
+def _research_source_summary(connection: sqlite3.Connection) -> dict[str, Any]:
+    """Recompute the exact accepted-result fingerprint used by the saved report."""
+    digest = hashlib.sha256()
+    events: set[str] = set()
+    counts = {"win": 0, "draw": 0, "no_contest": 0}
+    source = _source_results(connection)
+    fields = (
+        "event_id", "event_date", "bout_id", "fighter_a_id",
+        "fighter_b_id", "outcome", "winner_fighter_id",
+    )
+    for row in source:
+        events.add(str(row["event_id"]))
+        outcome = str(row["outcome"])
+        if outcome not in counts:
+            raise ValueError("Unexpected research outcome")
+        counts[outcome] += 1
+        digest.update(json.dumps(
+            [row[key] for key in fields], separators=(",", ":"), ensure_ascii=False,
+        ).encode("utf-8") + b"\n")
+    return {
+        "accepted_events_with_results": len(events),
+        "accepted_bouts_with_results": len(source),
+        "outcomes": counts,
+        "accepted_source_rows_sha256": digest.hexdigest(),
+    }
+
+
+def _valid_research_report(saved: object) -> bool:
+    """Accept only the narrow retrospective schema; never promote its scores."""
+    if not isinstance(saved, dict):
+        return False
+    if (saved.get("schema_version") != 1
+            or saved.get("evaluation_version") != RESEARCH_EVALUATION_VERSION
+            or saved.get("status") != "research_only"
+            or saved.get("research_only") is not True
+            or saved.get("promotion_eligible") is not False
+            or saved.get("source") != RESEARCH_SOURCE):
+        return False
+    source = saved.get("source_summary")
+    if not isinstance(source, dict):
+        return False
+    if not all(_nonnegative_int(source.get(key)) for key in (
+        "accepted_events_with_results", "accepted_bouts_with_results",
+    )):
+        return False
+    digest = source.get("accepted_source_rows_sha256")
+    if not isinstance(digest, str) or len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+        return False
+    counts = source.get("outcomes")
+    if (not isinstance(counts, dict)
+            or not all(_nonnegative_int(counts.get(key)) for key in ("win", "draw", "no_contest"))
+            or sum(counts[key] for key in ("win", "draw", "no_contest"))
+            != source["accepted_bouts_with_results"]):
+        return False
+    splits = saved.get("split")
+    if not isinstance(splits, dict):
+        return False
+    summaries: dict[str, dict[str, Any]] = {}
+    for name in ("train", "validation", "test"):
+        summary = splits.get(name)
+        if (not isinstance(summary, dict)
+                or not all(_nonnegative_int(summary.get(key)) for key in (
+                    "binary_bouts", "events", "event_dates",
+                ))
+                or not 0 < summary["event_dates"] <= summary["events"] <= summary["binary_bouts"]):
+            return False
+        try:
+            first = date.fromisoformat(summary["first_date"])
+            last = date.fromisoformat(summary["last_date"])
+        except (KeyError, TypeError, ValueError):
+            return False
+        if first > last:
+            return False
+        summaries[name] = summary
+    if (summaries["train"]["last_date"] >= summaries["validation"]["first_date"]
+            or summaries["validation"]["last_date"] >= summaries["test"]["first_date"]
+            or sum(summaries[name]["binary_bouts"] for name in summaries) != counts["win"]):
+        return False
+    test_bouts = summaries["test"]["binary_bouts"]
+    test = saved.get("test")
+    if not isinstance(test, dict):
+        return False
+    for name in ("elo", "logistic_calibrated"):
+        model = test.get(name)
+        if (not isinstance(model, dict)
+                or not _valid_metrics(model.get("metrics"), test_bouts)
+                or not _valid_calibration_bins(model.get("calibration_bins"), test_bouts)):
+            return False
+    calibration = saved.get("calibration")
+    if (not isinstance(calibration, dict)
+            or calibration.get("method") != "symmetric_temperature_on_validation_only"
+            or calibration.get("validation_binary_bouts") != summaries["validation"]["binary_bouts"]
+            or type(calibration.get("applied")) is not bool
+            or (_report_number(calibration.get("scale")) or 0) <= 0):
+        return False
+    uncertainty = saved.get("test_uncertainty")
+    if (not isinstance(uncertainty, dict)
+            or uncertainty.get("method") != "paired_event_date_block_bootstrap"
+            or not _nonnegative_int(uncertainty.get("test_event_date_blocks"))
+            or uncertainty["test_event_date_blocks"] != summaries["test"]["event_dates"]):
+        return False
+    for key in (
+        "logistic_minus_elo_brier_score_95pct_interval",
+        "logistic_minus_elo_log_loss_95pct_interval",
+    ):
+        interval = uncertainty.get(key)
+        if (not isinstance(interval, list) or len(interval) != 2
+                or any(_report_number(value) is None for value in interval)
+                or interval[0] > interval[1]):
+            return False
+    book = saved.get("bookmaker")
+    if (not isinstance(book, dict)
+            or book.get("status") != "not_evaluated_without_historical_point_in_time_prices"
+            or book.get("roi") is not None):
+        return False
+    identity = saved.get("identity_coverage")
+    if not isinstance(identity, dict):
+        return False
+    held = identity.get("held_source_bout_rows")
+    if held is not None and not _nonnegative_int(held):
+        return False
+    by_period = identity.get("by_split_dates")
+    if held is None:
+        return by_period is None
+    if not isinstance(by_period, dict):
+        return False
+    for name in ("train", "validation", "test"):
+        period = by_period.get(name)
+        if (not isinstance(period, dict)
+                or not all(_nonnegative_int(period.get(key)) for key in (
+                    "completed_events", "accepted_bouts_all_outcomes", "held_source_bout_rows",
+                ))):
+            return False
+        imported = period["accepted_bouts_all_outcomes"]
+        omitted = period["held_source_bout_rows"]
+        share = _report_number(period.get("accepted_share_of_accepted_plus_held"))
+        if imported + omitted == 0 or share is None or abs(share - imported / (imported + omitted)) > 1e-9:
+            return False
+    return True
+
+
+def _research_period_coverage_from_receipts(
+    connection: sqlite3.Connection, splits: dict[str, Any], cutoff_date: str,
+) -> dict[str, dict[str, int]]:
+    """Independently count each split's accepted and held rows from checked receipts."""
+    latest: dict[tuple[int, str], int] = {}
+    for row in connection.execute(
+        """SELECT w.event_page_id, w.page_url, w.skipped_unresolved_bouts
+           FROM wikipedia_source_receipts w
+           JOIN ingestion_runs i ON i.run_id = w.run_id
+           WHERE i.source = 'wikipedia_research'
+           ORDER BY w.run_id"""
+    ):
+        key = _research_page_receipt_key(row["event_page_id"], row["page_url"])
+        if key is not None:
+            latest[key] = int(row["skipped_unresolved_bouts"])
+    periods = {
+        name: {"completed_events": 0, "accepted_bouts_all_outcomes": 0,
+               "held_source_bout_rows": 0}
+        for name in ("train", "validation", "test")
+    }
+    for event in connection.execute(
+        """SELECT e.source_event_id, e.event_date, COUNT(r.bout_id) AS accepted_bouts
+           FROM events e
+           LEFT JOIN bouts b ON b.event_id = e.event_id
+               AND b.source = 'wikipedia_research' AND b.status = 'completed'
+           LEFT JOIN results r ON r.bout_id = b.bout_id
+           WHERE e.source = 'wikipedia_research' AND e.status = 'completed'
+               AND e.event_date <= ?
+           GROUP BY e.event_id""", (cutoff_date,),
+    ):
+        key = _research_event_receipt_key(event["source_event_id"])
+        if key is None or key not in latest:
+            raise ValueError("Research event receipt disappeared during report check")
+        for name, split in splits.items():
+            if split["first_date"] <= event["event_date"] <= split["last_date"]:
+                period = periods[name]
+                period["completed_events"] += 1
+                period["accepted_bouts_all_outcomes"] += int(event["accepted_bouts"])
+                period["held_source_bout_rows"] += latest[key]
+                break
+    return periods
+
+
+def _research_evaluation_report(
+    path: str | Path | None, connection: sqlite3.Connection,
+    history: HistoricalResearchView, as_of: datetime,
+) -> dict[str, Any]:
+    if path is None:
+        return {"status": "unavailable", "reason": "No research holdout report was supplied."}
+    report_path = Path(path)
+    if not report_path.is_file():
+        return {"status": "missing_report", "reason": f"Research holdout report is missing: {report_path}"}
+    try:
+        saved = json.loads(report_path.read_text(encoding="utf-8"))
+        json.dumps(saved, allow_nan=False)
+    except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError):
+        return {"status": "invalid_report", "reason": "Research holdout report is not valid JSON."}
+    if not _valid_research_report(saved):
+        return {"status": "invalid_report", "reason": "Research holdout report has invalid metrics, splits, or provenance."}
+    if history["receipt_status"] != "verified":
+        return {"status": "unverified_source", "reason": "Research source receipts are unavailable or no longer reconcile."}
+    if saved["split"]["test"]["last_date"] > as_of.date().isoformat():
+        return {"status": "future_data", "reason": "Research holdout report includes outcomes after the dashboard date."}
+    future_events = connection.execute(
+        "SELECT 1 FROM events WHERE source = ? AND status = 'completed' AND event_date > ? LIMIT 1",
+        (RESEARCH_SOURCE, as_of.date().isoformat()),
+    ).fetchone()
+    if future_events is not None:
+        return {"status": "future_data", "reason": "Research database includes completed events after the dashboard date."}
+    current = _research_source_summary(connection)
+    reported = saved["source_summary"]
+    if any(reported.get(key) != current[key] for key in current):
+        return {"status": "stale_report", "reason": "Research results changed after this holdout report; rerun it."}
+    held = saved["identity_coverage"].get("held_source_bout_rows")
+    if held is not None and held != history["held_identity_rows"]:
+        return {"status": "stale_report", "reason": "Research identity holds differ from checked source receipts; rerun the holdout."}
+    if held is not None:
+        current_periods = _research_period_coverage_from_receipts(
+            connection, saved["split"], as_of.date().isoformat(),
+        )
+        saved_periods = saved["identity_coverage"]["by_split_dates"]
+        if any(any(saved_periods[name][key] != value for key, value in current_periods[name].items())
+               for name in current_periods):
+            return {"status": "stale_report", "reason": "Research date-period coverage differs from checked source receipts; rerun the holdout."}
+    return {
+        "status": "available", "research_only": True, "promotion_eligible": False,
+        "source_path": str(report_path),
+        "split": saved["split"], "test": saved["test"],
+        "test_uncertainty": saved["test_uncertainty"],
+        "identity_coverage": saved["identity_coverage"],
+        "accepted_source_rows_sha256": current["accepted_source_rows_sha256"],
+    }
+
+
 def _evaluation_report(
     path: str | Path | None, db_path: Path, as_of: datetime,
 ) -> dict[str, Any]:
@@ -1080,6 +1470,7 @@ def load_dashboard(
     event_limit: int = 8,
     max_age_seconds: int = _DEFAULT_MAX_AGE_SECONDS,
     evaluation_report: str | Path | None = None,
+    research_report: str | Path | None = None,
     integrity_report: str | Path | None = None,
 ) -> DashboardView:
     """Load a dashboard snapshot from SQLite opened in read-only mode.
@@ -1139,21 +1530,25 @@ def load_dashboard(
                 FROM ingestion_runs ORDER BY run_id DESC LIMIT 20
                 """
             )]
+            history = _historical_research(
+                connection, as_of, has_receipts="wikipedia_source_receipts" in tables,
+            )
             view: DashboardView = {
                 "status": "available" if event_sources else "empty",
                 "reason": None if event_sources else "Database has no events yet.",
                 "data_origin": origin,
                 "as_of_utc": utc_string(as_of),
                 "upcoming_events": _upcoming_events(connection, as_of, event_limit, max_age_seconds),
-                "historical_research": _historical_research(
-                    connection, as_of, has_receipts="wikipedia_source_receipts" in tables,
-                ),
+                "historical_research": history,
                 "quality": quality,
                 "ingestion_runs": ingestion,
                 "job_runs": _job_runs(connection, as_of),
                 "paper_ledger": _paper_ledger(connection),
                 "manual_ledger": _manual_ledger(connection),
                 "evaluation": _evaluation_report(evaluation_report, path, as_of),
+                "research_evaluation": _research_evaluation_report(
+                    research_report, connection, history, as_of,
+                ),
                 "integrity": _integrity_report(integrity_report, path, as_of),
             }
             # Standard JSON excludes NaN/Infinity; never send such values to

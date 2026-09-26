@@ -17,6 +17,7 @@ from ufc_odds_model.dashboard_data import load_dashboard
 from ufc_odds_model.demo import seed_demo
 from ufc_odds_model.integrity import verify_evidence
 from ufc_odds_model.pipeline import utc_string
+from ufc_odds_model.research_evaluation import RESEARCH_EVALUATION_VERSION, research_feature_rows
 
 
 class DashboardDataTests(unittest.TestCase):
@@ -212,8 +213,90 @@ class DashboardDataTests(unittest.TestCase):
         ])
         self.assertEqual([row["name"] for row in history["recent_events"]],
                          ["UFC new", "UFC old"])
+        self.assertEqual(history["receipt_status"], "unavailable")
+        self.assertIsNone(history["held_identity_rows"])
         self.assertEqual(self.path.stat().st_mtime_ns, before)
         json.dumps(snapshot, allow_nan=False)
+
+    def test_research_identity_coverage_uses_exact_checked_card_receipts(self) -> None:
+        connection = self._connect()
+        for fighter_id in ("a", "b"):
+            db.upsert_fighter(connection, fighter_id, fighter_id.upper(),
+                              "wikipedia_research", fighter_id)
+        cards = (
+            ("standalone", "101", "UFC Archive", "2025-01-11"),
+            ("embedded-a", "202:ufc%20on%20fx%3A%20alpha", "UFC on FX: Alpha", "2026-01-01"),
+            ("embedded-b", "202:ufc%20on%20fx%3A%20beta", "UFC on FX: Beta", "2026-02-01"),
+        )
+        for event_id, source_id, name, event_date in cards:
+            db.upsert_event(connection, event_id, name, event_date, "completed",
+                            source="wikipedia_research", source_event_id=source_id)
+            db.upsert_bout(connection, event_id + "-bout", event_id, "a", "b",
+                           "completed", source="wikipedia_research",
+                           source_bout_id=event_id + "-bout")
+            db.upsert_result(connection, event_id + "-bout", "win", "a",
+                             "2026-02-01T15:00:00Z")
+
+        raw = Path(self.temp.name) / "source.json"
+        raw.write_text('{"source":"checked"}', encoding="utf-8")
+        digest = hashlib.sha256(raw.read_bytes()).hexdigest()
+
+        def receipt(page_id: int, url: str, skipped: int, *,
+                    revision: int = 10, imported: int = 1) -> None:
+            run_id = connection.execute(
+                "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+                "VALUES ('wikipedia_research', ?, ?, ?)",
+                ("2026-02-01T15:00:00Z", str(raw), digest),
+            ).lastrowid
+            connection.execute(
+                """
+                INSERT INTO wikipedia_source_receipts(
+                    run_id, event_page_id, event_title, page_url, revision_id,
+                    revision_timestamp_utc, license_title, license_url,
+                    imported_bouts, skipped_unresolved_bouts
+                ) VALUES (?, ?, 'Fixture', ?, ?, '2026-02-01T15:00:00Z',
+                          'CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/',
+                          ?, ?)
+                """, (run_id, page_id, url, revision, imported, skipped),
+            )
+
+        receipt(101, "https://en.wikipedia.org/wiki/UFC_Archive", 1)
+        receipt(202, "https://en.wikipedia.org/wiki/2026_in_UFC#UFC_on_FX:_Alpha", 2)
+        receipt(202, "https://en.wikipedia.org/wiki/2026_in_UFC#UFC_on_FX:_Beta", 0)
+        receipt(202, "https://en.wikipedia.org/wiki/2026_in_UFC#UFC_on_FX:_Alpha", 2)
+        connection.commit()
+
+        history = load_dashboard(self.path, as_of=self.now)["historical_research"]
+        self.assertEqual(history["receipt_status"], "verified")
+        self.assertEqual(history["receipt_events_verified"], 3)
+        self.assertEqual((history["bouts"], history["source_bout_rows"],
+                          history["held_identity_rows"], history["accepted_bout_coverage"]),
+                         (3, 6, 3, 0.5))
+        self.assertEqual([(row["year"], row["held_identity_rows"],
+                           row["accepted_bout_coverage"]) for row in history["by_year"]],
+                         [("2025", 1, 0.5), ("2026", 2, 0.5)])
+
+        receipt(101, "https://en.wikipedia.org/wiki/UFC_Archive", 1,
+                revision=11, imported=2)
+        connection.commit()
+        mismatched = load_dashboard(self.path, as_of=self.now)["historical_research"]
+        self.assertEqual(mismatched["receipt_status"], "unavailable")
+        self.assertIsNone(mismatched["source_bout_rows"])
+        receipt(101, "https://en.wikipedia.org/wiki/UFC_Archive", 1, revision=12)
+        connection.commit()
+
+        raw.write_text('{"source":"tampered"}', encoding="utf-8")
+        tampered = load_dashboard(self.path, as_of=self.now)["historical_research"]
+        self.assertEqual(tampered["receipt_status"], "unavailable")
+        self.assertIsNone(tampered["accepted_bout_coverage"])
+
+        raw.write_text('{"source":"checked"}', encoding="utf-8")
+        # One source revision cannot legitimately report two different held counts.
+        receipt(202, "https://en.wikipedia.org/wiki/2026_in_UFC#UFC_on_FX:_Alpha", 9)
+        connection.commit()
+        conflicted = load_dashboard(self.path, as_of=self.now)["historical_research"]
+        self.assertEqual(conflicted["receipt_status"], "unavailable")
+        self.assertIsNone(conflicted["held_identity_rows"])
 
     def test_demo_origin_cannot_be_mistaken_for_real_history(self) -> None:
         connection = self._connect()
@@ -726,6 +809,162 @@ class DashboardDataTests(unittest.TestCase):
         failed = next(job for job in jobs if job["status"] == "failed")
         self.assertEqual(failed["error_category"], "provider_unavailable")
         self.assertNotIn("provider_response", failed)
+
+
+class ResearchHoldoutDashboardTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.path = Path(self.temp.name) / "research.sqlite"
+        self.report_path = Path(self.temp.name) / "research.json"
+        self.raw_paths: list[Path] = []
+        with db.connect(self.path) as connection:
+            db.init_db(connection)
+            for index, event_date in enumerate(("2025-01-11", "2025-01-18", "2025-01-25"), 1):
+                a, b = f"a{index}", f"b{index}"
+                for fighter in (a, b):
+                    db.upsert_fighter(connection, fighter, fighter, "wikipedia_research", fighter)
+                db.upsert_event(
+                    connection, f"e{index}", f"Research {index}", event_date,
+                    "completed", source="wikipedia_research", source_event_id=str(100 + index),
+                )
+                db.upsert_bout(
+                    connection, f"bout{index}", f"e{index}", a, b, "completed",
+                    source="wikipedia_research", source_bout_id=f"{100 + index}:1",
+                )
+                db.upsert_result(connection, f"bout{index}", "win", a, f"{event_date}T20:00:00Z")
+                raw = Path(self.temp.name) / f"source-{index}.json"
+                raw.write_text(json.dumps({"event": index}), encoding="utf-8")
+                self.raw_paths.append(raw)
+                run_id = connection.execute(
+                    "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+                    "VALUES ('wikipedia_research', ?, ?, ?)",
+                    (f"{event_date}T21:00:00Z", str(raw), hashlib.sha256(raw.read_bytes()).hexdigest()),
+                ).lastrowid
+                connection.execute(
+                    """INSERT INTO wikipedia_source_receipts(
+                           run_id, event_page_id, event_title, page_url, revision_id,
+                           revision_timestamp_utc, license_title, license_url,
+                           imported_bouts, skipped_unresolved_bouts)
+                       VALUES (?, ?, ?, ?, 1, ?, 'CC BY-SA 4.0',
+                               'https://creativecommons.org/licenses/by-sa/4.0/', 1, ?)""",
+                    (run_id, 100 + index, f"Research {index}",
+                     f"https://en.wikipedia.org/wiki/Research_{index}",
+                     f"{event_date}T21:00:00Z", int(index == 3)),
+                )
+            _, source_summary = research_feature_rows(connection)
+            connection.commit()
+        self.report = {
+            "schema_version": 1,
+            "evaluation_version": RESEARCH_EVALUATION_VERSION,
+            "status": "research_only", "research_only": True,
+            "promotion_eligible": False, "source": "wikipedia_research",
+            "source_summary": source_summary,
+            "split": {
+                name: {"binary_bouts": 1, "events": 1, "event_dates": 1,
+                       "first_date": event_date, "last_date": event_date}
+                for name, event_date in (
+                    ("train", "2025-01-11"), ("validation", "2025-01-18"),
+                    ("test", "2025-01-25"),
+                )
+            },
+            "calibration": {
+                "method": "symmetric_temperature_on_validation_only",
+                "validation_binary_bouts": 1, "applied": False, "scale": 1.0,
+            },
+            "test": {
+                name: {
+                    "metrics": {"bouts": 1, "accuracy": 1.0,
+                                "brier_score": 0.25, "log_loss": 0.693147},
+                    "calibration_bins": [
+                        {"lower": i / 5, "upper": (i + 1) / 5,
+                         "bouts": int(i == 2),
+                         "mean_probability": 0.5 if i == 2 else None,
+                         "observed_win_rate": 1.0 if i == 2 else None}
+                        for i in range(5)
+                    ],
+                }
+                for name in ("elo", "logistic_calibrated")
+            },
+            "test_uncertainty": {
+                "method": "paired_event_date_block_bootstrap",
+                "test_event_date_blocks": 1,
+                "logistic_minus_elo_brier_score_95pct_interval": [-0.1, 0.1],
+                "logistic_minus_elo_log_loss_95pct_interval": [-0.2, 0.2],
+            },
+            "bookmaker": {
+                "status": "not_evaluated_without_historical_point_in_time_prices",
+                "roi": None,
+            },
+            "identity_coverage": {
+                "held_source_bout_rows": 1,
+                "by_split_dates": {
+                    name: {"completed_events": 1, "accepted_bouts_all_outcomes": 1,
+                           "held_source_bout_rows": held,
+                           "accepted_share_of_accepted_plus_held": 1 / (1 + held)}
+                    for name, held in (("train", 0), ("validation", 0), ("test", 1))
+                },
+            },
+        }
+        self._save_report()
+
+    def _save_report(self) -> None:
+        self.report_path.write_text(json.dumps(self.report), encoding="utf-8")
+
+    def _load(self) -> dict:
+        return load_dashboard(
+            self.path, as_of=datetime(2025, 2, 1, tzinfo=timezone.utc),
+            research_report=self.report_path,
+        )["research_evaluation"]
+
+    def test_research_holdout_is_distinct_and_bound_to_checked_results(self) -> None:
+        before = self.path.stat().st_mtime_ns
+        result = self._load()
+        self.assertEqual(self.path.stat().st_mtime_ns, before)
+        self.assertEqual(result["status"], "available")
+        self.assertTrue(result["research_only"])
+        self.assertFalse(result["promotion_eligible"])
+        self.assertNotIn("bookmaker", result)
+        with db.connect(self.path) as connection:
+            connection.execute("UPDATE results SET winner_fighter_id = 'b3' WHERE bout_id = 'bout3'")
+            connection.commit()
+        self.assertEqual(self._load()["status"], "stale_report")
+
+    def test_research_holdout_suppresses_shifted_identity_holds_and_missing_payload(self) -> None:
+        self.report["identity_coverage"]["by_split_dates"]["train"].update(
+            held_source_bout_rows=1, accepted_share_of_accepted_plus_held=0.5,
+        )
+        self.report["identity_coverage"]["by_split_dates"]["test"].update(
+            held_source_bout_rows=0, accepted_share_of_accepted_plus_held=1.0,
+        )
+        self._save_report()
+        self.assertEqual(self._load()["status"], "stale_report")
+        self.report["identity_coverage"]["by_split_dates"]["train"].update(
+            held_source_bout_rows=0, accepted_share_of_accepted_plus_held=1.0,
+        )
+        self.report["identity_coverage"]["by_split_dates"]["test"].update(
+            held_source_bout_rows=1, accepted_share_of_accepted_plus_held=0.5,
+        )
+        self._save_report()
+        self.raw_paths[0].unlink()
+        self.assertEqual(self._load()["status"], "unverified_source")
+
+    def test_research_holdout_rejects_operating_label(self) -> None:
+        self.report["promotion_eligible"] = True
+        self._save_report()
+        self.assertEqual(self._load()["status"], "invalid_report")
+
+    def test_research_holdout_rejects_old_schema_and_empty_period(self) -> None:
+        self.report["evaluation_version"] = "wikipedia-result-holdout-v1"
+        self._save_report()
+        self.assertEqual(self._load()["status"], "invalid_report")
+        self.report["evaluation_version"] = RESEARCH_EVALUATION_VERSION
+        self.report["identity_coverage"]["by_split_dates"]["train"].update(
+            accepted_bouts_all_outcomes=0, held_source_bout_rows=0,
+            accepted_share_of_accepted_plus_held=0.0,
+        )
+        self._save_report()
+        self.assertEqual(self._load()["status"], "invalid_report")
 
 
 if __name__ == "__main__":

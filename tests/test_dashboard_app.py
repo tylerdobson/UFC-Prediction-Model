@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import os
@@ -62,10 +63,32 @@ class DashboardAppSmokeTests(unittest.TestCase):
                                source_bout_id="12345:1")
                 db.upsert_result(connection, "history-bout", "win", "a",
                                  "2025-01-11T20:00:00Z")
+                raw = Path(temporary) / "research-source.json"
+                raw.write_text('{"checked":true}', encoding="utf-8")
+                digest = hashlib.sha256(raw.read_bytes()).hexdigest()
+                run_id = connection.execute(
+                    "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+                    "VALUES ('wikipedia_research', '2025-01-12T00:00:00Z', ?, ?)",
+                    (str(raw), digest),
+                ).lastrowid
+                connection.execute(
+                    """
+                    INSERT INTO wikipedia_source_receipts(
+                        run_id, event_page_id, event_title, page_url, revision_id,
+                        revision_timestamp_utc, license_title, license_url,
+                        imported_bouts, skipped_unresolved_bouts
+                    ) VALUES (?, 12345, 'UFC Archive',
+                              'https://en.wikipedia.org/wiki/UFC_Archive',
+                              1, '2025-01-12T00:00:00Z', 'CC BY-SA 4.0',
+                              'https://creativecommons.org/licenses/by-sa/4.0/', 1, 1)
+                    """, (run_id,),
+                )
                 connection.commit()
             before = path.stat().st_mtime_ns
             app = self._run_app(path, Path(temporary) / "missing.json")
             self.assertEqual(path.stat().st_mtime_ns, before)
+            raw.unlink()
+            unverified_app = self._run_app(path, Path(temporary) / "missing.json")
         self.assertEqual(list(app.exception), [])
         markup = self._all_markup(app)
         self.assertIn("Research-only source", markup)
@@ -73,6 +96,13 @@ class DashboardAppSmokeTests(unittest.TestCase):
         self.assertIn("Imported bouts by year", markup)
         self.assertIn("Fighters in bouts", markup)
         self.assertIn("Recorded results", markup)
+        self.assertIn("Identity and source-row coverage", markup)
+        self.assertIn("Held for identity review", markup)
+        self.assertIn("50.0%", markup)
+        self.assertEqual(list(unverified_app.exception), [])
+        unverified_markup = self._all_markup(unverified_app)
+        self.assertIn("Identity coverage unavailable", unverified_markup)
+        self.assertNotIn("Identity and source-row coverage", unverified_markup)
 
     def test_demo_card_is_labelled_and_database_is_unchanged(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

@@ -29,6 +29,7 @@ UFC-Prediction-Model/
 │   ├── features.py                      # earlier-fight-only feature replay
 │   ├── elo.py, logistic.py              # probability models
 │   ├── evaluation.py                    # chronological holdout comparison
+│   ├── research_evaluation.py           # retrospective, research-only model comparison
 │   ├── live_logistic.py                 # calibrated upcoming-card model
 │   ├── audit.py                         # identities, results, and quote coverage
 │   ├── alerts.py                        # local pre-fight freshness gate
@@ -42,6 +43,8 @@ UFC-Prediction-Model/
 ├── docs/DATA_SOURCE_DECISION.md          # provider rights, cost, and quota review
 ├── docs/WIKIPEDIA_HISTORY_SOURCE.md      # research import limits and identity review
 ├── docs/RESEARCH_DATASET_CARD.md          # 1993–2026 import counts, exclusions, and limits
+├── docs/RESEARCH_EVALUATION.md           # accepted-result holdout method and uncertainty
+├── docs/RESULTS_SPOTCHECK.md             # bounded checks against UFC-published results
 ├── docs/LOCAL_RUNBOOK.md                 # operator setup and event-day commands
 ├── docs/EVIDENCE_BUNDLE.md               # portable evidence archive and recovery drill
 ├── docs/BUILD_ROADMAP.md                 # release milestones and acceptance gates
@@ -56,7 +59,7 @@ UFC-Prediction-Model/
 
 SQLite is appropriate for one person's local project, including a serious first version. The SQL schema is committed; the live database, raw data, API key, and reports stay on your machine. If the project later needs several users or concurrent jobs, the repository can move to PostgreSQL without changing the basic table design.
 
-The [system architecture diagram](docs/UFC_SYSTEM_ARCHITECTURE.drawio) opens in diagrams.net; a [full-size PNG preview](docs/UFC_SYSTEM_ARCHITECTURE.png) is also available. The [build roadmap](docs/BUILD_ROADMAP.md) defines design constraints and milestone gates. The [source decision record](docs/DATA_SOURCE_DECISION.md) covers free account limits and historical-price availability. The [research dataset card](docs/RESEARCH_DATASET_CARD.md) records the checked **1993–2026** import: **790 completed events, 7,228 bouts/results, and 1,872 fighters**. The [public dataset survey](docs/PUBLIC_DATASET_SURVEY.md) compares Kaggle and GitHub leads. The [local runbook](docs/LOCAL_RUNBOOK.md) has the operating sequence.
+The [system architecture diagram](docs/UFC_SYSTEM_ARCHITECTURE.drawio) opens in diagrams.net; a [full-size PNG preview](docs/UFC_SYSTEM_ARCHITECTURE.png) is also available. The [build roadmap](docs/BUILD_ROADMAP.md) defines design constraints and milestone gates. The [source decision record](docs/DATA_SOURCE_DECISION.md) covers free account limits and historical-price availability. The [research dataset card](docs/RESEARCH_DATASET_CARD.md) records the checked **1993–2026** import: **790 completed events, 7,228 bouts/results, and 1,872 fighters**. The [retrospective comparison](docs/RESEARCH_EVALUATION.md) reports a separate, research-only Elo and logistic holdout, and the [result spot check](docs/RESULTS_SPOTCHECK.md) compares a bounded sample with UFC-published outcomes. The [public dataset survey](docs/PUBLIC_DATASET_SURVEY.md) compares Kaggle and GitHub leads. The [local runbook](docs/LOCAL_RUNBOOK.md) has the operating sequence.
 
 An existing database never upgrades as a side effect of another CLI command. Use `ufc-model --db data/ufc.sqlite migrate --backup backups/UNIQUE.sqlite` for a schema upgrade; it verifies the pre-migration backup first. For recovery across machines or paths, use the [portable evidence bundle](docs/EVIDENCE_BUNDLE.md), which includes receipt payloads, model files, and reports alongside SQLite.
 
@@ -137,7 +140,7 @@ ufc-model --db data/ufc_research_2011_2025.sqlite import-wikipedia-embedded \
   --review-out reports/wikipedia_2011_2025_embedded_review.json
 ```
 
-Review the catalog exceptions, skipped event pages, unresolved fighter identities, and source results before interpreting the sample. These retrospective pages lack exact pre-fight times, dated roster changes, and historical bookmaker prices. The importer cannot write to the default operating database, and a database containing its research events cannot run `alert-event` or `paper-trade`. This source does not unlock calibrated evaluation or a betting decision workflow on its own.
+Review the catalog exceptions, skipped event pages, unresolved fighter identities, and source results before interpreting the sample. These retrospective pages lack exact pre-fight times, dated roster changes, and historical bookmaker prices. The importer cannot write to the default operating database, and a database containing its research events cannot run `alert-event` or `paper-trade`. The separate [research-only comparison](docs/RESEARCH_EVALUATION.md) calibrates a retrospective model on later accepted results; it does not unlock the operating `evaluate` command or a betting decision workflow.
 
 After upcoming UFC bouts are in the database, get a key from [The Odds API](https://the-odds-api.com/sports/mma-ufc-odds.html) and run:
 

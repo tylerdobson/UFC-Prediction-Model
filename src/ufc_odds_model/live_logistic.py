@@ -234,7 +234,17 @@ def prepare_live_logistic(
         [int(row.target) for row in validation],
         min_samples=MIN_VALIDATION_BOUTS,
     )
-    target_features = event_feature_rows(connection, event_id, cutoff_at_utc=as_of)
+    target_features = event_feature_rows(
+        connection, event_id, cutoff_at_utc=as_of,
+        require_result_observations=True,
+    )
+    target_result_evidence = _prior_result_evidence(target_features)
+    if not target_result_evidence["meets_threshold"]:
+        raise ValueError(
+            "Live logistic unavailable: target features need complete "
+            "source-observed prior-result history at the forecast cutoff"
+        )
+    result_evidence["target"] = target_result_evidence
     version = _model_version(training, validation, model, calibrator, cutoff_date, target_features)
     predictions = {
         row.bout_id: calibrator.predict_probability(model.predict_probability(row.features))
