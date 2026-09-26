@@ -3,16 +3,18 @@
 from __future__ import annotations
 
 import io
+import hashlib
 import json
 import os
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from datetime import timedelta
 from pathlib import Path
 from unittest.mock import patch
 
 from ufc_odds_model import db
+from ufc_odds_model.card_history import record_card_snapshots
 from ufc_odds_model.cli import main
 from ufc_odds_model.pipeline import utc_now, utc_string
 
@@ -35,6 +37,32 @@ class PrefightCliTests(unittest.TestCase):
                 start_time_utc=self.start,
             )
             db.upsert_bout(connection, "bout", "event", "fa", "fb", "scheduled")
+            roster_observed = utc_string(now - timedelta(seconds=10))
+            roster_file = self.root / "roster.csv"
+            roster_file.write_text("reviewed fixture card", encoding="utf-8")
+            roster_receipt_id = connection.execute(
+                "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+                "VALUES (?, ?, ?, ?)",
+                ("reviewed_csv", roster_observed, str(roster_file),
+                 hashlib.sha256(roster_file.read_bytes()).hexdigest()),
+            ).lastrowid
+            record_card_snapshots(connection, int(roster_receipt_id), [{
+                "event_id": "event", "event_name": "UFC test card",
+                "event_date": (now + timedelta(days=4)).date().isoformat(),
+                "event_status": "scheduled", "event_provider_status": None,
+                "start_time_utc": self.start,
+                "source_observed_at_utc": roster_observed,
+                "observation_basis": "reviewed_csv", "source_url": "fixture://roster",
+                "source_revision_id": "fixture-1", "license_name": "fixture",
+                "license_url": "fixture://license", "reviewed_by": "test",
+                "bouts": [{
+                    "event_id": "event", "bout_id": "bout", "fighter_a_id": "fa",
+                    "fighter_a_name": "Fighter Alpha", "fighter_b_id": "fb",
+                    "fighter_b_name": "Fighter Bravo", "bout_status": "scheduled",
+                    "bout_provider_status": None, "weight_class": None,
+                    "outcome": None, "winner_fighter_id": None, "method": None,
+                }],
+            }])
             connection.commit()
 
     def tearDown(self) -> None:
@@ -127,6 +155,21 @@ class PrefightCliTests(unittest.TestCase):
             self.assertEqual(connection.execute(
                 "SELECT COUNT(*) FROM prefight_gate_checks WHERE gate_decision = 'alert_candidate'"
             ).fetchone()[0], 1)
+
+    def test_tampered_retained_source_blocks_fetch_and_alert(self) -> None:
+        (self.root / "roster.csv").write_text("source changed after import", encoding="utf-8")
+        error_output = io.StringIO()
+        with patch.dict(os.environ, {"ODDS_API_KEY": "fixture-key"}), patch(
+            "ufc_odds_model.odds_api.fetch_mma_h2h"
+        ) as fetch, redirect_stderr(error_output):
+            result = main(["--db", str(self.database), "alert-event", "event"])
+        self.assertEqual(result, 1)
+        self.assertIn("payload_hash_mismatch", error_output.getvalue())
+        fetch.assert_not_called()
+        with db.connect(self.database) as connection:
+            self.assertEqual(connection.execute(
+                "SELECT COUNT(*) FROM prefight_gate_checks"
+            ).fetchone()[0], 0)
 
 
 if __name__ == "__main__":

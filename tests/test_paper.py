@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 from ufc_odds_model import db
 from ufc_odds_model.alerts import record_prefight_checks
+from ufc_odds_model.card_history import record_card_snapshots
 from ufc_odds_model.paper import record_paper_candidates, settle_paper_bets
 from ufc_odds_model.pipeline import parse_utc, utc_now, utc_string
 
@@ -71,6 +72,34 @@ class PaperLedgerTests(unittest.TestCase):
             ("the-odds-api", self.quote_time, str(raw), hashlib.sha256(b"[]").hexdigest(),
              self.quote_time),
         ).lastrowid
+        roster_observed = utc_string(self.now - timedelta(seconds=20))
+        roster_raw = Path(self.temp.name) / "roster.csv"
+        roster_raw.write_text("fixture roster observed before the card", encoding="utf-8")
+        roster_receipt_id = self.connection.execute(
+            "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+            "VALUES (?, ?, ?, ?)",
+            ("reviewed_csv", roster_observed, str(roster_raw),
+             hashlib.sha256(roster_raw.read_bytes()).hexdigest()),
+        ).lastrowid
+        record_card_snapshots(self.connection, int(roster_receipt_id), [{
+            "event_id": self.event_id, "event_name": "Fixture card",
+            "event_date": self.event_date, "event_status": "scheduled",
+            "event_provider_status": None, "start_time_utc": self.event_start,
+            "source_observed_at_utc": roster_observed,
+            "observation_basis": "reviewed_csv", "source_url": "fixture://roster",
+            "source_revision_id": "fixture-1", "license_name": "fixture",
+            "license_url": "fixture://license", "reviewed_by": "test",
+            "bouts": [{
+                "event_id": self.event_id, "bout_id": f"bout-{index}",
+                "fighter_a_id": f"fighter-{index}-a",
+                "fighter_a_name": f"fighter-{index}-a",
+                "fighter_b_id": f"fighter-{index}-b",
+                "fighter_b_name": f"fighter-{index}-b",
+                "bout_status": "scheduled", "bout_provider_status": None,
+                "weight_class": None, "outcome": None,
+                "winner_fighter_id": None, "method": None,
+            } for index in range(6)],
+        }])
         self.connection.commit()
         self.report_rows = record_prefight_checks(
             self.connection, self.report_rows, ingestion_run_id=self.receipt_id,
@@ -284,6 +313,65 @@ class PaperLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "snapshot is missing or changed"):
             record_prefight_checks(
                 self.connection, [self.report_rows[0]], ingestion_run_id=self.receipt_id,
+            )
+
+    def test_tampered_roster_blocks_new_gate_and_paper_decision(self):
+        roster_file = Path(self.temp.name) / "roster.csv"
+        roster_file.write_text("changed card evidence", encoding="utf-8")
+        rejected = record_prefight_checks(
+            self.connection, [self.report_rows[0]], ingestion_run_id=self.receipt_id,
+        )
+        self.assertEqual(rejected[0]["alert_reason"], "roster_payload_changed")
+        self.assertFalse(rejected[0]["alert_eligible"])
+        with self.assertRaisesRegex(ValueError, "roster changed or is no longer verifiable"):
+            record_paper_candidates(self.connection, self.report_rows[:1], 1000)
+
+    def test_newer_roster_supersedes_existing_gate(self):
+        previous_id = self.report_rows[0]["roster_snapshot_id"]
+        new_time = utc_string(self.now - timedelta(seconds=1))
+        raw = Path(self.temp.name) / "roster-new.csv"
+        raw.write_text("new review of the same card", encoding="utf-8")
+        receipt_id = self.connection.execute(
+            "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+            "VALUES (?, ?, ?, ?)",
+            ("reviewed_csv", new_time, str(raw), hashlib.sha256(raw.read_bytes()).hexdigest()),
+        ).lastrowid
+        new_snapshot_id = self.connection.execute(
+            """INSERT INTO card_event_snapshots(
+                ingestion_run_id, event_id, source_observed_at_utc, observation_basis,
+                source_url, source_revision_id, license_name, license_url, reviewed_by,
+                event_name, event_date, start_time_utc, event_status, event_provider_status
+            ) SELECT ?, event_id, ?, observation_basis, source_url, 'fixture-2',
+                     license_name, license_url, reviewed_by, event_name, event_date,
+                     start_time_utc, event_status, event_provider_status
+              FROM card_event_snapshots WHERE event_snapshot_id = ?""",
+            (receipt_id, new_time, previous_id),
+        ).lastrowid
+        self.connection.execute(
+            """INSERT INTO card_bout_snapshots(
+                event_snapshot_id, bout_id, fighter_a_id, fighter_a_name,
+                fighter_b_id, fighter_b_name, bout_status, bout_provider_status,
+                weight_class, outcome, winner_fighter_id, method
+            ) SELECT ?, bout_id, fighter_a_id, fighter_a_name,
+                     fighter_b_id, fighter_b_name, bout_status, bout_provider_status,
+                     weight_class, outcome, winner_fighter_id, method
+              FROM card_bout_snapshots WHERE event_snapshot_id = ?""",
+            (new_snapshot_id, previous_id),
+        )
+        self.connection.commit()
+        with self.assertRaisesRegex(ValueError, "roster changed or is no longer verifiable"):
+            record_paper_candidates(self.connection, self.report_rows[:1], 1000)
+
+    def test_direct_accepted_gate_without_roster_is_rejected_by_database(self):
+        columns = [row[1] for row in self.connection.execute(
+            "PRAGMA table_info(prefight_gate_checks)"
+        ) if row[1] not in {"gate_check_id", "roster_snapshot_id"}]
+        names = ", ".join(columns)
+        with self.assertRaisesRegex(Exception, "dated roster evidence"):
+            self.connection.execute(
+                f"INSERT INTO prefight_gate_checks({names}) "
+                f"SELECT {names} FROM prefight_gate_checks WHERE gate_check_id = ?",
+                (self.report_rows[0]["gate_check_id"],),
             )
 
     def test_newer_odds_import_or_expired_gate_blocks_paper_recording(self):

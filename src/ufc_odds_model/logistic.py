@@ -14,7 +14,7 @@ from typing import Iterable, Sequence
 from .features import FEATURE_NAMES, FeatureRow
 
 
-MODEL_VERSION = "logistic-prior-v1"
+MODEL_VERSION = "logistic-prior-v2"
 
 
 def _sigmoid(score: float) -> float:

@@ -12,11 +12,13 @@ import json
 import math
 import sqlite3
 from collections import Counter
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, TypedDict
 
 from .audit import audit_database
+from .features import COVERAGE_NAMES
+from .integrity import database_file_state
 from .pipeline import utc_string
 
 
@@ -28,6 +30,8 @@ class PredictionView(TypedDict):
     p_fighter_a: float
     p_fighter_b: float
     age_seconds: int
+    feature_coverage: dict[str, bool] | None
+    feature_coverage_status: str
 
 
 class QuoteView(TypedDict):
@@ -80,9 +84,11 @@ class DashboardView(TypedDict):
     upcoming_events: list[EventView]
     quality: dict[str, Any]
     ingestion_runs: list[dict[str, Any]]
+    job_runs: list[dict[str, Any]]
     paper_ledger: dict[str, Any]
     manual_ledger: dict[str, Any]
     evaluation: dict[str, Any]
+    integrity: dict[str, Any]
 
 
 _REQUIRED_TABLES = {
@@ -143,9 +149,11 @@ def _empty_view(as_of: datetime, status: str, reason: str) -> DashboardView:
         "upcoming_events": [],
         "quality": {"status": "unavailable", "ok": None, "summary": {}, "issues": [], "reason": reason},
         "ingestion_runs": [],
+        "job_runs": [],
         "paper_ledger": _empty_ledger(),
         "manual_ledger": _empty_ledger(),
         "evaluation": {"status": "unavailable", "reason": "No saved evaluation report was supplied."},
+        "integrity": {"status": "unavailable", "reason": "No saved integrity check was supplied."},
     }
 
 
@@ -165,14 +173,34 @@ def _latest_prediction(
     probability = _finite_float(row["p_fighter_a"])
     if probability is None or not 0 <= probability <= 1:
         return None
+    model_version = str(row["model_version"])
+    feature_coverage: dict[str, bool] | None = None
+    feature_coverage_status = "not_applicable"
+    if model_version.startswith("logistic-"):
+        feature_coverage_status = "missing"
+        raw_coverage = row["feature_coverage_json"] if "feature_coverage_json" in row.keys() else None
+        if raw_coverage is not None:
+            try:
+                parsed_coverage = json.loads(raw_coverage)
+            except (TypeError, ValueError, json.JSONDecodeError):
+                parsed_coverage = None
+            if (isinstance(parsed_coverage, dict)
+                    and set(parsed_coverage) == set(COVERAGE_NAMES)
+                    and all(type(parsed_coverage[name]) is bool for name in COVERAGE_NAMES)):
+                feature_coverage = {name: parsed_coverage[name] for name in COVERAGE_NAMES}
+                feature_coverage_status = "recorded"
+            else:
+                feature_coverage_status = "invalid"
     return {
         "prediction_id": int(row["prediction_id"]),
-        "model_version": str(row["model_version"]),
+        "model_version": model_version,
         "feature_cutoff_at_utc": str(row["feature_cutoff_at_utc"]),
         "generated_at_utc": str(row["generated_at_utc"]),
         "p_fighter_a": probability,
         "p_fighter_b": 1.0 - probability,
         "age_seconds": max(0, int((as_of - generated).total_seconds())),
+        "feature_coverage": feature_coverage,
+        "feature_coverage_status": feature_coverage_status,
     }
 
 
@@ -258,6 +286,62 @@ def _availability(
     return "requires_alert_gate"
 
 
+def _stored_roster_status(
+    connection: sqlite3.Connection, gate: sqlite3.Row, checked: datetime, as_of: datetime,
+) -> str | None:
+    """Check saved roster identity using SQLite only; page loads never hash files."""
+    if "roster_snapshot_id" not in gate.keys() or gate["roster_snapshot_id"] is None:
+        return "roster_unverified"
+    tables = {row["name"] for row in connection.execute(
+        "SELECT name FROM sqlite_master WHERE type = 'table' "
+        "AND name IN ('card_event_snapshots', 'card_bout_snapshots')"
+    )}
+    if tables != {"card_event_snapshots", "card_bout_snapshots"}:
+        return "roster_unverified"
+    latest = connection.execute(
+        """
+        SELECT s.*, r.fetched_at_utc
+        FROM card_event_snapshots AS s
+        JOIN ingestion_runs AS r ON r.run_id = s.ingestion_run_id
+        WHERE s.event_id = ?
+        ORDER BY r.fetched_at_utc DESC, s.event_snapshot_id DESC LIMIT 1
+        """, (gate["event_id"],),
+    ).fetchone()
+    if latest is None or latest["event_snapshot_id"] != gate["roster_snapshot_id"]:
+        return "roster_superseded"
+    observed = _timestamp(latest["source_observed_at_utc"])
+    fetched = _timestamp(latest["fetched_at_utc"])
+    start = _timestamp(latest["start_time_utc"])
+    if (observed is None or fetched is None or start is None
+            or observed > fetched or fetched > checked or observed > checked
+            or fetched > as_of or observed > as_of
+            or as_of - observed > timedelta(hours=24) or observed >= start
+            or as_of >= start or latest["event_status"] != "scheduled"
+            or latest["event_provider_status"] not in _PREFIGHT_STATUSES):
+        return "roster_superseded"
+    event = connection.execute(
+        "SELECT * FROM events WHERE event_id = ?", (gate["event_id"],)
+    ).fetchone()
+    bout = connection.execute(
+        "SELECT * FROM bouts WHERE bout_id = ?", (gate["bout_id"],)
+    ).fetchone()
+    observed_bout = connection.execute(
+        "SELECT * FROM card_bout_snapshots WHERE event_snapshot_id = ? AND bout_id = ?",
+        (latest["event_snapshot_id"], gate["bout_id"]),
+    ).fetchone()
+    if (event is None or bout is None or observed_bout is None
+            or event["status"] != "scheduled" or event["provider_status"] not in _PREFIGHT_STATUSES
+            or _timestamp(event["start_time_utc"]) != start
+            or bout["event_id"] != event["event_id"]
+            or bout["status"] != "scheduled" or observed_bout["bout_status"] != "scheduled"
+            or bout["provider_status"] not in _PREFIGHT_STATUSES
+            or observed_bout["bout_provider_status"] not in _PREFIGHT_STATUSES
+            or bout["fighter_a_id"] != observed_bout["fighter_a_id"]
+            or bout["fighter_b_id"] != observed_bout["fighter_b_id"]):
+        return "roster_superseded"
+    return None
+
+
 def _latest_gate_check(
     connection: sqlite3.Connection, bout_id: str,
     prediction: PredictionView | None, quotes: list[QuoteView],
@@ -310,14 +394,18 @@ def _latest_gate_check(
           or not math.isclose(saved_odds, quote["decimal_odds"], rel_tol=1e-12)):
         status = "quote_superseded_or_stale"
     else:
-        selection_probability = (prediction["p_fighter_a"]
-                                 if quote["selection_fighter_id"] == connection.execute(
-                                     "SELECT fighter_a_id FROM bouts WHERE bout_id = ?", (bout_id,)
-                                 ).fetchone()["fighter_a_id"] else prediction["p_fighter_b"])
-        status = ("accepted_recently" if saved_probability is not None
-                  and math.isclose(saved_probability, selection_probability,
-                                   rel_tol=1e-12, abs_tol=1e-12)
-                  else "prediction_changed")
+        roster_status = _stored_roster_status(connection, row, checked, as_of)
+        if roster_status is not None:
+            status = roster_status
+        else:
+            selection_probability = (prediction["p_fighter_a"]
+                                     if quote["selection_fighter_id"] == connection.execute(
+                                         "SELECT fighter_a_id FROM bouts WHERE bout_id = ?", (bout_id,)
+                                     ).fetchone()["fighter_a_id"] else prediction["p_fighter_b"])
+            status = ("accepted_recently" if saved_probability is not None
+                      and math.isclose(saved_probability, selection_probability,
+                                       rel_tol=1e-12, abs_tol=1e-12)
+                      else "prediction_changed")
     return {
         "gate_check_id": int(row["gate_check_id"]),
         "ingestion_run_id": int(row["ingestion_run_id"]),
@@ -336,6 +424,7 @@ def _latest_gate_check(
         "conservative_expected_profit_per_dollar": _finite_float(
             row["conservative_expected_profit_per_dollar"]
         ),
+        "roster_snapshot_id": row["roster_snapshot_id"] if "roster_snapshot_id" in row.keys() else None,
         "display_status": status,
     }
 
@@ -427,6 +516,17 @@ def _summarize_ledger(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _paper_ledger(connection: sqlite3.Connection) -> dict[str, Any]:
+    gate_columns = {item["name"] for item in connection.execute(
+        "PRAGMA table_info(prefight_gate_checks)"
+    )}
+    recorded_rosters = {}
+    if "roster_snapshot_id" in gate_columns:
+        recorded_rosters = {
+            int(row["gate_check_id"]): row["roster_snapshot_id"]
+            for row in connection.execute(
+                "SELECT gate_check_id, roster_snapshot_id FROM prefight_gate_checks"
+            )
+        }
     records = connection.execute(
         """
         SELECT pb.*, e.name AS event_name, e.event_date,
@@ -445,6 +545,10 @@ def _paper_ledger(connection: sqlite3.Connection) -> dict[str, Any]:
     rows: list[dict[str, Any]] = []
     for record in records:
         row = dict(record)
+        row["roster_evidence_status"] = (
+            "snapshot_recorded" if recorded_rosters.get(row.get("gate_check_id")) is not None
+            else "legacy_unverified"
+        )
         row["stake_units"] = _required_finite(row["stake_units"], "paper stake")
         row["payout_units"] = (_required_finite(row["payout_units"], "paper payout")
                                if row["payout_units"] is not None else None)
@@ -455,6 +559,23 @@ def _paper_ledger(connection: sqlite3.Connection) -> dict[str, Any]:
         )
         rows.append(row)
     return {"summary": _summarize_ledger(rows), "rows": rows}
+
+
+def _job_runs(connection: sqlite3.Connection, as_of: datetime) -> list[dict[str, Any]]:
+    tables = {item["name"] for item in connection.execute(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'operator_job_runs'"
+    )}
+    if "operator_job_runs" not in tables:
+        return []
+    return [dict(row) for row in connection.execute(
+        """
+        SELECT job_run_id, command, event_id, started_at_utc, finished_at_utc,
+               status, error_category
+        FROM operator_job_runs
+        WHERE started_at_utc <= ?
+        ORDER BY started_at_utc DESC, job_run_id DESC LIMIT 10
+        """, (utc_string(as_of),),
+    )]
 
 
 def _manual_ledger(connection: sqlite3.Connection) -> dict[str, Any]:
@@ -668,6 +789,105 @@ def _evaluation_report(
     }
 
 
+def _integrity_report(path: str | Path | None, db_path: Path, as_of: datetime) -> dict[str, Any]:
+    """Display a saved verifier result without reading source files on page load."""
+    if path is None:
+        return {"status": "unavailable", "reason": "No saved integrity check was supplied."}
+    try:
+        report_path = Path(path)
+        if not report_path.is_file():
+            return {"status": "missing_report", "reason": "Run the local evidence integrity check."}
+    except (OSError, TypeError, ValueError):
+        return {"status": "invalid_report", "reason": "Saved integrity check path is invalid."}
+    try:
+        saved = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return {"status": "invalid_report", "reason": "Saved integrity check is not valid JSON."}
+    if not isinstance(saved, dict):
+        return {"status": "invalid_report", "reason": "Saved integrity check must be a JSON object."}
+    checked = _timestamp(saved.get("checked_at_utc"))
+    source_path = saved.get("database_path")
+    project_root = saved.get("project_root")
+    mtime = saved.get("database_mtime_ns")
+    count = saved.get("receipt_count")
+    verified = saved.get("verified_receipts")
+    issue_count = saved.get("issue_count")
+    status = saved.get("status")
+    issues = saved.get("issues")
+    by_source = saved.get("by_source")
+    file_state = saved.get("database_file_state")
+    valid_file_state = (
+        isinstance(file_state, dict)
+        and all(_nonnegative_int(file_state.get(key)) for key in ("main_mtime_ns", "main_size"))
+        and ((file_state.get("wal_mtime_ns") is None and file_state.get("wal_size") is None)
+             or all(_nonnegative_int(file_state.get(key)) for key in ("wal_mtime_ns", "wal_size")))
+        and file_state.get("main_mtime_ns") == mtime
+    )
+    valid_issues = (isinstance(issues, list) and _nonnegative_int(issue_count)
+                    and len(issues) <= issue_count
+                    and (issue_count == 0 or bool(issues))
+                    and all(isinstance(item, dict)
+                            and isinstance(item.get("code"), str)
+                            and bool(item["code"])
+                            and isinstance(item.get("detail"), str)
+                            and ("run_id" not in item or _nonnegative_int(item["run_id"]))
+                            for item in issues))
+    valid_sources = False
+    if isinstance(by_source, dict) and _nonnegative_int(count):
+        valid_sources = (
+            all(isinstance(key, str) and bool(key) and _nonnegative_int(value)
+                for key, value in by_source.items())
+            and sum(by_source.values()) == count
+        )
+    if (checked is None or checked > as_of
+            or not isinstance(source_path, str) or not source_path.strip()
+            or not isinstance(project_root, str) or not project_root.strip()
+            or status not in {"verified", "issues", "unavailable"}
+            or not isinstance(saved.get("ok"), bool)
+            or not all(_nonnegative_int(item) for item in (count, verified, issue_count))
+            or verified > count or not valid_issues or not valid_sources
+            or (mtime is not None and not _nonnegative_int(mtime))
+            or (status == "verified" and (
+                not saved["ok"] or count == 0 or issue_count != 0 or verified != count
+                or not valid_file_state or saved.get("database_integrity") != ["ok"]
+                or saved.get("foreign_key_violations") != 0
+                or saved.get("missing_migrations") != []
+            ))
+            or (status != "verified" and (saved["ok"] or issue_count == 0))):
+        return {"status": "invalid_report", "reason": "Saved integrity check has incomplete provenance or counts."}
+    try:
+        reported_database = Path(source_path)
+        reported_root = Path(project_root)
+        if not reported_database.is_absolute() or not reported_root.is_absolute():
+            raise ValueError("relative source provenance path")
+        reported_root.resolve()
+        different_database = reported_database.resolve() != db_path.resolve()
+    except (OSError, ValueError, RuntimeError):
+        return {"status": "invalid_report", "reason": "Saved integrity check has an invalid database path."}
+    if different_database:
+        return {"status": "wrong_database", "reason": "Saved integrity check belongs to another database."}
+    if status != "verified":
+        return {
+            "status": "issues", "reason": f"Last evidence check found {issue_count} issue(s).",
+            "checked_at_utc": saved["checked_at_utc"], "issue_count": issue_count,
+            "receipt_count": count, "verified_receipts": verified,
+        }
+    try:
+        current_file_state = database_file_state(db_path)
+    except OSError:
+        return {"status": "unavailable", "reason": "Database became inaccessible after the saved evidence check."}
+    if current_file_state != file_state:
+        display_status, reason = "possibly_stale", "Database or write-ahead log changed after the saved evidence check."
+    elif as_of - checked > timedelta(minutes=15):
+        display_status, reason = "expired", "Evidence check is over 15 minutes old; rerun it before an event."
+    else:
+        display_status, reason = "verified_recently", "Payload hashes matched at the saved check time."
+    return {
+        "status": display_status, "reason": reason, "checked_at_utc": saved["checked_at_utc"],
+        "receipt_count": count, "verified_receipts": verified,
+    }
+
+
 def load_dashboard(
     db_path: str | Path,
     *,
@@ -675,6 +895,7 @@ def load_dashboard(
     event_limit: int = 8,
     max_age_seconds: int = _DEFAULT_MAX_AGE_SECONDS,
     evaluation_report: str | Path | None = None,
+    integrity_report: str | Path | None = None,
 ) -> DashboardView:
     """Load a dashboard snapshot from SQLite opened in read-only mode.
 
@@ -741,9 +962,11 @@ def load_dashboard(
                 "upcoming_events": _upcoming_events(connection, as_of, event_limit, max_age_seconds),
                 "quality": quality,
                 "ingestion_runs": ingestion,
+                "job_runs": _job_runs(connection, as_of),
                 "paper_ledger": _paper_ledger(connection),
                 "manual_ledger": _manual_ledger(connection),
                 "evaluation": _evaluation_report(evaluation_report, path, as_of),
+                "integrity": _integrity_report(integrity_report, path, as_of),
             }
             # Standard JSON excludes NaN/Infinity; never send such values to
             # the UI even if someone bypassed SQLite's normal constraints.

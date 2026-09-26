@@ -12,7 +12,7 @@ import math
 import sqlite3
 from datetime import datetime, timedelta
 
-from .features import FeatureRow, event_feature_rows
+from .features import COVERAGE_NAMES, FeatureRow, event_feature_rows
 from .logistic import (
     binary_metrics,
     chronological_event_split,
@@ -29,6 +29,27 @@ def _split_summary(rows: list[FeatureRow]) -> dict[str, int | str | None]:
         "events": len({row.event_id for row in rows}),
         "first_date": dates[0] if dates else None,
         "last_date": dates[-1] if dates else None,
+    }
+
+
+def _observation_coverage(rows: list[FeatureRow]) -> dict[str, object]:
+    """Report individual fighter and paired availability on each split."""
+    denominator = 2 * len(rows)
+    age = sum(row.coverage[0] + row.coverage[1] for row in rows)
+    reach = sum(row.coverage[2] + row.coverage[3] for row in rows)
+    adjusted_stats = sum(row.coverage[4] + row.coverage[5] for row in rows)
+    return {
+        "bouts": len(rows),
+        "fighter_instances": denominator,
+        "fighter_instances_with_age": age,
+        "fighter_instances_with_reach": reach,
+        "fighter_instances_with_adjusted_stats": adjusted_stats,
+        "age_fighter_coverage": age / denominator if denominator else None,
+        "reach_fighter_coverage": reach / denominator if denominator else None,
+        "adjusted_stats_fighter_coverage": adjusted_stats / denominator if denominator else None,
+        "bouts_with_both_ages": sum(row.coverage[0] and row.coverage[1] for row in rows),
+        "bouts_with_both_reaches": sum(row.coverage[2] and row.coverage[3] for row in rows),
+        "bouts_with_both_adjusted_stats": sum(row.coverage[4] and row.coverage[5] for row in rows),
     }
 
 
@@ -75,7 +96,7 @@ def _point_in_time_rows(
         features_by_bout = {
             row.bout_id: row
             for row in event_feature_rows(
-                connection, event_id, cutoff_date=decision_time.date().isoformat()
+                connection, event_id, cutoff_at_utc=decision_time
             )
         }
         for result in results:
@@ -87,6 +108,10 @@ def _point_in_time_rows(
             if winner not in {first_id, second_id}:
                 raise ValueError(f"Winner is not a participant: {result['bout_id']}")
             features = base.features if base.fighter_a_id == first_id else tuple(-value for value in base.features)
+            coverage = base.coverage if base.fighter_a_id == first_id else (
+                base.coverage[1], base.coverage[0], base.coverage[3], base.coverage[2],
+                base.coverage[5], base.coverage[4],
+            )
             rows.append(
                 FeatureRow(
                     bout_id=base.bout_id,
@@ -96,6 +121,7 @@ def _point_in_time_rows(
                     fighter_b_id=second_id,
                     features=features,
                     target=int(winner == first_id),
+                    coverage=coverage,
                 )
             )
     return rows, decision_times, excluded
@@ -210,6 +236,7 @@ def evaluate_models(
             "status": "insufficient_history",
             "reason": str(exc),
             "available": _split_summary(rows),
+            "observation_coverage": {"available": _observation_coverage(rows)},
             "excluded_missing_start_time": excluded_missing_start_time,
             "sample_size_flags": {
                 "fewer_than_three_event_dates": len({row.event_date for row in rows}) < 3,
@@ -242,7 +269,13 @@ def evaluate_models(
         "status": "ok",
         "decision_hours_before_event": decision_hours_before_event,
         "max_quote_age_hours": max_quote_age_hours,
-        "feature_history_rule": "event_date_strictly_before_utc_decision_date",
+        "feature_history_rule": "results_from_earlier_utc_dates;_dated_observations_strictly_before_exact_decision_utc",
+        "observation_coverage_names": COVERAGE_NAMES,
+        "observation_coverage": {
+            "train": _observation_coverage(train),
+            "validation": _observation_coverage(validation),
+            "test": _observation_coverage(test),
+        },
         "excluded_missing_start_time": excluded_missing_start_time,
         "split": {
             "train": _split_summary(train),

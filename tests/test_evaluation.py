@@ -71,6 +71,35 @@ class EvaluationTests(unittest.TestCase):
         self.assertIsNone(result["test"]["bookmaker"]["metrics"])
         json.dumps(result, allow_nan=False)
 
+    def test_observation_coverage_is_split_specific_and_time_gated(self):
+        make_history(self.connection)
+        receipt = self.connection.execute(
+            """INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256)
+               VALUES ('fixture', '2024-01-10T00:00:00Z', 'fixture', 'fixture')"""
+        )
+        for fighter_id, observed, birth, reach in (
+            ("a-09", "2024-01-08T11:00:00Z", "1990-01-01", 180),
+            ("b-09", "2024-01-08T11:00:00Z", "1992-01-01", None),
+            ("b-10", "2024-01-09T13:00:00Z", "1993-01-01", 175),
+        ):
+            self.connection.execute(
+                """INSERT INTO fighter_profile_observations(
+                       fighter_id, source, source_evidence_uri, source_license_uri,
+                       observed_at_utc, birth_date, reach_cm, ingestion_run_id
+                   ) VALUES (?, 'fixture', 'fixture://snapshot', 'fixture://license', ?, ?, ?, ?)""",
+                (fighter_id, observed, birth, reach, receipt.lastrowid),
+            )
+        self.connection.commit()
+        result = evaluate_models(self.connection)
+        self.assertEqual(result["observation_coverage"]["train"]["fighter_instances_with_age"], 0)
+        test = result["observation_coverage"]["test"]
+        self.assertEqual(test["fighter_instances"], 4)
+        self.assertEqual(test["fighter_instances_with_age"], 2)
+        self.assertEqual(test["age_fighter_coverage"], 0.5)
+        self.assertEqual(test["bouts_with_both_ages"], 1)
+        self.assertEqual(test["fighter_instances_with_reach"], 1)
+        self.assertEqual(test["bouts_with_both_reaches"], 0)
+
     def test_bookmaker_requires_both_sides_of_one_book_before_cutoff(self):
         make_history(self.connection)
         # Event 9 starts Jan 9 at 12:00, so the default decision is Jan 8 at 12:00.

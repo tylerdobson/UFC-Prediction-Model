@@ -1,3 +1,3 @@
-event_id,event_name,event_date,event_status,start_time_utc,bout_id,fighter_a_id,fighter_a_name,fighter_b_id,fighter_b_name,bout_status,weight_class,outcome,winner_fighter_id,method
-sample-2026-01,Sample Historical Event,2026-01-03,completed,2026-01-03T20:00:00Z,sample-bout-1,fighter-1,Sample Fighter One,fighter-2,Sample Fighter Two,completed,Lightweight,win,fighter-1,Decision
-sample-2026-02,Sample Upcoming Event,2026-12-05,scheduled,2026-12-05T20:00:00Z,sample-bout-2,fighter-1,Sample Fighter One,fighter-3,Sample Fighter Three,scheduled,Lightweight,,,
+event_id,event_name,event_date,event_status,event_provider_status,start_time_utc,source_observed_at_utc,source_url,source_revision_id,license_name,license_url,reviewed_by,bout_id,fighter_a_id,fighter_a_name,fighter_b_id,fighter_b_name,bout_status,bout_provider_status,weight_class,outcome,winner_fighter_id,method
+sample-2026-01,Sample Historical Event,2026-01-03,completed,,2026-01-03T20:00:00Z,,,,,,,sample-bout-1,fighter-1,Sample Fighter One,fighter-2,Sample Fighter Two,completed,,Lightweight,win,fighter-1,Decision
+sample-2026-02,Sample Upcoming Event,2026-12-05,scheduled,,2026-12-05T20:00:00Z,,,,,,,sample-bout-2,fighter-1,Sample Fighter One,fighter-3,Sample Fighter Three,scheduled,,Lightweight,,,

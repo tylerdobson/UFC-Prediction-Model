@@ -17,6 +17,11 @@ UFC-Prediction-Model/
 │   ├── sportradar.py                    # UFC card/results API adapter
 │   ├── importers.py                     # CSV and UFCStats imports
 │   ├── raw_snapshots.py                 # checked content-addressed source copies
+│   ├── card_history.py                  # dated event and matchup observations
+│   ├── observations.py                  # dated fighter profiles and fight statistics
+│   ├── integrity.py                     # read-only database and payload verification
+│   ├── backup.py                        # SQLite backup, verify, and restore drill
+│   ├── jobs.py                          # durable CLI success/failure status
 │   ├── ingest.py                        # match MMA prices to verified UFC bouts
 │   ├── features.py                      # earlier-fight-only feature replay
 │   ├── elo.py, logistic.py              # probability models
@@ -72,7 +77,7 @@ python -m pip install -e '.[dashboard]'
 python -m streamlit run app.py --server.address 127.0.0.1
 ```
 
-The dashboard reads SQLite and the optional `reports/evaluation.json` snapshot. It labels fictional, missing, stale, rejected, and superseded evidence. It cannot import data, retrain a model, send an alert, or place a wager. See the [dashboard runbook](docs/DASHBOARD_RUNBOOK.md) for the four views and optional paths.
+The dashboard reads SQLite and optional saved evaluation/integrity reports. It labels fictional, missing, stale, rejected, and superseded evidence and shows recent CLI job status. It cannot import data, retrain a model, send an alert, or place a wager. See the [dashboard runbook](docs/DASHBOARD_RUNBOOK.md) for the four views and optional paths.
 
 You can inspect the real SQL database directly:
 
@@ -90,7 +95,13 @@ The reliable local path is the CSV importer. Copy [the template](examples/bouts_
 ufc-model import-csv path/to/your_bouts.csv
 ```
 
-One CSV row represents one bout. Historical completed bouts need `outcome` and, for a win, `winner_fighter_id`. Upcoming bouts leave those fields blank and use `scheduled` status. Store the event's confirmed UTC start time when available. The importer separates those rows into `fighters`, `events`, `bouts`, and `results` in SQLite. It also keeps a content-addressed copy under ignored `data/raw/manual/` and a SHA-256 ingestion receipt; use `--raw-dir` to change that local snapshot directory. Keep the source/license and human review notes alongside your private source records.
+One CSV row represents one bout. Historical completed bouts need `outcome` and, for a win, `winner_fighter_id`. Upcoming bouts leave those fields blank and use `scheduled` status. Store the event's confirmed UTC start time when available. The importer separates those rows into `fighters`, `events`, `bouts`, and `results` in SQLite. It also keeps a content-addressed copy under ignored `data/raw/manual/`, a SHA-256 ingestion receipt, and an immutable card snapshot; use `--raw-dir` to change the local snapshot directory. Include a reviewed `source_observed_at_utc` and attribution for prospective cards. A missing observation time remains unknown and cannot authorize an alert. See [card roster history](docs/CARD_ROSTER_HISTORY.md).
+
+Before relying on an imported source, check that SQLite and every retained payload still match their receipts. This read-only command exits with status 1 for missing or changed evidence:
+
+```bash
+python -m ufc_odds_model.integrity --db data/ufc.sqlite --output reports/integrity.json
+```
 
 There is also a UFCStats parser and an optional importer:
 
@@ -99,7 +110,7 @@ ufc-model import-ufcstats completed --limit 5
 ufc-model import-ufcstats upcoming --limit 2
 ```
 
-UFCStats currently serves a JavaScript browser check to direct Python requests on the development machine, so unattended fetching may fail. The parser has offline fixture tests; the CLI reports a source error instead of treating a blocked response as an empty card. The [UFCStats event pages](http://ufcstats.com/statistics/events/completed?page=all) and [UFC events page](https://www.ufc.com/events) are useful sources to review while preparing the CSV.
+UFCStats currently serves a JavaScript browser check to direct Python requests on the development machine, so unattended fetching may fail. The parser has offline fixture tests; the CLI reports a source error instead of treating a blocked response as an empty card. Do not treat UFC or UFCStats pages as permission to build the operational database; [UFC's site terms](https://www.ufc.com/news/terms-use) restrict scraping and database construction. Use a source whose rights have been checked for this project.
 
 For an initial **research-only** historical experiment, the [Wikipedia results importer](docs/WIKIPEDIA_HISTORY_SOURCE.md) can read a bounded set of UFC 295–304 event pages into a separate database with page revision, license, and payload-hash receipts:
 
@@ -161,7 +172,7 @@ For a two-outcome wager at decimal odds `d`, the simple break-even probability i
 
 For an upcoming card, `ufc-model score-event YOUR_EVENT_ID --model logistic` uses a separately calibrated logistic model once the database has at least 100 earlier binary bouts across 10 event dates, including a 30-bout later calibration period. It fails explicitly when history is too small. Its version hashes the training inputs and parameters, and the fitted weights/calibration are saved under ignored `models/`. The fictional demo intentionally fails this history gate. `paper-trade` also accepts `--model logistic`.
 
-Current model features are replayed from earlier bouts: Elo, number of prior bouts, smoothed win rate, and rest. Age, reach, and opponent-adjusted fight statistics are not yet used. Those require dated fighter profiles and per-fight stat observations; filling historical rows with current career averages would leak future information.
+Current model features replay Elo, prior bouts, smoothed win rate, rest, and recent form from earlier bouts. The logistic path also accepts dated age, reach, and opponent-adjusted fight statistics when reviewed observations were available before each decision cutoff. Missing observations remain neutral and their coverage is saved with each prediction; no real profile or stat source is connected yet. See [dated fighter observations](docs/POINT_IN_TIME_OBSERVATIONS.md) for the CSV formats, import commands, and cutoff rules.
 
 If you place a bet yourself, use the IDs in the report to record the **actual** stake and accepted price:
 
@@ -180,7 +191,7 @@ ufc-model paper-trade YOUR_EVENT_ID --bankroll-units 1000 \
 ufc-model settle-paper YOUR_EVENT_ID
 ```
 
-Paper stakes default to at most 1% of the declared bankroll per accepted candidate and 5% across the event. The command requires a fresh live odds import and a known future card start. It records every gate result with the ingestion receipt, prediction, quote, timestamps, threshold settings, and rejection reason; only matching accepted checks can create a new paper bet. The bankroll and caps stay fixed for that event. The ledger freezes the decision and settlement separately from actual bets. Binary wins/losses can be settled from results; draws, no contests, cancellations, and missing results remain pending review because bookmaker rules differ. `bankroll-units` is a simulation input, not an account connection.
+Paper stakes default to at most 1% of the declared bankroll per accepted candidate and 5% across the event. The command requires a fresh live odds import, a known future card start, and a matching card observation seen in the preceding 24 hours. It verifies the roster payload hash and stores its exact snapshot ID with every accepted gate check. A new roster import or changed payload invalidates that check before paper recording. The gate also records the prediction, quote, timestamps, threshold settings, and rejection reason; only matching accepted checks can create a new paper bet. The bankroll and caps stay fixed for that event. The ledger freezes the decision and settlement separately from actual bets. Binary wins/losses can be settled from results; draws, no contests, cancellations, and missing results remain pending review because bookmaker rules differ. `bankroll-units` is a simulation input, not an account connection.
 
 For a **local pre-fight alert check**, refresh prices and re-score in one step:
 
@@ -195,7 +206,7 @@ An alert candidate must use the just-imported odds snapshot, a recent bookmaker 
 
 1. Obtain a rights-cleared UFC history from a consistent fight-data source, or import reviewed CSVs. The adapters and audits are implemented, but this repository has only fictional demo data until a real source is connected. Verify card completeness, cancellations, substitutions, draws, and no contests. A free Sportradar trial alone does not authorize a betting decision workflow.
 2. Add enough **historical** two-sided quotes at a consistent pre-event cutoff for a meaningful model/bookmaker comparison. If historical access is unavailable, save live quotes and build a prospective paper record instead.
-3. Add dated fighter profiles and per-fight stat snapshots, then extend the feature replay to age, reach, recent form, and opponent-adjusted stats without using observations from after the target bout.
+3. Import rights-cleared, dated fighter profiles and per-fight stat observations to populate the implemented age, reach, recent-form, and opponent-adjusted feature path. Review source timestamps and coverage before comparing models.
 4. Review test-set calibration, coverage, bankroll exposure, unsettled fights, and bookmaker-specific settlement rules. A positive small-sample ROI is not evidence of a durable edge.
    Historical final rosters alone cannot prove that a replacement matchup was announced before a 24-hour prediction cutoff; dated card snapshots are needed for that audit.
 5. Run the read-only [web dashboard](docs/WEB_APP_PLAN.md) on top of the verified data and stored reports. Keep API keys and ingestion jobs server-side, and complete a real event-day drill before calling it operational.

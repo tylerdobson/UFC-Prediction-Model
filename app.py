@@ -22,6 +22,9 @@ DB_PATH = Path(os.environ.get("UFC_MODEL_DB", "data/ufc.sqlite"))
 EVALUATION_PATH = Path(
     os.environ.get("UFC_MODEL_EVALUATION_REPORT", "reports/evaluation.json")
 )
+INTEGRITY_PATH = Path(
+    os.environ.get("UFC_MODEL_INTEGRITY_REPORT", "reports/integrity.json")
+)
 CSS_PATH = Path(__file__).with_name("dashboard.css")
 
 
@@ -76,6 +79,26 @@ def _percent(value: Any, digits: int = 1) -> str:
     except (TypeError, ValueError):
         return "—"
     return f"{number:.{digits}%}" if math.isfinite(number) else "—"
+
+
+def _feature_coverage_text(prediction: Mapping[str, Any] | None) -> str:
+    if not prediction:
+        return "Prediction unavailable"
+    status = prediction.get("feature_coverage_status")
+    if status == "not_applicable":
+        return "N/A for non-logistic model"
+    if status != "recorded":
+        return "Missing saved coverage" if status == "missing" else "Invalid saved coverage"
+    coverage = _mapping(prediction.get("feature_coverage"))
+    labels = (
+        ("fighter_a_age", "A age"), ("fighter_b_age", "B age"),
+        ("fighter_a_reach", "A reach"), ("fighter_b_reach", "B reach"),
+        ("fighter_a_adjusted_stats", "A adjusted stats"),
+        ("fighter_b_adjusted_stats", "B adjusted stats"),
+    )
+    present = sum(coverage.get(key) is True for key, _ in labels)
+    missing = [label for key, label in labels if coverage.get(key) is not True]
+    return (f"{present}/6 dated inputs" + (f"; missing: {', '.join(missing)}" if missing else ""))
 
 
 def _table(headers: Sequence[str], rows: Sequence[Sequence[Any]], empty: str) -> str:
@@ -347,6 +370,11 @@ def _render_upcoming(snapshot: Mapping[str, Any]) -> None:
                         f"Generated: <code>{_esc(prediction.get('generated_at_utc'))}</code></p>",
                         unsafe_allow_html=True,
                     )
+                    st.markdown(
+                        f"<p class='evidence-line'><strong>Dated feature coverage:</strong> "
+                        f"{_esc(_feature_coverage_text(prediction))}</p>",
+                        unsafe_allow_html=True,
+                    )
                     if bout.get("quotes"):
                         st.markdown(
                             "<p class='evidence-line'>" + " · ".join(
@@ -365,6 +393,7 @@ def _render_upcoming(snapshot: Mapping[str, Any]) -> None:
                             f"<p class='evidence-line'>Saved gate check: <strong>{_esc(gate.get('display_status'))}</strong> · "
                             f"checked <code>{_esc(gate.get('checked_at_utc'))}</code> · "
                             f"snapshot <code>{_esc(gate.get('snapshot_at_utc'))}</code> · "
+                            f"roster snapshot <code>{_esc(gate.get('roster_snapshot_id'))}</code> · "
                             f"reason: {_esc(gate.get('gate_reason'))}. "
                             "This historical check is not proof that a sportsbook price remains executable.</p>",
                             unsafe_allow_html=True,
@@ -453,6 +482,22 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
             f"<div class='model-card'><h2>{_esc(title)}</h2><p>{_esc(label)}</p></div>"
         )
     st.markdown("<div class='model-cards'>" + "".join(model_cards) + "</div>", unsafe_allow_html=True)
+    coverage_rows = [
+        [event.get("name"),
+         f"{_text(bout.get('fighter_a_name'))} vs {_text(bout.get('fighter_b_name'))}",
+         _text(_mapping(bout.get("prediction")).get("model_version")),
+         _feature_coverage_text(_mapping(bout.get("prediction")))]
+        for event in snapshot.get("upcoming_events") or []
+        for bout in event.get("bouts") or []
+    ]
+    st.markdown(
+        "<section class='panel'><h2>Upcoming dated feature coverage</h2>"
+        "<p>Logistic predictions show which optional age, reach, and opponent-adjusted fight-stat "
+        "inputs came from pre-fight observations. Missing inputs are neutral in the model.</p>"
+        + _table(["Event", "Bout", "Model", "Dated inputs"], coverage_rows,
+                 "No saved upcoming predictions") + "</section>",
+        unsafe_allow_html=True,
+    )
     comparison, requirements = st.columns([2.25, 1], gap="large")
     with comparison:
         if available:
@@ -590,6 +635,7 @@ def _render_quality(snapshot: Mapping[str, Any]) -> None:
     summary = quality.get("summary") or {}
     issues = quality.get("issues") or []
     runs = snapshot.get("ingestion_runs") or []
+    jobs = snapshot.get("job_runs") or []
     st.markdown(
         "<section class='page-title'><h1>Data quality</h1>"
         "<p>Source receipts, identity checks, roster status, and price coverage.</p></section>",
@@ -597,6 +643,17 @@ def _render_quality(snapshot: Mapping[str, Any]) -> None:
     )
     if notice := _notice(snapshot):
         st.markdown(notice, unsafe_allow_html=True)
+    evidence = snapshot.get("integrity") or {}
+    evidence_status = str(evidence.get("status") or "unavailable")
+    evidence_label = "Checked recently" if evidence_status == "verified_recently" else evidence_status.replace("_", " ").capitalize()
+    evidence_class = "notice" if evidence_status == "verified_recently" else "notice notice-demo"
+    evidence_time = _utc(evidence.get("checked_at_utc")) if evidence.get("checked_at_utc") else "Not checked"
+    st.markdown(
+        f"<div class='{evidence_class}'><strong>Source evidence: {_esc(evidence_label)}.</strong> "
+        f"{_esc(evidence.get('reason'), 'Run the local evidence integrity check.')} "
+        f"Last check: {_esc(evidence_time)}.</div>",
+        unsafe_allow_html=True,
+    )
     if not runs and snapshot.get("status") in {"available", "empty"}:
         st.markdown(
             "<div class='notice quality-intro'><strong>No audited source history yet.</strong> "
@@ -611,9 +668,20 @@ def _render_quality(snapshot: Mapping[str, Any]) -> None:
             for run in runs
         ]
         st.markdown(
-            "<section class='panel'><h2>Latest source runs</h2>"
+            "<section class='panel'><h2>Saved source receipts</h2>"
             + _table(["Source", "Fetched UTC", "Status", "Rows", "SHA-256"], run_rows, "No runs recorded")
             + "</section>", unsafe_allow_html=True,
+        )
+        job_rows = [
+            [job.get("command"), job.get("event_id"), _utc(job.get("started_at_utc")),
+             job.get("status"), _text(job.get("error_category"))]
+            for job in jobs
+        ]
+        st.markdown(
+            "<section class='panel'><h2>Recent operator jobs</h2>"
+            + _table(["Command", "Event", "Started UTC", "Status", "Error category"],
+                     job_rows, "No operator jobs recorded") + "</section>",
+            unsafe_allow_html=True,
         )
     with right:
         if quality.get("status") == "ready" and snapshot.get("data_origin") != "empty":
@@ -702,12 +770,15 @@ def _render_ledgers(snapshot: Mapping[str, Any]) -> None:
         paper_rows = [
             [f"{_text(row.get('event_name'))} · {_text(row.get('selection_name'))}",
              _number(row.get("stake_units")), _number(row.get("quoted_decimal_odds")),
-             row.get("settlement_status"), _utc(row.get("decision_at_utc"))]
+             row.get("settlement_status"),
+             "Snapshot recorded" if row.get("roster_evidence_status") == "snapshot_recorded"
+             else "Legacy / unverified",
+             _utc(row.get("decision_at_utc"))]
             for row in paper.get("rows") or []
         ]
         st.markdown(
             "<section class='ledger-section'><h2>Paper ledger</h2>"
-            + _table(["Event / selection", "Stake", "Quoted odds", "Status", "Decision UTC"],
+            + _table(["Event / selection", "Stake", "Quoted odds", "Status", "Roster evidence", "Decision UTC"],
                      paper_rows, "No paper decisions recorded") + "</section>",
             unsafe_allow_html=True,
         )
@@ -752,7 +823,9 @@ def main() -> None:
     st.set_page_config(page_title="UFC Forecast · Pre-fight workspace", page_icon="🥊", layout="wide")
     st.markdown("<style>" + CSS_PATH.read_text(encoding="utf-8") + "</style>", unsafe_allow_html=True)
     try:
-        snapshot = load_dashboard(DB_PATH, evaluation_report=EVALUATION_PATH)
+        snapshot = load_dashboard(
+            DB_PATH, evaluation_report=EVALUATION_PATH, integrity_report=INTEGRITY_PATH
+        )
     except (OSError, ValueError):
         st.error("The dashboard could not read its saved data. Check the local database and report configuration.")
         return

@@ -10,6 +10,7 @@ from datetime import date
 from pathlib import Path
 
 from . import db, ufcstats
+from .card_history import prepare_csv_card_snapshots, record_card_snapshots
 from .pipeline import utc_now, utc_string
 from .raw_snapshots import retain_snapshot
 
@@ -44,7 +45,11 @@ def import_bouts_csv(
         missing = REQUIRED_CSV_COLUMNS - set(reader.fieldnames or [])
         if missing:
             raise ValueError(f"CSV is missing columns: {', '.join(sorted(missing))}")
-        rows = list(reader)
+        rows = [
+            {field: value.strip() if isinstance(value, str) else value
+             for field, value in raw_row.items()}
+            for raw_row in reader
+        ]
     if not rows:
         raise ValueError("CSV contains no bouts")
     for line, row in enumerate(rows, start=2):
@@ -74,6 +79,7 @@ def import_bouts_csv(
             raise ValueError(f"Line {line}: scheduled/cancelled bouts cannot have results")
 
     imported_at = utc_string(utc_now())
+    card_snapshots = prepare_csv_card_snapshots(rows, imported_at)
     with connection:
         for row in rows:
             db.upsert_fighter(connection, row["fighter_a_id"], row["fighter_a_name"].strip())
@@ -82,12 +88,14 @@ def import_bouts_csv(
                 connection, row["event_id"], row["event_name"], row["event_date"],
                 row["event_status"], source="manual", source_event_id=row["event_id"],
                 start_time_utc=_csv_cell(row, "start_time_utc") or None,
+                provider_status=_csv_cell(row, "event_provider_status") or None,
             )
             db.upsert_bout(
                 connection, row["bout_id"], row["event_id"],
                 row["fighter_a_id"], row["fighter_b_id"], row["bout_status"],
                 weight_class=_csv_cell(row, "weight_class") or None,
                 source="manual", source_bout_id=row["bout_id"],
+                provider_status=_csv_cell(row, "bout_provider_status") or None,
             )
             if row["bout_status"] == "completed":
                 outcome = _csv_cell(row, "outcome")
@@ -104,11 +112,12 @@ def import_bouts_csv(
                         connection, row["bout_id"], outcome, winner, imported_at, method,
                     )
         snapshot_path, digest = _retain_csv_snapshot(raw_bytes, snapshot_dir)
-        connection.execute(
+        receipt = connection.execute(
             "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
             "VALUES (?, ?, ?, ?)",
             ("manual-csv", imported_at, str(snapshot_path), digest),
         )
+        record_card_snapshots(connection, int(receipt.lastrowid), card_snapshots)
     return len(rows)
 
 
@@ -143,6 +152,22 @@ def import_ufcstats_events(
                 connection, event_id, event["name"], event["date"], kind.replace("upcoming", "scheduled"),
                 source="ufcstats", source_event_id=event["source_event_id"],
             )
+            card_snapshot = {
+                "event_id": event_id,
+                "source_observed_at_utc": captured,
+                "observation_basis": "local_fetch",
+                "source_url": event["source_event_url"],
+                "source_revision_id": None,
+                "license_name": None,
+                "license_url": None,
+                "reviewed_by": None,
+                "event_name": event["name"],
+                "event_date": event["date"],
+                "start_time_utc": None,
+                "event_status": kind.replace("upcoming", "scheduled"),
+                "event_provider_status": None,
+                "bouts": [],
+            }
             current_bout_ids: set[str] = set()
             for bout in bouts:
                 fighter_a_id = db.resolve_fighter_id(connection, "ufcstats", bout["fighter_a_source_id"])
@@ -156,11 +181,24 @@ def import_ufcstats_events(
                     bout["status"], weight_class=bout["weight_class"],
                     source="ufcstats", source_bout_id=bout["source_bout_id"],
                 )
+                winner_id = (
+                    db.resolve_fighter_id(connection, "ufcstats", bout["winner_source_id"])
+                    if bout["outcome"] == "win" and bout["winner_source_id"] else None
+                )
+                card_snapshot["bouts"].append({
+                    "bout_id": bout_id,
+                    "fighter_a_id": fighter_a_id,
+                    "fighter_a_name": bout["fighter_a_name"],
+                    "fighter_b_id": fighter_b_id,
+                    "fighter_b_name": bout["fighter_b_name"],
+                    "bout_status": bout["status"],
+                    "bout_provider_status": None,
+                    "weight_class": bout["weight_class"],
+                    "outcome": bout["outcome"],
+                    "winner_fighter_id": winner_id,
+                    "method": bout["method"],
+                })
                 if bout["outcome"]:
-                    winner_id = (
-                        db.resolve_fighter_id(connection, "ufcstats", bout["winner_source_id"])
-                        if bout["winner_source_id"] else None
-                    )
                     db.upsert_result(
                         connection, bout_id, bout["outcome"], winner_id,
                         captured, bout["method"],
@@ -175,10 +213,11 @@ def import_ufcstats_events(
                         "UPDATE bouts SET status = 'cancelled' WHERE bout_id = ?",
                         (previous["bout_id"],),
                     )
-            connection.execute(
+            receipt = connection.execute(
                 "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) VALUES (?, ?, ?, ?)",
                 ("ufcstats-parsed", captured, str(path), digest),
             )
+            record_card_snapshots(connection, int(receipt.lastrowid), [card_snapshot])
         imported_events += 1
         imported_bouts += len(bouts)
     return {"events": imported_events, "bouts": imported_bouts}

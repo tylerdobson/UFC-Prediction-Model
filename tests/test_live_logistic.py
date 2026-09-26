@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import sqlite3
+import json
+import tempfile
 import unittest
 from datetime import datetime, timezone
+from pathlib import Path
 
 from ufc_odds_model import db
 from ufc_odds_model.live_logistic import prepare_live_logistic
+from ufc_odds_model.pipeline import score_event
 
 
 AS_OF = datetime(2024, 1, 12, 12, tzinfo=timezone.utc)
@@ -54,6 +58,20 @@ class LiveLogisticTests(unittest.TestCase):
         for day in range(1, 12):
             self.add_card(day)
 
+    def add_profile(self, fighter_id: str, observed_at_utc: str, birth_date: str) -> None:
+        receipt = self.connection.execute(
+            """INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256)
+               VALUES ('fixture-profile', '2024-01-12T12:00:00Z', 'fixture', 'fixture')"""
+        )
+        self.connection.execute(
+            """INSERT INTO fighter_profile_observations(
+                   fighter_id, source, source_evidence_uri, source_license_uri,
+                   observed_at_utc, birth_date, ingestion_run_id
+               ) VALUES (?, 'fixture-profile', 'fixture://snapshot', 'fixture://license', ?, ?, ?)""",
+            (fighter_id, observed_at_utc, birth_date, receipt.lastrowid),
+        )
+        self.connection.commit()
+
     def test_live_probabilities_have_auditable_chronological_calibration(self):
         self.add_eligible_history()
         prepared = prepare_live_logistic(self.connection, "target", AS_OF)
@@ -63,7 +81,7 @@ class LiveLogisticTests(unittest.TestCase):
         self.assertEqual(prepared.calibration_first_date, "2024-01-09")
         self.assertEqual(prepared.calibration_last_date, "2024-01-11")
         self.assertEqual(prepared.history_before_date, "2024-01-12")
-        self.assertTrue(prepared.model_version.startswith("logistic-prior-v1:"))
+        self.assertTrue(prepared.model_version.startswith("logistic-prior-v2:"))
         self.assertEqual(len(prepared.model_version.split(":")[1]), 16)
         self.assertEqual(set(prepared.predictions), {"target-bout"})
         self.assertGreater(prepared.predictions["target-bout"], 0)
@@ -89,6 +107,40 @@ class LiveLogisticTests(unittest.TestCase):
         self.connection.commit()
         amended = prepare_live_logistic(self.connection, "target", AS_OF)
         self.assertNotEqual(original.model_version, amended.model_version)
+
+    def test_observation_availability_changes_version_only_after_cutoff(self):
+        self.add_eligible_history()
+        original = prepare_live_logistic(self.connection, "target", AS_OF)
+        self.add_profile("anchor", "2024-01-13T00:00:00Z", "1990-01-01")
+        still_original = prepare_live_logistic(self.connection, "target", AS_OF)
+        self.assertEqual(still_original.model_version, original.model_version)
+        self.assertEqual(still_original.predictions, original.predictions)
+        self.add_profile("novice", "2024-01-12T11:00:00Z", "1998-01-01")
+        changed = prepare_live_logistic(self.connection, "target", AS_OF)
+        self.assertNotEqual(changed.model_version, original.model_version)
+        self.assertEqual(changed.coverage_by_bout["target-bout"]["fighter_a_age"], False)
+        self.assertEqual(changed.coverage_by_bout["target-bout"]["fighter_b_age"], True)
+        self.assertEqual(changed.observation_coverage["target"]["fighter_instances_with_age"], 1)
+
+    def test_logistic_prediction_persists_coverage_for_dashboard(self):
+        self.add_eligible_history()
+        self.add_profile("anchor", "2024-01-11T11:00:00Z", "1990-01-01")
+        self.add_profile("novice", "2024-01-11T11:00:00Z", "1998-01-01")
+        with tempfile.TemporaryDirectory() as directory:
+            report, rows = score_event(
+                self.connection, "target", AS_OF, Path(directory) / "reports",
+                model_kind="logistic", model_dir=Path(directory) / "models",
+            )
+            self.assertTrue(report.is_file())
+            self.assertEqual(rows[0]["decision"], "no_quote")
+            saved = self.connection.execute(
+                "SELECT model_version, feature_coverage_json FROM predictions WHERE bout_id = 'target-bout'"
+            ).fetchone()
+            coverage = json.loads(saved["feature_coverage_json"])
+            self.assertTrue(coverage["fighter_a_age"])
+            self.assertTrue(coverage["fighter_b_age"])
+            self.assertFalse(coverage["fighter_a_adjusted_stats"])
+            self.assertEqual(json.loads(rows[0]["feature_coverage_json"]), coverage)
 
     def test_small_sample_never_falls_back_to_uncalibrated_live_model(self):
         for day in range(1, 10):

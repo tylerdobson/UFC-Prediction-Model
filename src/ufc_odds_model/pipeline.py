@@ -87,7 +87,7 @@ REPORT_FIELDS = [
     "prediction_id", "quote_id", "bookmaker", "selection", "decimal_odds",
     "break_even_probability", "model_selection_probability",
     "expected_profit_per_dollar", "quote_captured_at_utc", "decision",
-    "bookmaker_updated_at_utc",
+    "bookmaker_updated_at_utc", "feature_coverage_json",
 ]
 
 
@@ -118,6 +118,7 @@ def score_event(
     if not bouts:
         raise ValueError("This event has no scheduled bouts")
     history_before = min(event["event_date"], as_of.date().isoformat())
+    coverage_by_bout: dict[str, dict[str, bool]] = {}
     if model_kind == "elo":
         model = model_from_results(db.prior_results(connection, history_before))
         model_version = MODEL_VERSION
@@ -131,6 +132,7 @@ def score_event(
         run = prepare_live_logistic(connection, event_id, as_of)
         model_version = run.model_version
         probabilities = run.predictions
+        coverage_by_bout = run.coverage_by_bout
         artifact = {
             "model_version": model_version,
             "feature_cutoff_date": run.history_before_date,
@@ -144,6 +146,8 @@ def score_event(
             "calibration_event_dates": run.calibration_event_dates,
             "calibration_first_date": run.calibration_first_date,
             "calibration_last_date": run.calibration_last_date,
+            "observation_coverage": run.observation_coverage,
+            "coverage_by_bout": run.coverage_by_bout,
         }
         directory = Path(model_dir)
         directory.mkdir(parents=True, exist_ok=True)
@@ -161,6 +165,14 @@ def score_event(
         probability_a = probabilities[bout["bout_id"]]
         prediction_id = db.save_prediction(
             connection, bout["bout_id"], model_version, as_of_str, now_str, probability_a
+        )
+        coverage_json = (
+            json.dumps(coverage_by_bout[bout["bout_id"]], sort_keys=True)
+            if bout["bout_id"] in coverage_by_bout else None
+        )
+        connection.execute(
+            "UPDATE predictions SET feature_coverage_json = ? WHERE prediction_id = ?",
+            (coverage_json, prediction_id),
         )
         quote = best_quote(
             connection, bout, probability_a, as_of, max_quote_age_hours,
@@ -190,6 +202,7 @@ def score_event(
                 "candidate" if quote and quote["expected_profit_per_dollar"] >= min_expected_profit
                 else "pass" if quote else "no_quote"
             ),
+            "feature_coverage_json": coverage_json or "",
         }
         report_rows.append(row)
     connection.commit()

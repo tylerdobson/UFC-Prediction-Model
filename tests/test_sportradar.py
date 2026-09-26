@@ -104,6 +104,20 @@ class SportradarTests(unittest.TestCase):
         ])
         event = self.connection.execute("SELECT status FROM events").fetchone()
         self.assertEqual(event["status"], "scheduled")
+        card = self.connection.execute(
+            """SELECT s.observation_basis, s.source_observed_at_utc,
+                      s.source_url, r.fetched_at_utc
+               FROM card_event_snapshots s
+               JOIN ingestion_runs r ON r.run_id = s.ingestion_run_id"""
+        ).fetchone()
+        self.assertEqual(card["observation_basis"], "local_fetch")
+        self.assertEqual(card["source_observed_at_utc"], card["fetched_at_utc"])
+        self.assertIn("/schedules/2026-10-10/summaries.json", card["source_url"])
+        snapshot_bouts = self.connection.execute(
+            "SELECT bout_status, bout_provider_status FROM card_bout_snapshots ORDER BY bout_id"
+        ).fetchall()
+        self.assertEqual([(r["bout_status"], r["bout_provider_status"]) for r in snapshot_bouts],
+                         [("cancelled", "not_started"), ("scheduled", "not_started")])
 
     def test_import_results_and_idempotent_replay(self) -> None:
         payload = {"summaries": [summary(

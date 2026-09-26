@@ -7,6 +7,7 @@ import sqlite3
 from collections.abc import Mapping, Sequence
 from datetime import datetime, timedelta
 
+from .card_history import latest_prefight_roster
 from .pipeline import parse_utc, utc_now, utc_string
 
 
@@ -48,6 +49,10 @@ def _candidate_details(
             or gate["prediction_id"] != prediction_id or gate["quote_id"] != quote_id
             or gate["event_id"] != event_id or gate["bout_id"] != bout_id):
         raise ValueError("Paper candidate needs a matching accepted pre-fight gate check")
+    roster = latest_prefight_roster(connection, event_id, bout_id, recorded_time)
+    if (not roster["accepted"]
+            or roster["event_snapshot_id"] != gate["roster_snapshot_id"]):
+        raise ValueError("The dated card roster changed or is no longer verifiable")
     checked_at = parse_utc(gate["checked_at_utc"])
     if checked_at > recorded_time or (recorded_time - checked_at).total_seconds() > gate["max_age_seconds"]:
         raise ValueError("The accepted pre-fight gate check is too old for paper recording")

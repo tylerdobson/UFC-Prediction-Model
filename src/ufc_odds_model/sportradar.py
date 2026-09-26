@@ -15,6 +15,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from . import db
+from .card_history import record_card_snapshots
 from .pipeline import utc_now, utc_string
 from .raw_snapshots import retain_snapshot
 
@@ -239,9 +240,26 @@ def import_daily_summaries(
     path, digest = retain_snapshot(raw_bytes, raw_dir)
     events = normalize_daily_summaries(payload)
     imported_bouts = imported_results = non_scoreable_bouts = skipped_incomplete = 0
+    card_snapshots: list[dict] = []
     with connection:
         for event in events:
             event_id = f"sportradar:{event['source_event_id']}"
+            card_snapshot = {
+                "event_id": event_id,
+                "source_observed_at_utc": fetched_at,
+                "observation_basis": "local_fetch",
+                "source_url": f"{BASE_URL}/{access_level}/v2/en/schedules/{day_text}/summaries.json",
+                "source_revision_id": None,
+                "license_name": None,
+                "license_url": None,
+                "reviewed_by": None,
+                "event_name": event["name"],
+                "event_date": event["event_date"],
+                "start_time_utc": event["start_time_utc"],
+                "event_status": "scheduled",
+                "event_provider_status": "scheduled",
+                "bouts": [],
+            }
             # A daily response can contain only part of a card. Do not mark an
             # event complete until the imported database has no scheduled bout.
             db.upsert_event(
@@ -280,6 +298,23 @@ def import_daily_summaries(
                         SOURCE, source_id,
                     )
                 bout_id = f"sportradar:{bout['source_bout_id']}"
+                winner_id = (
+                    resolved_fighter_ids[bout["winner_source_id"]]
+                    if bout["outcome"] == "win" and bout["winner_source_id"] else None
+                )
+                card_snapshot["bouts"].append({
+                    "bout_id": bout_id,
+                    "fighter_a_id": resolved_fighter_ids[fighters[0]["source_fighter_id"]],
+                    "fighter_a_name": fighters[0]["name"],
+                    "fighter_b_id": resolved_fighter_ids[fighters[1]["source_fighter_id"]],
+                    "fighter_b_name": fighters[1]["name"],
+                    "bout_status": bout["status"],
+                    "bout_provider_status": bout["source_status"],
+                    "weight_class": bout["weight_class"],
+                    "outcome": bout["outcome"],
+                    "winner_fighter_id": winner_id,
+                    "method": bout["method"],
+                })
                 existing = connection.execute(
                     "SELECT status FROM bouts WHERE bout_id = ?", (bout_id,)
                 ).fetchone()
@@ -298,20 +333,23 @@ def import_daily_summaries(
                 )
                 imported_bouts += 1
                 if bout["status"] == "completed" and bout["outcome"]:
-                    winner_id = (
-                        resolved_fighter_ids[bout["winner_source_id"]]
-                        if bout["winner_source_id"] else None
-                    )
                     db.upsert_result(
                         connection, bout_id, bout["outcome"], winner_id,
                         fetched_at, bout["method"],
                     )
                     imported_results += 1
             _refresh_event_status(connection, event_id)
-        connection.execute(
+            current_event = connection.execute(
+                "SELECT status, provider_status FROM events WHERE event_id = ?", (event_id,)
+            ).fetchone()
+            card_snapshot["event_status"] = current_event["status"]
+            card_snapshot["event_provider_status"] = current_event["provider_status"]
+            card_snapshots.append(card_snapshot)
+        receipt = connection.execute(
             "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) VALUES (?, ?, ?, ?)",
             (SOURCE, fetched_at, str(path), digest),
         )
+        record_card_snapshots(connection, int(receipt.lastrowid), card_snapshots)
     return {
         "events": len(events),
         "bouts": imported_bouts,

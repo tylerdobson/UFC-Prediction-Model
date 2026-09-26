@@ -37,11 +37,11 @@ The Odds API free tier can collect prospective snapshots, while historical odds 
 
 ## Before an event
 
-1. Import a dated UFC card and historical results with `ufc-model import-csv path/to/reviewed_bouts.csv` from a source you have rights to use. A licensed production feed can be added after its scope is checked; the Sportradar trial is not the default source for this betting decision workflow. Link known cross-provider fighter IDs with `link-fighter` **before** mixing provider histories. Review replacements, cancellations, event status, and UTC start time against the source.
-2. Run `ufc-model audit` and resolve identity, status, timing, and result errors. Keep the raw source payloads and ingestion receipts. If the current roster cannot be verified, leave the event unavailable.
+1. Import a dated UFC card and historical results with `ufc-model import-csv path/to/reviewed_bouts.csv` from a source you have rights to use. For the upcoming card, fill `source_observed_at_utc`, source attribution, and reviewer fields in the [CSV template](../examples/bouts_template.csv). A missing or older-than-24-hour roster observation cannot pass the alert gate. A licensed production feed can be added after its scope is checked; the Sportradar trial is not the default source for this betting decision workflow. Link known cross-provider fighter IDs with `link-fighter` **before** mixing provider histories. Review replacements, cancellations, event status, and UTC start time against the source. Import [dated profile and stat observations](POINT_IN_TIME_OBSERVATIONS.md) only when their publication times and usage rights are verified.
+2. Run `python -m ufc_odds_model.integrity --db data/ufc.sqlite --output reports/integrity.json` from the repository root. It checks SQLite integrity, applied migrations, foreign keys, and the SHA-256 of every saved source payload without writing to the database. A missing, changed, or unreadable payload must be investigated before relying on its rows. The ignored JSON report records the last check for the dashboard. Then run `ufc-model audit` and resolve identity, status, timing, and result errors. If the current roster cannot be verified, leave the event unavailable.
 3. Run `ufc-model evaluate --decision-hours-before-event 24 --output reports/evaluation.json` after adding enough history. Inspect train/validation/test sizes, calibration, bookmaker coverage, and missing metrics. `null` ROI means there were no qualifying historical prices; it is not zero return. Re-run the evaluation when the reviewed history or cutoff policy changes.
-4. With `ODDS_API_KEY` set, run `ufc-model alert-event EVENT_ID --model elo --max-age-seconds 60 --decimal-odds-drift 0.05 --min-ev 0.03`. This fetches a new odds snapshot and saves explicit accepted/rejected gate checks. Run `ufc-model paper-trade EVENT_ID --bankroll-units 1000` when ready to create capped paper decisions. It independently refreshes odds and repeats the gate. A previously accepted alert is not authority to use an older line.
-5. Launch the local dashboard with `python -m streamlit run app.py --server.address 127.0.0.1`. See [DASHBOARD_RUNBOOK.md](DASHBOARD_RUNBOOK.md) for screen details and optional path settings. Review the saved gate reason, quote capture and bookmaker update times, model cutoff/version, and open exposure. Recheck any live market directly if deciding whether to place a real wager; the dashboard price is observational.
+4. With `ODDS_API_KEY` set, run `ufc-model alert-event EVENT_ID --model elo --max-age-seconds 60 --decimal-odds-drift 0.05 --min-ev 0.03`. This fetches a new odds snapshot and saves explicit accepted/rejected gate checks linked to the roster snapshot. Run `ufc-model paper-trade EVENT_ID --bankroll-units 1000` when ready to create capped paper decisions. It independently refreshes odds and repeats the gate. A previously accepted alert is not authority to use an older line or superseded roster.
+5. Rerun `python -m ufc_odds_model.integrity --db data/ufc.sqlite --output reports/integrity.json` after the latest import and gate writes so the dashboard's saved integrity status reflects the current database. Launch the local dashboard with `python -m streamlit run app.py --server.address 127.0.0.1`. See [DASHBOARD_RUNBOOK.md](DASHBOARD_RUNBOOK.md) for screen details and optional path settings. Review the saved gate reason, quote capture and bookmaker update times, model cutoff/version, recent source job status, and open exposure. Recheck any live market directly if deciding whether to place a real wager; the dashboard price is observational.
 
 No API key or confirmed future card means no live alert or new paper decision. An unavailable state is expected in that case.
 
@@ -53,13 +53,13 @@ Keep a dated log of missing bouts, unmatched quotes, bookmaker update delay, gat
 
 ## Backup and recovery
 
-Back up SQLite before a source import or schema migration. From the repository root with the dashboard and ingest commands stopped:
+Back up SQLite before a source import or schema migration. The backup command uses SQLite's online backup API and checks a temporary restore. Choose a new output path each time:
 
 ```bash
-mkdir -p backups
-python -c "import sqlite3; src=sqlite3.connect('data/ufc.sqlite'); dst=sqlite3.connect('backups/ufc-before-event.sqlite'); src.backup(dst); dst.close(); src.close()"
+python -m ufc_odds_model.backup create --db data/ufc.sqlite \
+  --output backups/ufc-$(date -u +%Y%m%dT%H%M%SZ)-$(uuidgen).sqlite
 ```
 
-Keep raw snapshots, model artifacts, and evaluation reports with the database backup if you need to reproduce a decision. To restore, stop the dashboard and all CLI jobs, preserve the failed database separately, copy the selected backup to `data/ufc.sqlite`, and run `ufc-model init-db` plus `ufc-model audit` before resuming. A backup command and a restore drill on a separate path should be verified before relying on this operationally.
+Keep raw snapshots, model artifacts, and evaluation reports with the database backup if you need to reproduce a decision. Restore to a **new** path, then verify receipts and run the audit before switching over. See [the backup drill](BACKUP_RUNBOOK.md) for verification and recovery commands.
 
-When a source fetch fails, leave prior saved records intact and show their age. Do not silently present the last available quote as current. Check the CLI error, source quota, snapshot receipt, and the provider status before retrying.
+When a source fetch fails, leave prior saved records intact and show their age. The failed import or alert run is retained in `operator_job_runs` with command, time, and a credential-free error category, and appears in Data Quality. Do not silently present the last available quote as current. Check the CLI error, source quota, snapshot receipt, and provider status before retrying.

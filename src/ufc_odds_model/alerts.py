@@ -15,6 +15,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterable, Mapping
 
+from .card_history import latest_prefight_roster
+
 
 def _utc(value: object) -> datetime | None:
     if isinstance(value, datetime):
@@ -210,6 +212,13 @@ def record_prefight_checks(
         decimal_odds_drift=decimal_odds_drift,
         min_edge=min_edge,
     )
+    for row in checked:
+        roster = latest_prefight_roster(connection, event_id, str(row["bout_id"]), now)
+        row["roster_snapshot_id"] = roster.get("event_snapshot_id") if roster["accepted"] else None
+        if not roster["accepted"]:
+            row["alert_eligible"] = False
+            row["alert_decision"] = "reject"
+            row["alert_reason"] = str(roster["reason"])
     checked_at = now.isoformat().replace("+00:00", "Z")
     connection.execute("SAVEPOINT record_prefight_checks")
     try:
@@ -228,8 +237,8 @@ def record_prefight_checks(
                     quoted_decimal_odds, model_probability, model_decision,
                     gate_decision, gate_reason, max_age_seconds,
                     decimal_odds_drift, min_edge, conservative_decimal_odds,
-                    conservative_expected_profit_per_dollar
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    conservative_expected_profit_per_dollar, roster_snapshot_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     ingestion_run_id, event_id, row["bout_id"], int(row["prediction_id"]),
@@ -243,6 +252,7 @@ def record_prefight_checks(
                     max_age_seconds, decimal_odds_drift, min_edge,
                     row["conservative_decimal_odds"],
                     row["conservative_expected_profit_per_dollar"],
+                    row["roster_snapshot_id"],
                 ),
             )
             row["gate_check_id"] = int(cursor.lastrowid)

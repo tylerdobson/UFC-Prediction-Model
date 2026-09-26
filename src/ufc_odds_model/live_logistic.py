@@ -14,8 +14,8 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from .evaluation import _point_in_time_rows
-from .features import FEATURE_NAMES, FeatureRow, event_feature_rows
+from .evaluation import _observation_coverage, _point_in_time_rows
+from .features import COVERAGE_NAMES, FEATURE_NAMES, FeatureRow, event_feature_rows
 from .logistic import (
     MODEL_VERSION,
     LogisticModel,
@@ -50,6 +50,8 @@ class LiveLogisticRun:
     calibration_event_dates: int
     calibration_first_date: str
     calibration_last_date: str
+    observation_coverage: dict[str, dict[str, object]]
+    coverage_by_bout: dict[str, dict[str, bool]]
 
 
 def _split_for_live(rows: list[FeatureRow]) -> tuple[list[FeatureRow], list[FeatureRow]]:
@@ -95,6 +97,7 @@ def _model_version(
     model: LogisticModel,
     calibrator: TemperatureCalibrator,
     history_before_date: str,
+    target_features: list[FeatureRow],
 ) -> str:
     """Hash the exact labelled inputs, fitted parameters and cutoff rule."""
     payload = {
@@ -106,13 +109,17 @@ def _model_version(
         "min_calibration_samples": MIN_VALIDATION_BOUTS,
         "training": [
             (row.bout_id, row.event_id, row.event_date, row.fighter_a_id,
-             row.fighter_b_id, row.features, row.target)
+             row.fighter_b_id, row.features, row.target, row.coverage)
             for row in training
         ],
         "calibration": [
             (row.bout_id, row.event_id, row.event_date, row.fighter_a_id,
-             row.fighter_b_id, row.features, row.target)
+             row.fighter_b_id, row.features, row.target, row.coverage)
             for row in validation
+        ],
+        "target_features": [
+            (row.bout_id, row.fighter_a_id, row.fighter_b_id, row.features, row.coverage)
+            for row in target_features
         ],
         "weights": model.weights,
         "calibration_scale": calibrator.scale,
@@ -211,8 +218,8 @@ def prepare_live_logistic(
         [int(row.target) for row in validation],
         min_samples=MIN_VALIDATION_BOUTS,
     )
-    version = _model_version(training, validation, model, calibrator, cutoff_date)
-    target_features = event_feature_rows(connection, event_id, cutoff_date=cutoff_date)
+    target_features = event_feature_rows(connection, event_id, cutoff_at_utc=as_of)
+    version = _model_version(training, validation, model, calibrator, cutoff_date, target_features)
     predictions = {
         row.bout_id: calibrator.predict_probability(model.predict_probability(row.features))
         for row in target_features
@@ -231,4 +238,12 @@ def prepare_live_logistic(
         calibration_event_dates=len({row.event_date for row in validation}),
         calibration_first_date=validation[0].event_date,
         calibration_last_date=validation[-1].event_date,
+        observation_coverage={
+            "training": _observation_coverage(training),
+            "calibration": _observation_coverage(validation),
+            "target": _observation_coverage(target_features),
+        },
+        coverage_by_bout={
+            row.bout_id: dict(zip(COVERAGE_NAMES, row.coverage)) for row in target_features
+        },
     )

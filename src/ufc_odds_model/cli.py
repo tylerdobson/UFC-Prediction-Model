@@ -6,6 +6,7 @@ import argparse
 import json
 import math
 import os
+import sqlite3
 import sys
 import tempfile
 from contextlib import closing
@@ -13,11 +14,14 @@ from pathlib import Path
 
 from . import db
 from .alerts import record_prefight_checks
+from .integrity import verify_evidence
+from .jobs import TRACKED_COMMANDS, finish_job, start_job
 from .audit import audit_database
 from .demo import seed_demo
 from .evaluation import evaluate_models
 from .ingest import import_historical_odds, import_live_odds
 from .importers import import_bouts_csv, import_ufcstats_events
+from .observations import import_fight_stat_observations_csv, import_profile_observations_csv
 from .pipeline import parse_utc, score_event, utc_now
 from .pipeline import walk_forward_backtest
 from .paper import record_paper_candidates, settle_paper_bets
@@ -36,6 +40,20 @@ def make_parser() -> argparse.ArgumentParser:
     csv_import.add_argument("path")
     csv_import.add_argument("--raw-dir", default="data/raw/manual",
                             help="Directory for content-addressed copies of reviewed CSV input")
+    profiles = subcommands.add_parser(
+        "import-profile-observations", help="Import source-dated fighter age/reach observations"
+    )
+    profiles.add_argument("path")
+    profiles.add_argument("--source", required=True, help="Reviewed source name")
+    profiles.add_argument("--license-uri", required=True, help="Source permission/license evidence URI")
+    profiles.add_argument("--raw-dir", default="data/raw/profile-observations")
+    fight_stats = subcommands.add_parser(
+        "import-fight-stat-observations", help="Import source-dated per-fight strike observations"
+    )
+    fight_stats.add_argument("path")
+    fight_stats.add_argument("--source", required=True, help="Reviewed source name")
+    fight_stats.add_argument("--license-uri", required=True, help="Source permission/license evidence URI")
+    fight_stats.add_argument("--raw-dir", default="data/raw/fight-stat-observations")
     stats_import = subcommands.add_parser("import-ufcstats", help="Try the UFCStats HTML adapter")
     stats_import.add_argument("kind", choices=["completed", "upcoming"])
     stats_import.add_argument("--limit", type=int, default=5)
@@ -153,6 +171,10 @@ def _check_prefight_event(connection, args) -> tuple[object, dict, list[dict]]:
     ).fetchone()
     if wikipedia_history:
         raise ValueError("Research-only Wikipedia history cannot be used for pre-fight alerts or paper bets")
+    evidence = verify_evidence(args.db)
+    if not evidence["ok"]:
+        codes = ", ".join(sorted({issue["code"] for issue in evidence["issues"]}))
+        raise ValueError(f"Source integrity check failed before alert scoring: {codes}")
     if (not all(math.isfinite(value) for value in (
         args.max_age_seconds, args.decimal_odds_drift, args.min_ev
     )) or args.max_age_seconds <= 0 or args.decimal_odds_drift < 0 or args.min_ev < 0):
@@ -188,13 +210,27 @@ def _check_prefight_event(connection, args) -> tuple[object, dict, list[dict]]:
     return report, odds_result, checked
 
 
+def _safe_error_text(error: BaseException) -> str:
+    message = str(error)
+    for name in ("ODDS_API_KEY", "SPORTRADAR_API_KEY"):
+        secret = os.environ.get(name)
+        if secret:
+            message = message.replace(secret, "[redacted]")
+    return message
+
+
 def main(argv: list[str] | None = None) -> int:
     args = make_parser().parse_args(argv)
+    job_run_id: int | None = None
     try:
         if args.command == "import-wikipedia-history" and Path(args.db).resolve() == db.DEFAULT_DB.resolve():
             raise ValueError("Use an explicit separate --db path for Wikipedia research history")
         with closing(db.connect(args.db)) as connection:
             db.init_db(connection)
+            if args.command in TRACKED_COMMANDS:
+                job_run_id = start_job(
+                    connection, args.command, getattr(args, "event_id", None)
+                )
             if args.command == "init-db":
                 print(f"Initialized {args.db}")
             elif args.command == "seed-demo":
@@ -209,6 +245,16 @@ def main(argv: list[str] | None = None) -> int:
             elif args.command == "import-csv":
                 count = import_bouts_csv(connection, args.path, args.raw_dir)
                 print(f"Imported {count} bouts from {args.path}")
+            elif args.command == "import-profile-observations":
+                count = import_profile_observations_csv(
+                    connection, args.path, args.source, args.license_uri, args.raw_dir,
+                )
+                print(f"Imported {count} new fighter profile observations from {args.path}")
+            elif args.command == "import-fight-stat-observations":
+                count = import_fight_stat_observations_csv(
+                    connection, args.path, args.source, args.license_uri, args.raw_dir,
+                )
+                print(f"Imported {count} new per-fight stat observations from {args.path}")
             elif args.command == "import-ufcstats":
                 result = import_ufcstats_events(connection, args.kind, args.limit, args.raw_dir)
                 print(json.dumps(result, indent=2))
@@ -337,9 +383,22 @@ def main(argv: list[str] | None = None) -> int:
             elif args.command == "settle-bet":
                 settle_bet(connection, args.bet_id, args.status, args.payout)
                 print(f"Settled bet {args.bet_id} as {args.status}")
-    except (ValueError, RuntimeError) as error:
-        print(f"Error: {error}", file=sys.stderr)
-        return 1
+            if job_run_id is not None:
+                finish_job(connection, job_run_id)
+                job_run_id = None
+    except Exception as error:
+        if job_run_id is not None:
+            # The command connection has closed and rolled back any partial
+            # writes. A separate write preserves its failure status.
+            try:
+                with closing(db.connect(args.db)) as status_connection:
+                    finish_job(status_connection, job_run_id, error=error)
+            except (OSError, sqlite3.Error, ValueError):
+                print("Warning: could not save the failed job status", file=sys.stderr)
+        if isinstance(error, (ValueError, RuntimeError, OSError, sqlite3.Error)):
+            print(f"Error: {_safe_error_text(error)}", file=sys.stderr)
+            return 1
+        raise
     return 0
 
 

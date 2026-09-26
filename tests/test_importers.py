@@ -164,6 +164,20 @@ class UFCStatsSnapshotTests(unittest.TestCase):
                 self.assertEqual(raw_path, raw_dir.resolve() / f"{first['sha256']}.json")
                 original = raw_path.read_bytes()
                 self.assertEqual(hashlib.sha256(original).hexdigest(), first["sha256"])
+                snapshot = connection.execute(
+                    """SELECT e.source_observed_at_utc, e.observation_basis,
+                              e.source_url, b.bout_id, b.bout_status
+                       FROM card_event_snapshots e
+                       JOIN card_bout_snapshots b USING(event_snapshot_id)
+                       WHERE e.ingestion_run_id = 1"""
+                ).fetchone()
+                self.assertEqual(snapshot["observation_basis"], "local_fetch")
+                self.assertEqual(snapshot["source_observed_at_utc"], connection.execute(
+                    "SELECT fetched_at_utc FROM ingestion_runs WHERE run_id = 1"
+                ).fetchone()[0])
+                self.assertEqual(snapshot["source_url"], event["source_event_url"])
+                self.assertEqual((snapshot["bout_id"], snapshot["bout_status"]),
+                                 ("ufcstats:source-bout", "completed"))
                 self.assertEqual(import_ufcstats_events(connection, "completed", 1, raw_dir),
                                  {"events": 1, "bouts": 1})
                 receipts = connection.execute(

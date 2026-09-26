@@ -77,11 +77,18 @@ def audit_database(
     predictions = _rows(connection, "SELECT * FROM predictions")
     bets = _rows(connection, "SELECT * FROM bets")
     paper_bets = _rows(connection, "SELECT * FROM paper_bets")
+    ingestion_runs = _rows(connection, "SELECT * FROM ingestion_runs")
+    card_events = _rows(connection, "SELECT * FROM card_event_snapshots")
+    card_bouts = _rows(connection, "SELECT * FROM card_bout_snapshots")
     event_by_id = {row["event_id"]: row for row in events}
     bout_by_id = {row["bout_id"]: row for row in bouts}
     result_by_bout = {row["bout_id"]: row for row in results}
     prediction_by_id = {row["prediction_id"]: row for row in predictions}
     quote_by_id = {row["quote_id"]: row for row in quotes}
+    run_by_id = {row["run_id"]: row for row in ingestion_runs}
+    card_event_by_id = {row["event_snapshot_id"]: row for row in card_events}
+    card_events_by_event: dict[str, list[dict]] = defaultdict(list)
+    card_bouts_by_event: dict[str, list[dict]] = defaultdict(list)
     quotes_by_bout: dict[str, list[dict]] = defaultdict(list)
     issues: list[dict[str, str]] = []
 
@@ -136,6 +143,102 @@ def audit_database(
                 if event["status"] == "scheduled" and start <= as_of:
                     add("warning", "scheduled_event_start_passed", "event", event_id,
                         "Scheduled event start is at or before the audit time")
+
+    # An ingestion receipt proves when this application obtained a payload.
+    # Only a separate source-observed timestamp can support a claim that a
+    # pairing was available before the event. Keep both clocks visible.
+    for snapshot in card_events:
+        event_id = snapshot["event_id"]
+        card_events_by_event[event_id].append(snapshot)
+        run = run_by_id.get(snapshot["ingestion_run_id"])
+        observed = _timestamp(snapshot["source_observed_at_utc"])
+        fetched = _timestamp(run["fetched_at_utc"]) if run else None
+        if snapshot["source_observed_at_utc"] is None:
+            add("warning", "missing_roster_observation_time", "card_snapshot",
+                snapshot["event_snapshot_id"],
+                "This receipt has no source-observed time; it cannot prove a pre-fight roster")
+        elif observed is None:
+            add("error", "invalid_roster_observation_time", "card_snapshot",
+                snapshot["event_snapshot_id"],
+                "source_observed_at_utc needs a timezone-aware ISO timestamp")
+        elif fetched is None or observed > fetched:
+            add("error", "roster_observation_after_ingestion", "card_snapshot",
+                snapshot["event_snapshot_id"],
+                "Source-observed time is later than its ingestion receipt or the receipt time is invalid")
+        if (snapshot["observation_basis"] == "reviewed_csv" and observed is not None
+                and not snapshot["source_url"]):
+            add("warning", "roster_observation_source_missing", "card_snapshot",
+                snapshot["event_snapshot_id"],
+                "Dated reviewed CSV observation has no source URL; retain review evidence")
+        start = _timestamp(snapshot["start_time_utc"])
+        if snapshot["start_time_utc"] is not None and start is None:
+            add("error", "invalid_snapshot_event_start", "card_snapshot",
+                snapshot["event_snapshot_id"],
+                "Snapshot start_time_utc needs a timezone-aware ISO timestamp")
+        elif observed is not None and start is not None and observed >= start:
+            add("warning", "roster_observed_at_or_after_start", "card_snapshot",
+                snapshot["event_snapshot_id"],
+                "This card observation was made at or after the recorded event start")
+    for event in events:
+        if event["event_id"] not in card_events_by_event:
+            add("warning", "missing_card_snapshot", "event", event["event_id"],
+                "No immutable roster/status observation is linked to an ingestion receipt")
+    for snapshot in card_bouts:
+        card = card_event_by_id.get(snapshot["event_snapshot_id"])
+        bout = bout_by_id.get(snapshot["bout_id"])
+        if card is None:
+            continue  # The foreign-key check above reports the broken link.
+        card_bouts_by_event[card["event_id"]].append({
+            **snapshot,
+            "source_observed_at_utc": card["source_observed_at_utc"],
+            "event_snapshot_id": card["event_snapshot_id"],
+        })
+        if bout and (
+            bout["event_id"] != card["event_id"]
+            or bout["fighter_a_id"] != snapshot["fighter_a_id"]
+            or bout["fighter_b_id"] != snapshot["fighter_b_id"]
+        ):
+            add("error", "roster_snapshot_matchup_mismatch", "card_snapshot",
+                snapshot["bout_snapshot_id"],
+                "Snapshot event or participants disagree with the stable bout identity")
+
+    roster_substitutions = 0
+    for event_id, snapshots in card_bouts_by_event.items():
+        histories: dict[str, list[dict]] = defaultdict(list)
+        for snapshot in snapshots:
+            histories[snapshot["bout_id"]].append(snapshot)
+        bout_ids = sorted(histories)
+        for index, first_id in enumerate(bout_ids):
+            first = histories[first_id]
+            first_pair = {first[0]["fighter_a_id"], first[0]["fighter_b_id"]}
+            for second_id in bout_ids[index + 1:]:
+                second = histories[second_id]
+                second_pair = {second[0]["fighter_a_id"], second[0]["fighter_b_id"]}
+                if len(first_pair & second_pair) != 1:
+                    continue
+                first_cancelled = any(row["bout_status"] == "cancelled" for row in first)
+                second_cancelled = any(row["bout_status"] == "cancelled" for row in second)
+                first_active = any(row["bout_status"] != "cancelled" for row in first)
+                second_active = any(row["bout_status"] != "cancelled" for row in second)
+                first_times = [_timestamp(row["source_observed_at_utc"])
+                               for row in first if row["bout_status"] == "scheduled"]
+                second_times = [_timestamp(row["source_observed_at_utc"])
+                                for row in second if row["bout_status"] == "scheduled"]
+                first_times = [when for when in first_times if when]
+                second_times = [when for when in second_times if when]
+                dated_change = bool(first_times and second_times and
+                                    min(first_times) != min(second_times))
+                if not ((first_cancelled and second_active)
+                        or (second_cancelled and first_active) or dated_change):
+                    continue
+                roster_substitutions += 1
+                timing = (
+                    "Dated observations differ; verify when the change was announced"
+                    if dated_change else "No ordered announcement time is established"
+                )
+                add("warning", "roster_possible_opponent_substitution", "event", event_id,
+                    f"Bout {first_id} and bout {second_id} share one fighter. {timing}; "
+                    "a missing row alone does not prove cancellation")
 
     active_pairs: dict[tuple[str, tuple[str, str]], str] = {}
     scheduled_fighters: dict[tuple[str, str], str] = {}
@@ -394,6 +497,21 @@ def audit_database(
             row["stake_units"] for row in paper_bets if row["settlement_status"] == "open"
         ), 4),
         "possible_opponent_substitutions": substitution_pairs,
+        "card_event_snapshots": len(card_events),
+        "card_bout_snapshots": len(card_bouts),
+        "events_without_card_snapshots": sum(
+            event["event_id"] not in card_events_by_event for event in events
+        ),
+        "card_snapshots_without_source_observation_time": sum(
+            snapshot["source_observed_at_utc"] is None for snapshot in card_events
+        ),
+        "card_snapshots_observed_at_or_after_start": sum(
+            _timestamp(snapshot["source_observed_at_utc"]) is not None
+            and _timestamp(snapshot["start_time_utc"]) is not None
+            and _timestamp(snapshot["source_observed_at_utc"]) >= _timestamp(snapshot["start_time_utc"])
+            for snapshot in card_events
+        ),
+        "roster_possible_opponent_substitutions": roster_substitutions,
         "quote_coverage": {
             "completed_win_bouts_with_known_start": completed_win_known_start,
             "completed_win_bouts_with_any_quote": completed_win_any_quote,

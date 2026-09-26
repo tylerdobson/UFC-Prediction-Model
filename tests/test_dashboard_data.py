@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import sqlite3
 import tempfile
@@ -11,8 +12,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from ufc_odds_model import db
+from ufc_odds_model.card_history import record_card_snapshots
 from ufc_odds_model.dashboard_data import load_dashboard
 from ufc_odds_model.demo import seed_demo
+from ufc_odds_model.integrity import verify_evidence
 from ufc_odds_model.pipeline import utc_string
 
 
@@ -64,8 +67,37 @@ class DashboardDataTests(unittest.TestCase):
 
     def _accepted_gate(self, connection: sqlite3.Connection, prediction_id: int,
                        quote_id: int) -> int:
+        observed = utc_string(self.now - timedelta(seconds=45))
+        roster_file = Path(self.temp.name) / "roster.csv"
+        roster_file.write_text("fixture roster", encoding="utf-8")
+        roster_receipt = connection.execute(
+            "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+            "VALUES (?, ?, ?, ?)",
+            ("reviewed_csv", observed, str(roster_file),
+             hashlib.sha256(roster_file.read_bytes()).hexdigest()),
+        ).lastrowid
+        record_card_snapshots(connection, int(roster_receipt), [{
+            "event_id": "event", "event_name": "Fixture card",
+            "event_date": (self.now + timedelta(days=7)).date().isoformat(),
+            "event_status": "scheduled", "event_provider_status": None,
+            "start_time_utc": utc_string(self.now + timedelta(days=7)),
+            "source_observed_at_utc": observed,
+            "observation_basis": "reviewed_csv", "source_url": "fixture://roster",
+            "source_revision_id": "fixture-1", "license_name": "fixture",
+            "license_url": "fixture://license", "reviewed_by": "test",
+            "bouts": [{
+                "event_id": "event", "bout_id": "bout", "fighter_a_id": "a",
+                "fighter_a_name": "Alice Example", "fighter_b_id": "b",
+                "fighter_b_name": "Bob Example", "bout_status": "scheduled",
+                "bout_provider_status": None, "weight_class": None,
+                "outcome": None, "winner_fighter_id": None, "method": None,
+            }],
+        }])
+        roster_snapshot_id = connection.execute(
+            "SELECT MAX(event_snapshot_id) FROM card_event_snapshots"
+        ).fetchone()[0]
         receipt_id = connection.execute(
-            "SELECT run_id FROM ingestion_runs ORDER BY run_id DESC LIMIT 1"
+            "SELECT run_id FROM ingestion_runs WHERE source = 'the-odds-api' ORDER BY run_id DESC LIMIT 1"
         ).fetchone()["run_id"]
         checked = utc_string(self.now - timedelta(seconds=5))
         snapshot = utc_string(self.now - timedelta(seconds=30))
@@ -81,13 +113,13 @@ class DashboardDataTests(unittest.TestCase):
                 quoted_decimal_odds, model_probability, model_decision,
                 gate_decision, gate_reason, max_age_seconds,
                 decimal_odds_drift, min_edge, conservative_decimal_odds,
-                conservative_expected_profit_per_dollar
+                conservative_expected_profit_per_dollar, roster_snapshot_id
             ) VALUES (?, 'event', 'bout', ?, ?, ?, ?, ?, 'test-v1', ?,
                       'Fixture Book', ?, ?, 2.20, 0.61, 'candidate',
-                      'alert_candidate', 'ok', 60, 0.05, 0.03, 2.15, 0.3115)
+                      'alert_candidate', 'ok', 60, 0.05, 0.03, 2.15, 0.3115, ?)
             """,
             (receipt_id, prediction_id, quote_id, snapshot, checked, start,
-             cutoff, snapshot, snapshot),
+             cutoff, snapshot, snapshot, roster_snapshot_id),
         )
         connection.commit()
         return int(cursor.lastrowid)
@@ -407,6 +439,160 @@ class DashboardDataTests(unittest.TestCase):
             load_dashboard(self.path, event_limit=0)
         with self.assertRaises(ValueError):
             load_dashboard(self.path, max_age_seconds=0)
+
+
+    def test_saved_integrity_report_expires_and_detects_wal_only_database_change(self) -> None:
+        connection = self._connect()
+        payload = Path(self.temp.name) / "saved-odds.json"
+        payload.write_bytes(b'{"source":"fixture"}')
+        digest = hashlib.sha256(payload.read_bytes()).hexdigest()
+        connection.execute(
+            "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+            "VALUES ('fixture', ?, ?, ?)",
+            (utc_string(self.now), str(payload), digest),
+        )
+        connection.commit()
+        self.assertEqual(connection.execute("PRAGMA journal_mode = WAL").fetchone()[0], "wal")
+        connection.execute(
+            "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+            "VALUES ('fixture', ?, ?, ?)",
+            (utc_string(self.now), str(payload), digest),
+        )
+        connection.commit()
+
+        report_path = Path(self.temp.name) / "integrity.json"
+        report = verify_evidence(self.path)
+        self.assertEqual(report["status"], "verified")
+        self.assertEqual(report["receipt_count"], 2)
+        self.assertIn("database_file_state", report)
+        report_path.write_text(json.dumps(report), encoding="utf-8")
+        checked = datetime.fromisoformat(report["checked_at_utc"].replace("Z", "+00:00"))
+        current = load_dashboard(self.path, as_of=checked + timedelta(seconds=1),
+                                 integrity_report=report_path)
+        self.assertEqual(current["integrity"]["status"], "verified_recently")
+        expired = load_dashboard(self.path, as_of=checked + timedelta(minutes=16),
+                                 integrity_report=report_path)
+        self.assertEqual(expired["integrity"]["status"], "expired")
+
+        main_mtime = self.path.stat().st_mtime_ns
+        connection.execute(
+            "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+            "VALUES ('fixture', ?, ?, ?)",
+            (utc_string(checked), str(payload), digest),
+        )
+        connection.commit()
+        self.assertEqual(self.path.stat().st_mtime_ns, main_mtime)
+        changed = load_dashboard(self.path, as_of=checked + timedelta(seconds=2),
+                                 integrity_report=report_path)
+        self.assertEqual(changed["integrity"]["status"], "possibly_stale")
+
+        payload.write_text("tampered", encoding="utf-8")
+        failed = verify_evidence(self.path)
+        self.assertEqual(failed["status"], "issues")
+        report_path.write_text(json.dumps(failed), encoding="utf-8")
+        failed_time = datetime.fromisoformat(failed["checked_at_utc"].replace("Z", "+00:00"))
+        shown = load_dashboard(self.path, as_of=failed_time + timedelta(seconds=1),
+                               integrity_report=report_path)
+        self.assertEqual(shown["integrity"]["status"], "issues")
+        self.assertGreater(shown["integrity"]["issue_count"], 0)
+
+    def test_saved_integrity_rejects_inconsistent_or_invalid_provenance(self) -> None:
+        connection = self._connect()
+        payload = Path(self.temp.name) / "saved-odds.json"
+        payload.write_bytes(b"fixture")
+        digest = hashlib.sha256(payload.read_bytes()).hexdigest()
+        connection.execute(
+            "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+            "VALUES ('fixture', ?, ?, ?)",
+            (utc_string(self.now), str(payload), digest),
+        )
+        connection.commit()
+        report = verify_evidence(self.path)
+        self.assertEqual(report["status"], "verified")
+        report_path = Path(self.temp.name) / "integrity.json"
+        checked = datetime.fromisoformat(report["checked_at_utc"].replace("Z", "+00:00"))
+
+        def status_for(saved: dict) -> str:
+            report_path.write_text(json.dumps(saved), encoding="utf-8")
+            return load_dashboard(self.path, as_of=checked + timedelta(seconds=1),
+                                  integrity_report=report_path)["integrity"]["status"]
+
+        self.assertEqual(status_for({**report, "database_path": str(report_path)}), "wrong_database")
+        self.assertEqual(status_for({**report, "database_path": "invalid\x00path"}), "invalid_report")
+        self.assertEqual(status_for({**report, "project_root": "relative/root"}), "invalid_report")
+        self.assertEqual(status_for({**report, "status": "issues"}), "invalid_report")
+        self.assertEqual(status_for({**report, "database_file_state": None}), "invalid_report")
+        self.assertEqual(status_for({**report, "issue_count": 1}), "invalid_report")
+        report_path.write_text("{bad json", encoding="utf-8")
+        self.assertEqual(load_dashboard(self.path, as_of=checked + timedelta(seconds=1),
+                                        integrity_report=report_path)["integrity"]["status"],
+                         "invalid_report")
+
+    def test_logistic_dated_feature_coverage_is_visible_and_malformed_json_is_not_trusted(self) -> None:
+        connection = self._connect()
+        self._card(connection)
+        generated = utc_string(self.now - timedelta(seconds=10))
+        prediction_id = db.save_prediction(
+            connection, "bout", "logistic-prior-v2:fixture", generated, generated, 0.57,
+        )
+        coverage = {
+            "fighter_a_age": True, "fighter_b_age": False,
+            "fighter_a_reach": True, "fighter_b_reach": False,
+            "fighter_a_adjusted_stats": False, "fighter_b_adjusted_stats": True,
+        }
+        connection.execute(
+            "UPDATE predictions SET feature_coverage_json = ? WHERE prediction_id = ?",
+            (json.dumps(coverage), prediction_id),
+        )
+        connection.commit()
+        saved = load_dashboard(self.path, as_of=self.now)["upcoming_events"][0]["bouts"][0]["prediction"]
+        self.assertEqual(saved["feature_coverage_status"], "recorded")
+        self.assertEqual(saved["feature_coverage"], coverage)
+
+        connection.execute(
+            "UPDATE predictions SET feature_coverage_json = 'not-json' WHERE prediction_id = ?",
+            (prediction_id,),
+        )
+        connection.commit()
+        invalid = load_dashboard(self.path, as_of=self.now)["upcoming_events"][0]["bouts"][0]["prediction"]
+        self.assertEqual(invalid["feature_coverage_status"], "invalid")
+        self.assertIsNone(invalid["feature_coverage"])
+
+    def test_saved_gate_roster_is_flagged_after_matchup_changes(self) -> None:
+        connection = self._connect()
+        prediction_id, quote_id = self._card(connection)
+        self._accepted_gate(connection, prediction_id, quote_id)
+        initial = load_dashboard(self.path, as_of=self.now)["upcoming_events"][0]["bouts"][0]
+        self.assertEqual(initial["gate_check"]["display_status"], "accepted_recently")
+        db.upsert_fighter(connection, "c", "Replacement Example", "fixture", "c")
+        connection.execute("UPDATE bouts SET fighter_b_id = 'c' WHERE bout_id = 'bout'")
+        connection.commit()
+        changed = load_dashboard(self.path, as_of=self.now)["upcoming_events"][0]["bouts"][0]
+        self.assertEqual(changed["gate_check"]["display_status"], "roster_superseded")
+        self.assertEqual(changed["availability"], "gate_roster_superseded")
+
+    def test_operator_jobs_show_failed_and_started_states_without_provider_response(self) -> None:
+        connection = self._connect()
+        started = utc_string(self.now - timedelta(minutes=3))
+        finished = utc_string(self.now - timedelta(minutes=2))
+        connection.execute(
+            "INSERT INTO operator_job_runs(command, event_id, started_at_utc, status) "
+            "VALUES ('fetch-odds', 'event', ?, 'started')",
+            (started,),
+        )
+        connection.execute(
+            "INSERT INTO operator_job_runs(command, event_id, started_at_utc, "
+            "finished_at_utc, status, error_category) "
+            "VALUES ('fetch-card', 'event', ?, ?, 'failed', 'provider_unavailable')",
+            (started, finished),
+        )
+        connection.commit()
+        jobs = load_dashboard(self.path, as_of=self.now)["job_runs"]
+        self.assertEqual(len(jobs), 2)
+        self.assertEqual({job["status"] for job in jobs}, {"started", "failed"})
+        failed = next(job for job in jobs if job["status"] == "failed")
+        self.assertEqual(failed["error_category"], "provider_unavailable")
+        self.assertNotIn("provider_response", failed)
 
 
 if __name__ == "__main__":
