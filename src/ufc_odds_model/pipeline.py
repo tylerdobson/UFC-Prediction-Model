@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import math
 import re
 import sqlite3
@@ -49,7 +50,7 @@ def best_quote(
         updated_at = quote["bookmaker_updated_at_utc"]
         if updated_at:
             updated = parse_utc(updated_at)
-            if updated > as_of or as_of - updated > timedelta(hours=max_quote_age_hours):
+            if updated > captured or updated > as_of or as_of - updated > timedelta(hours=max_quote_age_hours):
                 continue
         if quote["selection_fighter_id"] == bout["fighter_a_id"]:
             probability = p_fighter_a
@@ -69,6 +70,7 @@ def best_quote(
                 "model_probability": probability,
                 "expected_profit_per_dollar": probability * decimal_odds - 1.0,
                 "captured_at_utc": quote["captured_at_utc"],
+                "bookmaker_updated_at_utc": updated_at,
             }
         )
     return max(candidates, key=lambda item: item["expected_profit_per_dollar"], default=None)
@@ -80,6 +82,7 @@ REPORT_FIELDS = [
     "prediction_id", "quote_id", "bookmaker", "selection", "decimal_odds",
     "break_even_probability", "model_selection_probability",
     "expected_profit_per_dollar", "quote_captured_at_utc", "decision",
+    "bookmaker_updated_at_utc",
 ]
 
 
@@ -90,6 +93,8 @@ def score_event(
     report_dir: str | Path = "reports",
     min_expected_profit: float = 0.03,
     max_quote_age_hours: float = 24.0,
+    model_kind: str = "elo",
+    model_dir: str | Path = "models",
 ) -> tuple[Path, list[dict]]:
     if as_of.tzinfo is None or as_of.utcoffset() is None:
         raise ValueError("Prediction cutoff needs a timezone")
@@ -99,20 +104,57 @@ def score_event(
         raise ValueError(f"Unknown event: {event_id}")
     if event["status"] != "scheduled":
         raise ValueError("Only scheduled events can receive live predictions")
+    if event["provider_status"] not in (None, "scheduled", "not_started"):
+        raise ValueError("The provider reports this event is not available for pre-fight scoring")
     if event["start_time_utc"] and as_of >= parse_utc(event["start_time_utc"]):
         raise ValueError("The prediction cutoff must precede the event start time")
     bouts = db.event_bouts(connection, event_id)
     if not bouts:
         raise ValueError("This event has no scheduled bouts")
     history_before = min(event["event_date"], as_of.date().isoformat())
-    model = model_from_results(db.prior_results(connection, history_before))
+    if model_kind == "elo":
+        model = model_from_results(db.prior_results(connection, history_before))
+        model_version = MODEL_VERSION
+        probabilities = {
+            bout["bout_id"]: model.probability(bout["fighter_a_id"], bout["fighter_b_id"])
+            for bout in bouts
+        }
+    elif model_kind == "logistic":
+        from .features import FEATURE_NAMES
+        from .live_logistic import prepare_live_logistic
+        run = prepare_live_logistic(connection, event_id, as_of)
+        model_version = run.model_version
+        probabilities = run.predictions
+        artifact = {
+            "model_version": model_version,
+            "feature_cutoff_date": run.history_before_date,
+            "feature_names": FEATURE_NAMES,
+            "weights": run.model.weights,
+            "calibration_scale": run.calibrator.scale,
+            "training_bouts": run.training_bouts,
+            "training_event_dates": run.training_event_dates,
+            "training_last_date": run.training_last_date,
+            "calibration_bouts": run.calibration_bouts,
+            "calibration_event_dates": run.calibration_event_dates,
+            "calibration_first_date": run.calibration_first_date,
+            "calibration_last_date": run.calibration_last_date,
+        }
+        directory = Path(model_dir)
+        directory.mkdir(parents=True, exist_ok=True)
+        artifact_path = directory / f"{model_version.replace(':', '_')}.json"
+        artifact_text = json.dumps(artifact, indent=2) + "\n"
+        if artifact_path.exists() and artifact_path.read_text(encoding="utf-8") != artifact_text:
+            raise ValueError("Saved logistic model version conflicts with existing artifact")
+        artifact_path.write_text(artifact_text, encoding="utf-8")
+    else:
+        raise ValueError("model_kind must be elo or logistic")
     report_rows: list[dict] = []
     now_str = utc_string(utc_now())
     as_of_str = utc_string(as_of)
     for bout in bouts:
-        probability_a = model.probability(bout["fighter_a_id"], bout["fighter_b_id"])
+        probability_a = probabilities[bout["bout_id"]]
         prediction_id = db.save_prediction(
-            connection, bout["bout_id"], MODEL_VERSION, as_of_str, now_str, probability_a
+            connection, bout["bout_id"], model_version, as_of_str, now_str, probability_a
         )
         quote = best_quote(connection, bout, probability_a, as_of, max_quote_age_hours)
         row = {
@@ -121,7 +163,7 @@ def score_event(
             "bout_id": bout["bout_id"],
             "fighter_a": bout["fighter_a_name"],
             "fighter_b": bout["fighter_b_name"],
-            "model_version": MODEL_VERSION,
+            "model_version": model_version,
             "as_of_utc": as_of_str,
             "p_fighter_a": round(probability_a, 4),
             "p_fighter_b": round(1 - probability_a, 4),
@@ -131,9 +173,10 @@ def score_event(
             "selection": quote["selection_name"] if quote else "",
             "decimal_odds": quote["decimal_odds"] if quote else "",
             "break_even_probability": round(quote["break_even_probability"], 4) if quote else "",
-            "model_selection_probability": round(quote["model_probability"], 4) if quote else "",
-            "expected_profit_per_dollar": round(quote["expected_profit_per_dollar"], 4) if quote else "",
+            "model_selection_probability": quote["model_probability"] if quote else "",
+            "expected_profit_per_dollar": quote["expected_profit_per_dollar"] if quote else "",
             "quote_captured_at_utc": quote["captured_at_utc"] if quote else "",
+            "bookmaker_updated_at_utc": quote["bookmaker_updated_at_utc"] if quote else "",
             "decision": (
                 "candidate" if quote and quote["expected_profit_per_dollar"] >= min_expected_profit
                 else "pass" if quote else "no_quote"
@@ -192,8 +235,11 @@ def walk_forward_backtest(
                 skipped_non_binary += 1
                 continue
             probability_a = model.probability(bout["fighter_a_id"], bout["fighter_b_id"])
-            probabilities.append(probability_a)
-            outcomes.append(int(bout["winner_fighter_id"] == bout["fighter_a_id"]))
+            # Some sources list the winner first after a fight. Evaluate against
+            # a stable ID order so row orientation cannot reveal the label.
+            first_id, second_id = sorted((bout["fighter_a_id"], bout["fighter_b_id"]))
+            probabilities.append(model.probability(first_id, second_id))
+            outcomes.append(int(bout["winner_fighter_id"] == first_id))
             if decision_time:
                 quote = best_quote(connection, bout, probability_a, decision_time, max_quote_age_hours)
                 if quote and quote["expected_profit_per_dollar"] >= min_expected_profit:

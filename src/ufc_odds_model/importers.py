@@ -118,8 +118,8 @@ def import_ufcstats_events(
             )
             current_bout_ids: set[str] = set()
             for bout in bouts:
-                fighter_a_id = f"ufcstats:{bout['fighter_a_source_id']}"
-                fighter_b_id = f"ufcstats:{bout['fighter_b_source_id']}"
+                fighter_a_id = db.resolve_fighter_id(connection, "ufcstats", bout["fighter_a_source_id"])
+                fighter_b_id = db.resolve_fighter_id(connection, "ufcstats", bout["fighter_b_source_id"])
                 bout_id = f"ufcstats:{bout['source_bout_id']}"
                 current_bout_ids.add(bout_id)
                 db.upsert_fighter(connection, fighter_a_id, bout["fighter_a_name"], "ufcstats", bout["fighter_a_source_id"])
@@ -131,7 +131,8 @@ def import_ufcstats_events(
                 )
                 if bout["outcome"]:
                     winner_id = (
-                        f"ufcstats:{bout['winner_source_id']}" if bout["winner_source_id"] else None
+                        db.resolve_fighter_id(connection, "ufcstats", bout["winner_source_id"])
+                        if bout["winner_source_id"] else None
                     )
                     db.upsert_result(
                         connection, bout_id, bout["outcome"], winner_id,

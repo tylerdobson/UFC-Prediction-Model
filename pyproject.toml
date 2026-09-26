@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ufc-odds-model"
-version = "0.1.0"
-description = "UFC moneyline data, Elo probabilities, and timestamped betting reports"
+version = "0.2.0"
+description = "UFC data ingestion, point-in-time probability evaluation, and paper trading"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []

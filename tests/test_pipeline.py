@@ -61,6 +61,17 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result["paper_bets"], 1)
         self.assertEqual(result["paper_profit_units"], 2.0)
 
+    def test_live_logistic_does_not_score_tiny_demo_history(self):
+        with self.assertRaisesRegex(ValueError, "need at least 100 earlier binary bouts"):
+            score_event(
+                self.connection, "demo-upcoming", self.now,
+                self.root / "reports", model_kind="logistic",
+                model_dir=self.root / "models",
+            )
+        self.assertEqual(
+            self.connection.execute("SELECT COUNT(*) FROM predictions").fetchone()[0], 0
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

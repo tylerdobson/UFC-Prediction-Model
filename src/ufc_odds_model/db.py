@@ -31,11 +31,20 @@ def init_db(connection: sqlite3.Connection) -> None:
     for migration in sorted(migration_dir.iterdir(), key=lambda item: item.name):
         if not migration.name.endswith(".sql") or migration.name in applied:
             continue
-        connection.executescript(migration.read_text(encoding="utf-8"))
-        connection.execute(
-            "INSERT INTO schema_migrations(version, applied_at_utc) VALUES (?, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))",
-            (migration.name,),
-        )
+        version = migration.name.replace("'", "''")
+        script = migration.read_text(encoding="utf-8")
+        # A migration and its receipt must commit together. Otherwise a crash
+        # after ALTER TABLE but before the receipt makes retry fail.
+        try:
+            connection.executescript(
+                "BEGIN IMMEDIATE;\n" + script + "\n"
+                "INSERT INTO schema_migrations(version, applied_at_utc) "
+                f"VALUES ('{version}', strftime('%Y-%m-%dT%H:%M:%SZ', 'now'));\n"
+                "COMMIT;"
+            )
+        except sqlite3.Error:
+            connection.rollback()
+            raise
     connection.commit()
 
 
@@ -51,11 +60,60 @@ def upsert_fighter(
         INSERT INTO fighters(fighter_id, canonical_name, source, source_fighter_id)
         VALUES (?, ?, ?, ?)
         ON CONFLICT(fighter_id) DO UPDATE SET
-            canonical_name = excluded.canonical_name,
-            source = COALESCE(excluded.source, fighters.source),
-            source_fighter_id = COALESCE(excluded.source_fighter_id, fighters.source_fighter_id)
+            canonical_name = CASE
+                WHEN fighters.source IS NULL OR fighters.source = excluded.source
+                THEN excluded.canonical_name ELSE fighters.canonical_name END,
+            source = COALESCE(fighters.source, excluded.source),
+            source_fighter_id = COALESCE(fighters.source_fighter_id, excluded.source_fighter_id)
         """,
         (fighter_id, name, source, source_fighter_id),
+    )
+
+
+def resolve_fighter_id(
+    connection: sqlite3.Connection, source: str, source_fighter_id: str
+) -> str:
+    """Resolve a reviewed alias, or use the source's own stable identity."""
+    if not source or not source_fighter_id:
+        raise ValueError("Source and source fighter ID are required")
+    alias = connection.execute(
+        "SELECT fighter_id FROM fighter_external_ids WHERE source = ? AND source_fighter_id = ?",
+        (source, source_fighter_id),
+    ).fetchone()
+    if alias:
+        return str(alias["fighter_id"])
+    original = connection.execute(
+        "SELECT fighter_id FROM fighters WHERE source = ? AND source_fighter_id = ?",
+        (source, source_fighter_id),
+    ).fetchone()
+    return str(original["fighter_id"]) if original else f"{source}:{source_fighter_id}"
+
+
+def link_external_fighter(
+    connection: sqlite3.Connection, source: str, source_fighter_id: str, fighter_id: str
+) -> None:
+    """Attach a verified provider identity before importing it under another ID."""
+    if not source or not source_fighter_id or not fighter_id:
+        raise ValueError("Source, source fighter ID, and canonical fighter ID are required")
+    target = connection.execute(
+        "SELECT fighter_id FROM fighters WHERE fighter_id = ?", (fighter_id,)
+    ).fetchone()
+    if target is None:
+        raise ValueError(f"Unknown canonical fighter: {fighter_id}")
+    original = connection.execute(
+        "SELECT fighter_id FROM fighters WHERE source = ? AND source_fighter_id = ?",
+        (source, source_fighter_id),
+    ).fetchone()
+    alias = connection.execute(
+        "SELECT fighter_id FROM fighter_external_ids WHERE source = ? AND source_fighter_id = ?",
+        (source, source_fighter_id),
+    ).fetchone()
+    for existing in (original, alias):
+        if existing and existing["fighter_id"] != fighter_id:
+            raise ValueError("Provider ID already belongs to another fighter; review duplicates first")
+    connection.execute(
+        "INSERT OR IGNORE INTO fighter_external_ids(source, source_fighter_id, fighter_id) VALUES (?, ?, ?)",
+        (source, source_fighter_id, fighter_id),
     )
 
 
@@ -68,18 +126,20 @@ def upsert_event(
     source: str | None = None,
     source_event_id: str | None = None,
     start_time_utc: str | None = None,
+    provider_status: str | None = None,
 ) -> None:
     connection.execute(
         """
-        INSERT INTO events(event_id, source, source_event_id, name, event_date, start_time_utc, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO events(event_id, source, source_event_id, name, event_date, start_time_utc, status, provider_status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(event_id) DO UPDATE SET
             name = excluded.name,
             event_date = excluded.event_date,
             start_time_utc = COALESCE(excluded.start_time_utc, events.start_time_utc),
-            status = excluded.status
+            status = excluded.status,
+            provider_status = COALESCE(excluded.provider_status, events.provider_status)
         """,
-        (event_id, source, source_event_id, name, event_date, start_time_utc, status),
+        (event_id, source, source_event_id, name, event_date, start_time_utc, status, provider_status),
     )
 
 
@@ -94,6 +154,7 @@ def upsert_bout(
     scheduled_rounds: int | None = None,
     source: str | None = None,
     source_bout_id: str | None = None,
+    provider_status: str | None = None,
 ) -> None:
     existing = connection.execute(
         "SELECT event_id, fighter_a_id, fighter_b_id FROM bouts WHERE bout_id = ?",
@@ -109,16 +170,17 @@ def upsert_bout(
         """
         INSERT INTO bouts(
             bout_id, event_id, source, source_bout_id, fighter_a_id, fighter_b_id,
-            weight_class, scheduled_rounds, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            weight_class, scheduled_rounds, status, provider_status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(bout_id) DO UPDATE SET
             weight_class = COALESCE(excluded.weight_class, bouts.weight_class),
             scheduled_rounds = COALESCE(excluded.scheduled_rounds, bouts.scheduled_rounds),
-            status = excluded.status
+            status = excluded.status,
+            provider_status = COALESCE(excluded.provider_status, bouts.provider_status)
         """,
         (
             bout_id, event_id, source, source_bout_id, fighter_a_id, fighter_b_id,
-            weight_class, scheduled_rounds, status,
+            weight_class, scheduled_rounds, status, provider_status,
         ),
     )
 
@@ -196,6 +258,7 @@ def event_bouts(connection: sqlite3.Connection, event_id: str) -> list[sqlite3.R
         JOIN fighters fa ON fa.fighter_id = b.fighter_a_id
         JOIN fighters fb ON fb.fighter_id = b.fighter_b_id
         WHERE b.event_id = ? AND b.status = 'scheduled'
+          AND (b.provider_status IS NULL OR b.provider_status IN ('scheduled', 'not_started'))
         ORDER BY b.bout_id
         """,
         (event_id,),

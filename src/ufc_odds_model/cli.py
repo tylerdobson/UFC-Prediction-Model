@@ -4,16 +4,21 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import sys
 from contextlib import closing
 
 from . import db
+from .alerts import gate_prefight_alerts
+from .audit import audit_database
 from .demo import seed_demo
-from .ingest import import_live_odds
+from .evaluation import evaluate_models
+from .ingest import import_historical_odds, import_live_odds
 from .importers import import_bouts_csv, import_ufcstats_events
 from .pipeline import parse_utc, score_event, utc_now
 from .pipeline import walk_forward_backtest
+from .paper import record_paper_candidates, settle_paper_bets
 from .wagers import record_bet, settle_bet
 
 
@@ -38,6 +43,8 @@ def make_parser() -> argparse.ArgumentParser:
                          help="Minimum estimated profit per $1 for candidate status")
     scoring.add_argument("--max-quote-age-hours", type=float, default=24.0)
     scoring.add_argument("--report-dir", default="reports")
+    scoring.add_argument("--model", choices=["elo", "logistic"], default="elo")
+    scoring.add_argument("--model-dir", default="models")
 
     backtest = subcommands.add_parser("backtest", help="Walk forward through past events")
     backtest.add_argument("--min-prior-results", type=int, default=0)
@@ -48,6 +55,63 @@ def make_parser() -> argparse.ArgumentParser:
     odds = subcommands.add_parser("import-odds", help="Fetch live MMA prices and match known UFC bouts")
     odds.add_argument("--regions", default="us")
     odds.add_argument("--raw-dir", default="data/raw/odds")
+
+    historical_odds = subcommands.add_parser(
+        "import-historical-odds", help="Fetch one paid historical MMA price snapshot"
+    )
+    historical_odds.add_argument("--as-of", required=True, help="Requested UTC ISO snapshot time")
+    historical_odds.add_argument("--regions", default="us")
+    historical_odds.add_argument("--raw-dir", default="data/raw/odds")
+
+    daily = subcommands.add_parser("import-sportradar", help="Import one UFC daily summary")
+    daily.add_argument("date", help="UTC event date, YYYY-MM-DD")
+    daily.add_argument("--access-level", choices=["trial", "production"], default="trial")
+    daily.add_argument("--raw-dir", default="data/raw/sportradar")
+
+    fighter_link = subcommands.add_parser(
+        "link-fighter", help="Link a reviewed provider fighter ID to an existing canonical ID"
+    )
+    fighter_link.add_argument("--source", required=True)
+    fighter_link.add_argument("--source-id", required=True)
+    fighter_link.add_argument("--fighter-id", required=True)
+
+    audit = subcommands.add_parser("audit", help="Check identities, results, quote times, and coverage")
+    audit.add_argument("--as-of", help="UTC ISO timestamp; defaults to now")
+    audit.add_argument("--decision-hours-before-event", type=float, default=24.0)
+    audit.add_argument("--max-quote-age-hours", type=float, default=24.0)
+
+    comparison = subcommands.add_parser(
+        "evaluate", help="Compare Elo, logistic, and available historical bookmaker prices"
+    )
+    comparison.add_argument("--decision-hours-before-event", type=float, default=24.0)
+    comparison.add_argument("--max-quote-age-hours", type=float, default=24.0)
+
+    paper = subcommands.add_parser("paper-trade", help="Score an upcoming event and log capped paper bets")
+    paper.add_argument("event_id")
+    paper.add_argument("--bankroll-units", type=float, required=True)
+    paper.add_argument("--max-fraction-per-bet", type=float, default=0.01)
+    paper.add_argument("--max-fraction-per-event", type=float, default=0.05)
+    paper.add_argument("--min-ev", type=float, default=0.03)
+    paper.add_argument("--max-quote-age-hours", type=float, default=24.0)
+    paper.add_argument("--report-dir", default="reports")
+    paper.add_argument("--model", choices=["elo", "logistic"], default="elo")
+    paper.add_argument("--model-dir", default="models")
+
+    paper_settlement = subcommands.add_parser("settle-paper", help="Settle binary paper bets for an event")
+    paper_settlement.add_argument("event_id")
+
+    alerts = subcommands.add_parser(
+        "alert-event", help="Refresh live odds and print local pre-fight alert candidates"
+    )
+    alerts.add_argument("event_id")
+    alerts.add_argument("--model", choices=["elo", "logistic"], default="elo")
+    alerts.add_argument("--regions", default="us")
+    alerts.add_argument("--raw-dir", default="data/raw/odds")
+    alerts.add_argument("--report-dir", default="reports")
+    alerts.add_argument("--model-dir", default="models")
+    alerts.add_argument("--max-age-seconds", type=float, default=60.0)
+    alerts.add_argument("--decimal-odds-drift", type=float, default=0.05)
+    alerts.add_argument("--min-ev", type=float, default=0.03)
 
     bet = subcommands.add_parser("record-bet", help="Record an actual manually placed wager")
     bet.add_argument("--prediction-id", type=int, required=True)
@@ -89,6 +153,7 @@ def main(argv: list[str] | None = None) -> int:
                 report, rows = score_event(
                     connection, args.event_id, as_of, args.report_dir,
                     args.min_ev, args.max_quote_age_hours,
+                    model_kind=args.model, model_dir=args.model_dir,
                 )
                 print(f"Wrote {len(rows)} bout predictions to {report}")
                 for row in rows:
@@ -108,6 +173,91 @@ def main(argv: list[str] | None = None) -> int:
                 api_key = os.environ.get("ODDS_API_KEY", "")
                 result = import_live_odds(connection, api_key, args.raw_dir, args.regions)
                 print(json.dumps(result, indent=2))
+            elif args.command == "import-historical-odds":
+                api_key = os.environ.get("ODDS_API_KEY", "")
+                result = import_historical_odds(connection, api_key, args.as_of, args.raw_dir, args.regions)
+                print(json.dumps(result, indent=2))
+            elif args.command == "import-sportradar":
+                from .sportradar import import_daily_summaries
+                api_key = os.environ.get("SPORTRADAR_API_KEY", "")
+                result = import_daily_summaries(
+                    connection, api_key, args.date, args.raw_dir, args.access_level
+                )
+                print(json.dumps(result, indent=2))
+            elif args.command == "link-fighter":
+                db.link_external_fighter(connection, args.source, args.source_id, args.fighter_id)
+                connection.commit()
+                print(f"Linked {args.source}:{args.source_id} to {args.fighter_id}")
+            elif args.command == "audit":
+                result = audit_database(
+                    connection,
+                    as_of=parse_utc(args.as_of) if args.as_of else utc_now(),
+                    decision_hours_before_event=args.decision_hours_before_event,
+                    max_quote_age_hours=args.max_quote_age_hours,
+                )
+                print(json.dumps(result, indent=2))
+            elif args.command == "evaluate":
+                result = evaluate_models(
+                    connection, args.decision_hours_before_event,
+                    args.max_quote_age_hours,
+                )
+                print(json.dumps(result, indent=2))
+            elif args.command == "paper-trade":
+                report, rows = score_event(
+                    connection, args.event_id, utc_now(), args.report_dir,
+                    args.min_ev, args.max_quote_age_hours,
+                    model_kind=args.model, model_dir=args.model_dir,
+                )
+                created = record_paper_candidates(
+                    connection, rows, args.bankroll_units,
+                    args.max_fraction_per_bet, args.max_fraction_per_event,
+                    max_quote_age_hours=args.max_quote_age_hours,
+                )
+                print(json.dumps({"report": str(report), "paper_bets_created": len(created),
+                                  "paper_bets": created}, indent=2))
+            elif args.command == "settle-paper":
+                result = settle_paper_bets(connection, args.event_id)
+                print(json.dumps(result, indent=2))
+            elif args.command == "alert-event":
+                if (not all(math.isfinite(value) for value in (
+                    args.max_age_seconds, args.decimal_odds_drift, args.min_ev
+                )) or args.max_age_seconds <= 0 or args.decimal_odds_drift < 0 or args.min_ev < 0):
+                    raise ValueError("Alert freshness and edge settings must be nonnegative, with positive age")
+                event = connection.execute(
+                    "SELECT start_time_utc, status, provider_status FROM events WHERE event_id = ?",
+                    (args.event_id,),
+                ).fetchone()
+                if event is None:
+                    raise ValueError(f"Unknown event: {args.event_id}")
+                if event["status"] != "scheduled" or event["provider_status"] not in (
+                    None, "scheduled", "not_started"
+                ):
+                    raise ValueError("Event is not available for pre-fight alerts")
+                if not event["start_time_utc"] or parse_utc(event["start_time_utc"]) <= utc_now():
+                    raise ValueError("A future known event start is required for pre-fight alerts")
+                odds_result = import_live_odds(
+                    connection, os.environ.get("ODDS_API_KEY", ""),
+                    args.raw_dir, args.regions,
+                )
+                _, rows = score_event(
+                    connection, args.event_id, utc_now(), args.report_dir,
+                    args.min_ev, args.max_age_seconds / 3600.0,
+                    model_kind=args.model, model_dir=args.model_dir,
+                )
+                checked = gate_prefight_alerts(
+                    rows, snapshot_at_utc=odds_result["snapshot_at_utc"],
+                    event_start_time_utc=event["start_time_utc"], now_utc=utc_now(),
+                    max_age_seconds=args.max_age_seconds,
+                    decimal_odds_drift=args.decimal_odds_drift,
+                    min_edge=args.min_ev,
+                )
+                candidates = [row for row in checked if row["alert_eligible"]]
+                print(json.dumps({
+                    "snapshot_at_utc": odds_result["snapshot_at_utc"],
+                    "matched_quotes": odds_result["matched_quotes"],
+                    "alert_candidates": len(candidates),
+                    "checks": checked,
+                }, indent=2))
             elif args.command == "record-bet":
                 bet_id = record_bet(
                     connection, args.prediction_id, args.quote_id,

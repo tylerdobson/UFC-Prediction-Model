@@ -15,6 +15,7 @@ from urllib.request import Request, urlopen
 
 
 _ODDS_URL = "https://api.the-odds-api.com/v4/sports/mma_mixed_martial_arts/odds"
+_HISTORICAL_URL = "https://api.the-odds-api.com/v4/historical/sports/mma_mixed_martial_arts/odds"
 
 
 def fetch_mma_h2h(api_key: str, regions: str = "us") -> list[dict]:
@@ -54,6 +55,50 @@ def fetch_mma_h2h(api_key: str, regions: str = "us") -> list[dict]:
 
     if not isinstance(payload, list) or not all(isinstance(event, dict) for event in payload):
         raise RuntimeError("The Odds API returned an unexpected events payload")
+    return payload
+
+
+def fetch_historical_mma_h2h(
+    api_key: str, as_of: datetime | str, regions: str = "us"
+) -> dict:
+    """Fetch the latest available historical snapshot at or before `as_of`.
+
+    Historical odds require a plan with The Odds API's historical access. The
+    response timestamp, rather than the requested timestamp, is used when
+    recording quotes.
+    """
+    if not isinstance(api_key, str) or not api_key.strip():
+        raise ValueError("The Odds API key is required")
+    if not isinstance(regions, str) or not regions.strip():
+        raise ValueError("At least one bookmaker region is required")
+    requested = _utc_timestamp(as_of)
+    if requested is None:
+        raise ValueError("as_of must be a timezone-aware ISO 8601 timestamp")
+    query = urlencode({
+        "apiKey": api_key.strip(), "regions": regions.strip(), "markets": "h2h",
+        "oddsFormat": "decimal", "dateFormat": "iso", "date": requested,
+    })
+    request = Request(f"{_HISTORICAL_URL}?{query}", headers={"Accept": "application/json"})
+    try:
+        with urlopen(request, timeout=15) as response:
+            payload = json.load(response)
+    except HTTPError as exc:
+        detail = _api_error_detail(exc, api_key.strip())
+        raise RuntimeError(f"The Odds API returned HTTP {exc.code}{detail}") from exc
+    except URLError as exc:
+        reason = str(exc.reason).replace(api_key.strip(), "[redacted]")
+        raise RuntimeError(f"Could not reach The Odds API: {reason}") from exc
+    except OSError as exc:
+        raise RuntimeError("Could not reach The Odds API") from exc
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError("The Odds API returned invalid JSON") from exc
+    if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
+        raise RuntimeError("The Odds API returned an unexpected historical payload")
+    snapshot = _utc_timestamp(payload.get("timestamp"))
+    if snapshot is None or snapshot > requested:
+        raise RuntimeError("The Odds API returned an invalid or future snapshot timestamp")
+    if not all(isinstance(event, dict) for event in payload["data"]):
+        raise RuntimeError("The Odds API returned invalid historical events")
     return payload
 
 

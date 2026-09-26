@@ -13,7 +13,7 @@ from urllib.parse import parse_qs, urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from ufc_odds_model.odds_api import fetch_mma_h2h, normalize_h2h
+from ufc_odds_model.odds_api import fetch_historical_mma_h2h, fetch_mma_h2h, normalize_h2h
 
 
 def _event():
@@ -95,6 +95,23 @@ class FetchMmaH2hTests(unittest.TestCase):
         urlopen.return_value = io.BytesIO(b'{"message": "failure"}')
         with self.assertRaisesRegex(RuntimeError, "unexpected events payload"):
             fetch_mma_h2h("test-key")
+
+    @patch("ufc_odds_model.odds_api.urlopen")
+    def test_historical_snapshot_uses_provider_timestamp(self, urlopen):
+        raw = {"timestamp": "2026-10-03T07:55:00Z", "data": [_event()]}
+        urlopen.return_value = io.BytesIO(json.dumps(raw).encode("utf-8"))
+        self.assertEqual(fetch_historical_mma_h2h("test-key", "2026-10-03T08:00:00Z"), raw)
+        query = parse_qs(urlparse(urlopen.call_args.args[0].full_url).query)
+        self.assertEqual(query["date"], ["2026-10-03T08:00:00Z"])
+        self.assertEqual(query["markets"], ["h2h"])
+        self.assertIn("/v4/historical/sports/mma_mixed_martial_arts/odds", urlopen.call_args.args[0].full_url)
+
+    @patch("ufc_odds_model.odds_api.urlopen")
+    def test_historical_future_snapshot_is_rejected(self, urlopen):
+        raw = {"timestamp": "2026-10-03T08:05:00Z", "data": []}
+        urlopen.return_value = io.BytesIO(json.dumps(raw).encode("utf-8"))
+        with self.assertRaisesRegex(RuntimeError, "future snapshot"):
+            fetch_historical_mma_h2h("test-key", "2026-10-03T08:00:00Z")
 
 
 class NormalizeH2hTests(unittest.TestCase):
