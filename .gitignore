@@ -3,7 +3,13 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .env
+.env.*
+!.env.example
 data/*.sqlite
+data/*.sqlite-*
 data/raw/
 models/
 reports/*.csv
+reports/*.json
+backups/
+.streamlit/secrets.toml

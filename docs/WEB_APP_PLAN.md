@@ -15,6 +15,8 @@ For a first portfolio or personal release, use **Streamlit** as a local, read-on
 
 The first release covers pre-fight decisions only. The [latency policy](LATENCY_POLICY.md) defines a fresh-price gate for local alerts and the evidence needed before any future in-play work.
 
+The local Streamlit prototype is now implemented in `app.py` with a read-only SQLite adapter. It has explicit demo, missing, stale, and rejected states, a saved evaluation view, and separate ledgers. See [DASHBOARD_RUNBOOK.md](DASHBOARD_RUNBOOK.md) to launch it. Real event validation and a durable rights-cleared fight-history source remain release gates.
+
 ## Data flow
 
 ```mermaid
@@ -37,7 +39,7 @@ flowchart LR
 1. Populate a checked UFC history. Choose one primary fight-data provider. Link a second provider's fighter IDs explicitly before mixing histories.
 2. Save historical odds snapshots at a fixed pre-event time, or collect live prices and paper-trade prospectively. Audit quote availability and freshness.
 3. Run `ufc-model evaluate` on chronological event-date splits. Review calibration and quote coverage before using the word “edge” in the UI.
-4. Add a Streamlit app that reads stored reports and audit results. Keep API keys and ingestion jobs on the server side.
+4. Exercise the implemented Streamlit app against checked real events and stored reports. Keep API keys and ingestion jobs on the server side.
 5. Only if the project needs shared accounts or unattended operations, add PostgreSQL, an API service, authentication, and a scheduled ingestion worker.
 
 ## Current limits

@@ -33,13 +33,29 @@ def _candidate_details(
     try:
         prediction_id = int(row["prediction_id"])
         quote_id = int(row["quote_id"])
+        gate_check_id = int(row["gate_check_id"])
         event_id = str(row["event_id"])
         bout_id = str(row["bout_id"])
         as_of_utc = str(row["as_of_utc"])
     except (KeyError, TypeError, ValueError) as exc:
-        raise ValueError("Candidate needs event, bout, prediction, quote, and cutoff IDs") from exc
-    if prediction_id <= 0 or quote_id <= 0 or not event_id or not bout_id:
+        raise ValueError("Candidate needs an accepted gate, event, bout, prediction, quote, and cutoff IDs") from exc
+    if prediction_id <= 0 or quote_id <= 0 or gate_check_id <= 0 or not event_id or not bout_id:
         raise ValueError("Candidate IDs must be populated and positive")
+    gate = connection.execute(
+        "SELECT * FROM prefight_gate_checks WHERE gate_check_id = ?", (gate_check_id,)
+    ).fetchone()
+    if (gate is None or gate["gate_decision"] != "alert_candidate" or gate["gate_reason"] != "ok"
+            or gate["prediction_id"] != prediction_id or gate["quote_id"] != quote_id
+            or gate["event_id"] != event_id or gate["bout_id"] != bout_id):
+        raise ValueError("Paper candidate needs a matching accepted pre-fight gate check")
+    checked_at = parse_utc(gate["checked_at_utc"])
+    if checked_at > recorded_time or (recorded_time - checked_at).total_seconds() > gate["max_age_seconds"]:
+        raise ValueError("The accepted pre-fight gate check is too old for paper recording")
+    latest_import = connection.execute(
+        "SELECT MAX(run_id) FROM ingestion_runs WHERE source = 'the-odds-api'"
+    ).fetchone()[0]
+    if latest_import != gate["ingestion_run_id"]:
+        raise ValueError("A newer live odds import superseded this gate check")
     decision_time = parse_utc(as_of_utc)
     match = connection.execute(
         """
@@ -60,6 +76,21 @@ def _candidate_details(
     ).fetchone()
     if match is None or match["bout_id"] != bout_id or match["event_id"] != event_id:
         raise ValueError("Candidate prediction and quote must match the event and bout")
+    if (gate["model_cutoff_at_utc"] != match["feature_cutoff_at_utc"]
+            or gate["event_start_time_utc"] != match["start_time_utc"]
+            or gate["bookmaker"] != match["bookmaker"]
+            or gate["quote_captured_at_utc"] != match["captured_at_utc"]
+            or gate["bookmaker_updated_at_utc"] != match["bookmaker_updated_at_utc"]
+            or not math.isclose(gate["quoted_decimal_odds"], match["decimal_odds"], rel_tol=1e-12)):
+        raise ValueError("The gate check no longer matches the saved prediction and quote")
+    newer_quote = connection.execute(
+        """SELECT 1 FROM odds_quotes WHERE bout_id = ? AND bookmaker = ?
+           AND selection_fighter_id = ? AND captured_at_utc > ? LIMIT 1""",
+        (bout_id, match["bookmaker"], match["selection_fighter_id"],
+         match["captured_at_utc"]),
+    ).fetchone()
+    if newer_quote is not None:
+        raise ValueError("A newer quote superseded the checked paper price")
     if match["event_status"] != "scheduled" or match["bout_status"] != "scheduled":
         raise ValueError("New paper decisions require a scheduled event and bout")
     if match["event_provider_status"] not in (None, "scheduled", "not_started"):
@@ -106,7 +137,15 @@ def _candidate_details(
     edge = probability * float(match["decimal_odds"]) - 1.0
     if not math.isfinite(edge) or edge <= 0:
         raise ValueError("A paper candidate needs positive expected value at the saved price")
+    stressed_edge = probability * (float(match["decimal_odds"]) - gate["decimal_odds_drift"]) - 1.0
+    if (not math.isclose(probability, gate["model_probability"], rel_tol=1e-12, abs_tol=1e-12)
+            or gate["conservative_expected_profit_per_dollar"] is None
+            or stressed_edge + 1e-12 < gate["min_edge"]
+            or not math.isclose(stressed_edge, gate["conservative_expected_profit_per_dollar"],
+                                rel_tol=0, abs_tol=0.00005001)):
+        raise ValueError("The saved gate probability or stressed edge is invalid")
     return {
+        "gate_check_id": gate_check_id,
         "prediction_id": prediction_id,
         "quote_id": quote_id,
         "event_id": event_id,
@@ -118,6 +157,7 @@ def _candidate_details(
         "quoted_decimal_odds": float(match["decimal_odds"]),
         "model_probability": probability,
         "expected_profit_per_unit": edge,
+        "conservative_expected_profit_per_unit": gate["conservative_expected_profit_per_dollar"],
     }
 
 
@@ -130,7 +170,7 @@ def record_paper_candidates(
     max_report_age_minutes: float = 15.0,
     max_quote_age_hours: float = 24.0,
 ) -> list[dict]:
-    """Record positive-edge report candidates with per-bet and per-event caps.
+    """Record accepted pre-fight gate candidates with per-bet and event caps.
 
     Existing decisions count toward the event cap. Repeating an identical report
     creates no new rows. Candidates with the largest saved edge receive the
@@ -147,7 +187,11 @@ def record_paper_candidates(
     if not math.isfinite(bet_cap) or not math.isfinite(event_cap):
         raise ValueError("Stake caps must be finite")
 
-    candidates = [row for row in report_rows if row.get("decision") == "candidate"]
+    if any(row.get("decision") == "candidate" and "alert_eligible" not in row
+           for row in report_rows):
+        raise ValueError("Paper candidates require a stored pre-fight gate check")
+    candidates = [row for row in report_rows
+                  if row.get("decision") == "candidate" and row.get("alert_eligible")]
     if not candidates:
         return []
     event_ids = {str(row.get("event_id")) for row in candidates}
@@ -190,7 +234,7 @@ def record_paper_candidates(
         details.append(_candidate_details(
             connection, row, recorded_time, report_age, quote_age
         ))
-    details.sort(key=lambda item: (-item["expected_profit_per_unit"], item["event_id"], item["bout_id"]))
+    details.sort(key=lambda item: (-item["conservative_expected_profit_per_unit"], item["event_id"], item["bout_id"]))
     if not details:
         return []
 
@@ -217,15 +261,16 @@ def record_paper_candidates(
                     prediction_id, quote_id, event_id, bout_id, selection_fighter_id,
                     bookmaker, decision_at_utc, recorded_at_utc, quote_captured_at_utc,
                     quoted_decimal_odds, model_probability, expected_profit_per_unit,
-                    bankroll_units, per_bet_cap_units, event_cap_units, stake_units
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    bankroll_units, per_bet_cap_units, event_cap_units, stake_units,
+                    gate_check_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     item["prediction_id"], item["quote_id"], item["event_id"], item["bout_id"],
                     item["selection_fighter_id"], item["bookmaker"], item["decision_at_utc"],
                     recorded_at, item["quote_captured_at_utc"], item["quoted_decimal_odds"],
                     item["model_probability"], item["expected_profit_per_unit"],
-                    bankroll, bet_cap, event_cap, stake,
+                    bankroll, bet_cap, event_cap, stake, item["gate_check_id"],
                 ),
             )
             used[item["event_id"]] += stake

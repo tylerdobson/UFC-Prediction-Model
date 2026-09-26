@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import csv
-import hashlib
+import io
 import json
 import sqlite3
 from datetime import date
@@ -11,6 +11,7 @@ from pathlib import Path
 
 from . import db, ufcstats
 from .pipeline import utc_now, utc_string
+from .raw_snapshots import retain_snapshot
 
 
 REQUIRED_CSV_COLUMNS = {
@@ -20,10 +21,25 @@ REQUIRED_CSV_COLUMNS = {
 }
 
 
-def import_bouts_csv(connection: sqlite3.Connection, path: str | Path) -> int:
-    """Load a normalized database from a simple one-row-per-bout exchange file."""
+def _csv_cell(row: dict[str, str | None], field: str) -> str:
+    value = row.get(field)
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _retain_csv_snapshot(payload: bytes, snapshot_dir: str | Path) -> tuple[Path, str]:
+    """Keep one exact, content-addressed copy without replacing prior evidence."""
+    return retain_snapshot(payload, snapshot_dir, suffix=".csv", kind="CSV")
+
+
+def import_bouts_csv(
+    connection: sqlite3.Connection,
+    path: str | Path,
+    snapshot_dir: str | Path = "data/raw/manual",
+) -> int:
+    """Import reviewed bouts and retain the exact CSV with an atomic DB receipt."""
     source_path = Path(path)
-    with source_path.open(newline="", encoding="utf-8-sig") as stream:
+    raw_bytes = source_path.read_bytes()
+    with io.StringIO(raw_bytes.decode("utf-8-sig"), newline="") as stream:
         reader = csv.DictReader(stream)
         missing = REQUIRED_CSV_COLUMNS - set(reader.fieldnames or [])
         if missing:
@@ -33,11 +49,11 @@ def import_bouts_csv(connection: sqlite3.Connection, path: str | Path) -> int:
         raise ValueError("CSV contains no bouts")
     for line, row in enumerate(rows, start=2):
         try:
-            date.fromisoformat(row["event_date"])
+            date.fromisoformat(_csv_cell(row, "event_date"))
         except ValueError as exc:
             raise ValueError(f"Line {line}: event_date must be YYYY-MM-DD") from exc
         for field in REQUIRED_CSV_COLUMNS - {"outcome", "winner_fighter_id"}:
-            if not row[field].strip():
+            if not _csv_cell(row, field):
                 raise ValueError(f"Line {line}: {field} is required")
         if row["fighter_a_id"] == row["fighter_b_id"]:
             raise ValueError(f"Line {line}: fighter IDs must differ")
@@ -45,8 +61,8 @@ def import_bouts_csv(connection: sqlite3.Connection, path: str | Path) -> int:
             raise ValueError(f"Line {line}: invalid event_status")
         if row["bout_status"] not in {"scheduled", "completed", "cancelled"}:
             raise ValueError(f"Line {line}: invalid bout_status")
-        outcome = row["outcome"].strip()
-        winner = row["winner_fighter_id"].strip()
+        outcome = _csv_cell(row, "outcome")
+        winner = _csv_cell(row, "winner_fighter_id")
         if row["bout_status"] == "completed":
             if outcome not in {"win", "draw", "no_contest"}:
                 raise ValueError(f"Line {line}: completed bout needs a valid outcome")
@@ -57,6 +73,7 @@ def import_bouts_csv(connection: sqlite3.Connection, path: str | Path) -> int:
         elif outcome or winner:
             raise ValueError(f"Line {line}: scheduled/cancelled bouts cannot have results")
 
+    imported_at = utc_string(utc_now())
     with connection:
         for row in rows:
             db.upsert_fighter(connection, row["fighter_a_id"], row["fighter_a_name"].strip())
@@ -64,20 +81,34 @@ def import_bouts_csv(connection: sqlite3.Connection, path: str | Path) -> int:
             db.upsert_event(
                 connection, row["event_id"], row["event_name"], row["event_date"],
                 row["event_status"], source="manual", source_event_id=row["event_id"],
-                start_time_utc=row.get("start_time_utc", "").strip() or None,
+                start_time_utc=_csv_cell(row, "start_time_utc") or None,
             )
             db.upsert_bout(
                 connection, row["bout_id"], row["event_id"],
                 row["fighter_a_id"], row["fighter_b_id"], row["bout_status"],
-                weight_class=row.get("weight_class", "").strip() or None,
+                weight_class=_csv_cell(row, "weight_class") or None,
                 source="manual", source_bout_id=row["bout_id"],
             )
             if row["bout_status"] == "completed":
-                db.upsert_result(
-                    connection, row["bout_id"], row["outcome"],
-                    row["winner_fighter_id"].strip() or None,
-                    utc_string(utc_now()), row.get("method", "").strip() or None,
-                )
+                outcome = _csv_cell(row, "outcome")
+                winner = _csv_cell(row, "winner_fighter_id") or None
+                method = _csv_cell(row, "method") or None
+                existing = connection.execute(
+                    "SELECT outcome, winner_fighter_id, method FROM results WHERE bout_id = ?",
+                    (row["bout_id"],),
+                ).fetchone()
+                if existing is None or (existing["outcome"], existing["winner_fighter_id"], existing["method"]) != (
+                    outcome, winner, method
+                ):
+                    db.upsert_result(
+                        connection, row["bout_id"], outcome, winner, imported_at, method,
+                    )
+        snapshot_path, digest = _retain_csv_snapshot(raw_bytes, snapshot_dir)
+        connection.execute(
+            "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+            "VALUES (?, ?, ?, ?)",
+            ("manual-csv", imported_at, str(snapshot_path), digest),
+        )
     return len(rows)
 
 
@@ -98,18 +129,14 @@ def import_ufcstats_events(
     )
     imported_bouts = 0
     imported_events = 0
-    directory = Path(raw_dir)
-    directory.mkdir(parents=True, exist_ok=True)
     for event in listing[:limit]:
         bouts = ufcstats.fetch_event_bouts(event["source_event_url"])
         if not bouts:
             continue
         snapshot = {"event": event, "bouts": bouts}
         raw_bytes = json.dumps(snapshot, indent=2, ensure_ascii=False).encode("utf-8")
-        digest = hashlib.sha256(raw_bytes).hexdigest()
         captured = utc_string(utc_now())
-        path = directory / f"{event['source_event_id']}_{digest[:8]}.json"
-        path.write_bytes(raw_bytes)
+        path, digest = retain_snapshot(raw_bytes, raw_dir, kind="UFCStats")
         event_id = f"ufcstats:{event['source_event_id']}"
         with connection:
             db.upsert_event(

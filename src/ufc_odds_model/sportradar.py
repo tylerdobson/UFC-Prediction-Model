@@ -7,7 +7,6 @@ response is retained so identity, status, and result decisions can be audited.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import sqlite3
 from datetime import date, datetime, timezone
@@ -17,6 +16,7 @@ from urllib.request import Request, urlopen
 
 from . import db
 from .pipeline import utc_now, utc_string
+from .raw_snapshots import retain_snapshot
 
 
 SOURCE = "sportradar"
@@ -236,11 +236,7 @@ def import_daily_summaries(
     payload = fetch_daily_summaries(api_key, day_text, access_level=access_level)
     fetched_at = utc_string(utc_now())
     raw_bytes = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
-    digest = hashlib.sha256(raw_bytes).hexdigest()
-    destination = Path(raw_dir)
-    destination.mkdir(parents=True, exist_ok=True)
-    path = destination / f"{day_text}_{digest[:12]}.json"
-    path.write_bytes(raw_bytes)
+    path, digest = retain_snapshot(raw_bytes, raw_dir)
     events = normalize_daily_summaries(payload)
     imported_bouts = imported_results = non_scoreable_bouts = skipped_incomplete = 0
     with connection:

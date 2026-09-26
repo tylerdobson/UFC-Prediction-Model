@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import io
 import json
+import os
 import sqlite3
 import tempfile
 import unittest
@@ -113,16 +115,65 @@ class SportradarTests(unittest.TestCase):
             first = sportradar.import_daily_summaries(
                 self.connection, "test-key", "2026-10-10", raw_dir=directory
             )
-            sportradar.import_daily_summaries(
+            raw_path = Path(first["raw_path"])
+            raw_bytes = raw_path.read_bytes()
+            self.assertEqual(raw_path.name, f"{hashlib.sha256(raw_bytes).hexdigest()}.json")
+            os.utime(raw_path, ns=(1_000_000_000, 1_000_000_000))
+            retained_mtime = raw_path.stat().st_mtime_ns
+            second = sportradar.import_daily_summaries(
                 self.connection, "test-key", "2026-10-10", raw_dir=directory
             )
             self.assertEqual(first["results"], 1)
-            self.assertEqual(json.loads(Path(first["raw_path"]).read_text())["summaries"], payload["summaries"])
+            self.assertEqual(second["raw_path"], first["raw_path"])
+            self.assertEqual(raw_path.stat().st_mtime_ns, retained_mtime)
+            self.assertEqual(json.loads(raw_bytes)["summaries"], payload["summaries"])
         for table in ("events", "bouts", "results"):
             self.assertEqual(self.connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0], 1)
         result = self.connection.execute("SELECT outcome, winner_fighter_id FROM results").fetchone()
         self.assertEqual((result["outcome"], result["winner_fighter_id"]),
                          ("win", "sportradar:sr:competitor:1"))
+
+    def test_tampered_raw_snapshot_refuses_replay_without_new_receipt(self) -> None:
+        payload = {"summaries": [summary(100)]}
+        with tempfile.TemporaryDirectory() as directory, patch.object(
+            sportradar, "fetch_daily_summaries", return_value=payload
+        ):
+            imported = sportradar.import_daily_summaries(
+                self.connection, "test-key", "2026-10-10", raw_dir=directory
+            )
+            raw_path = Path(imported["raw_path"])
+            raw_path.write_bytes(b"tampered")
+            before = self.connection.execute(
+                "SELECT COUNT(*) FROM ingestion_runs WHERE source = ?", (sportradar.SOURCE,)
+            ).fetchone()[0]
+            with self.assertRaises(ValueError):
+                sportradar.import_daily_summaries(
+                    self.connection, "test-key", "2026-10-10", raw_dir=directory
+                )
+            self.assertEqual(raw_path.read_bytes(), b"tampered")
+            self.assertEqual(self.connection.execute(
+                "SELECT COUNT(*) FROM ingestion_runs WHERE source = ?", (sportradar.SOURCE,)
+            ).fetchone()[0], before)
+
+    def test_symlink_raw_snapshot_refuses_replay(self) -> None:
+        payload = {"summaries": [summary(100)]}
+        with tempfile.TemporaryDirectory() as directory, patch.object(
+            sportradar, "fetch_daily_summaries", return_value=payload
+        ):
+            imported = sportradar.import_daily_summaries(
+                self.connection, "test-key", "2026-10-10", raw_dir=directory
+            )
+            raw_path = Path(imported["raw_path"])
+            original = raw_path.read_bytes()
+            raw_path.unlink()
+            alternate = Path(directory) / "alternate.json"
+            alternate.write_bytes(original)
+            raw_path.symlink_to(alternate)
+            with self.assertRaises(ValueError):
+                sportradar.import_daily_summaries(
+                    self.connection, "test-key", "2026-10-10", raw_dir=directory
+                )
+            self.assertEqual(alternate.read_bytes(), original)
 
     def test_reviewed_external_id_reuses_existing_fighter_history(self) -> None:
         db.upsert_fighter(self.connection, "ufcstats:alice", "Alice Alpha", "ufcstats", "alice")

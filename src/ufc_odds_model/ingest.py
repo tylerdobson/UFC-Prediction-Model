@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import sqlite3
@@ -12,6 +11,7 @@ from pathlib import Path
 
 from . import db, odds_api
 from .pipeline import parse_utc, utc_now, utc_string
+from .raw_snapshots import retain_snapshot
 
 
 def _name_key(value: str) -> str:
@@ -73,14 +73,11 @@ def import_odds_payload(
     captured_at = utc_string(parse_utc(captured_at))
     fetched_at = utc_string(utc_now())
     raw_bytes = json.dumps(payload, indent=2, ensure_ascii=False).encode("utf-8")
-    digest = hashlib.sha256(raw_bytes).hexdigest()
-    destination = Path(raw_dir)
-    destination.mkdir(parents=True, exist_ok=True)
-    path = destination / f"{captured_at.replace(':', '')}_{digest[:8]}.json"
-    path.write_bytes(raw_bytes)
-    connection.execute(
-        "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) VALUES (?, ?, ?, ?)",
-        (source, fetched_at, str(path), digest),
+    path, digest = retain_snapshot(raw_bytes, raw_dir, kind="odds")
+    receipt = connection.execute(
+        "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256, snapshot_at_utc) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (source, fetched_at, str(path), digest, captured_at),
     )
 
     known_bouts = connection.execute(
@@ -132,6 +129,7 @@ def import_odds_payload(
         matched_quotes += 1
     connection.commit()
     return {
+        "ingestion_run_id": int(receipt.lastrowid),
         "matched_quotes": matched_quotes,
         "unmatched_quotes": unmatched_quotes,
         "future_timestamp_quotes": future_timestamp_quotes,

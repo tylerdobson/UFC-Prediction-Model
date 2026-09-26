@@ -9,7 +9,10 @@ and execution design.
 from __future__ import annotations
 
 import math
+import hashlib
+import sqlite3
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Iterable, Mapping
 
 
@@ -134,3 +137,179 @@ def gate_prefight_alerts(
         result["alert_reason"] = reason
         checked.append(result)
     return checked
+
+
+def record_prefight_checks(
+    connection: sqlite3.Connection,
+    rows: Iterable[Mapping[str, object]],
+    *,
+    ingestion_run_id: int,
+    max_age_seconds: float = 60,
+    decimal_odds_drift: float = 0.05,
+    min_edge: float = 0.03,
+) -> list[dict[str, object]]:
+    """Evaluate and store immutable checks against a real live-odds receipt.
+
+    Scored rows are checked against saved predictions and quotes before they
+    enter the gate. The receipt identifies the exact source file and snapshot;
+    a caller cannot mark a raw score row eligible by adding a boolean field.
+    """
+    edge_floor = _finite_number(min_edge)
+    if edge_floor is None or edge_floor < 0:
+        raise ValueError("min_edge must be a nonnegative finite number")
+    receipt = connection.execute(
+        "SELECT * FROM ingestion_runs WHERE run_id = ?", (ingestion_run_id,)
+    ).fetchone()
+    if receipt is None or receipt["source"] != "the-odds-api" or not receipt["snapshot_at_utc"]:
+        raise ValueError("A live odds ingestion receipt with a snapshot time is required")
+    latest = connection.execute(
+        "SELECT MAX(run_id) FROM ingestion_runs WHERE source = 'the-odds-api'"
+    ).fetchone()[0]
+    if latest != ingestion_run_id:
+        raise ValueError("A newer live odds import superseded this snapshot")
+    path = Path(receipt["payload_path"])
+    try:
+        actual_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError as exc:
+        raise ValueError("The live odds source snapshot is missing or unreadable") from exc
+    if actual_hash != receipt["sha256"]:
+        raise ValueError("The live odds source snapshot is missing or changed")
+
+    snapshot = _utc(receipt["snapshot_at_utc"])
+    fetched = _utc(receipt["fetched_at_utc"])
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    if snapshot is None or fetched is None or not snapshot <= fetched <= now:
+        raise ValueError("The live odds receipt has invalid timestamp order")
+
+    source_rows = list(rows)
+    if not source_rows:
+        return []
+    event_ids = {str(row.get("event_id") or "") for row in source_rows}
+    if len(event_ids) != 1 or "" in event_ids:
+        raise ValueError("One known event is required per gate run")
+    event_id = next(iter(event_ids))
+    event = connection.execute(
+        "SELECT start_time_utc, status, provider_status FROM events WHERE event_id = ?",
+        (event_id,),
+    ).fetchone()
+    if event is None or event["status"] != "scheduled" or event["provider_status"] not in (
+        None, "scheduled", "not_started"
+    ):
+        raise ValueError("A scheduled event is required for a pre-fight gate run")
+    if not event["start_time_utc"]:
+        raise ValueError("A known event start is required for a pre-fight gate run")
+
+    for row in source_rows:
+        _verify_saved_score(connection, row, edge_floor)
+    checked = gate_prefight_alerts(
+        source_rows,
+        snapshot_at_utc=receipt["snapshot_at_utc"],
+        event_start_time_utc=event["start_time_utc"],
+        now_utc=now,
+        max_age_seconds=max_age_seconds,
+        decimal_odds_drift=decimal_odds_drift,
+        min_edge=min_edge,
+    )
+    checked_at = now.isoformat().replace("+00:00", "Z")
+    connection.execute("SAVEPOINT record_prefight_checks")
+    try:
+        for row in checked:
+            def optional_number(key: str) -> float | None:
+                return _finite_number(row.get(key))
+
+            quote_id = int(row["quote_id"]) if row.get("quote_id") else None
+            cursor = connection.execute(
+                """
+                INSERT INTO prefight_gate_checks(
+                    ingestion_run_id, event_id, bout_id, prediction_id, quote_id,
+                    snapshot_at_utc, checked_at_utc, event_start_time_utc,
+                    model_version, model_cutoff_at_utc, bookmaker,
+                    bookmaker_updated_at_utc, quote_captured_at_utc,
+                    quoted_decimal_odds, model_probability, model_decision,
+                    gate_decision, gate_reason, max_age_seconds,
+                    decimal_odds_drift, min_edge, conservative_decimal_odds,
+                    conservative_expected_profit_per_dollar
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    ingestion_run_id, event_id, row["bout_id"], int(row["prediction_id"]),
+                    quote_id, receipt["snapshot_at_utc"], checked_at,
+                    event["start_time_utc"], row["model_version"], row["as_of_utc"],
+                    row.get("bookmaker") or None,
+                    row.get("bookmaker_updated_at_utc") or None,
+                    row.get("quote_captured_at_utc") or None,
+                    optional_number("decimal_odds"), optional_number("model_selection_probability"),
+                    row["decision"], row["alert_decision"], row["alert_reason"],
+                    max_age_seconds, decimal_odds_drift, min_edge,
+                    row["conservative_decimal_odds"],
+                    row["conservative_expected_profit_per_dollar"],
+                ),
+            )
+            row["gate_check_id"] = int(cursor.lastrowid)
+            row["alert_checked_at_utc"] = checked_at
+            row["snapshot_at_utc"] = receipt["snapshot_at_utc"]
+        connection.execute("RELEASE SAVEPOINT record_prefight_checks")
+    except Exception:
+        connection.execute("ROLLBACK TO SAVEPOINT record_prefight_checks")
+        connection.execute("RELEASE SAVEPOINT record_prefight_checks")
+        raise
+    connection.commit()
+    return checked
+
+
+def _verify_saved_score(
+    connection: sqlite3.Connection, row: Mapping[str, object], min_edge: float
+) -> None:
+    try:
+        prediction_id = int(row["prediction_id"])
+        bout_id = str(row["bout_id"])
+        event_id = str(row["event_id"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("A scored row needs saved event, bout, and prediction IDs") from exc
+    saved = connection.execute(
+        """
+        SELECT p.bout_id, p.feature_cutoff_at_utc, p.model_version, p.p_fighter_a,
+               b.event_id, b.fighter_a_id, b.fighter_b_id, b.status AS bout_status,
+               b.provider_status AS bout_provider_status
+        FROM predictions p JOIN bouts b ON b.bout_id = p.bout_id
+        WHERE p.prediction_id = ?
+        """,
+        (prediction_id,),
+    ).fetchone()
+    if (saved is None or saved["bout_id"] != bout_id or saved["event_id"] != event_id
+            or saved["bout_status"] != "scheduled" or saved["bout_provider_status"] not in (
+                None, "scheduled", "not_started"
+            )):
+        raise ValueError("The scored prediction does not match a scheduled bout")
+    if row.get("as_of_utc") != saved["feature_cutoff_at_utc"] or row.get("model_version") != saved["model_version"]:
+        raise ValueError("The scored model version or cutoff differs from the saved prediction")
+    quote_id = row.get("quote_id")
+    if not quote_id:
+        if row.get("decision") != "no_quote":
+            raise ValueError("A scored candidate needs a saved quote")
+        return
+    try:
+        quote_id = int(quote_id)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("The scored quote ID is invalid") from exc
+    quote = connection.execute("SELECT * FROM odds_quotes WHERE quote_id = ?", (quote_id,)).fetchone()
+    if quote is None or quote["bout_id"] != bout_id or quote["market"] != "h2h":
+        raise ValueError("The scored quote does not match the saved bout")
+    if quote["selection_fighter_id"] == saved["fighter_a_id"]:
+        probability = float(saved["p_fighter_a"])
+    elif quote["selection_fighter_id"] == saved["fighter_b_id"]:
+        probability = 1.0 - float(saved["p_fighter_a"])
+    else:
+        raise ValueError("The scored quote selection is not in the bout")
+    price = _finite_number(row.get("decimal_odds"))
+    scored_probability = _finite_number(row.get("model_selection_probability"))
+    if (row.get("bookmaker") != quote["bookmaker"]
+            or row.get("quote_captured_at_utc") != quote["captured_at_utc"]
+            or (row.get("bookmaker_updated_at_utc") or None) != quote["bookmaker_updated_at_utc"]
+            or price is None or not math.isclose(price, quote["decimal_odds"], rel_tol=1e-12)
+            or scored_probability is None
+            or not math.isclose(scored_probability, probability, rel_tol=1e-12, abs_tol=1e-12)):
+        raise ValueError("The scored probability, price, or quote times differ from saved evidence")
+    expected_decision = "candidate" if probability * price - 1 >= min_edge else "pass"
+    if row.get("decision") != expected_decision:
+        raise ValueError("The scored model decision differs from saved evidence")

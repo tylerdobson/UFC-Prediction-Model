@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import hashlib
 import tempfile
 import unittest
 from datetime import timedelta
@@ -10,24 +11,21 @@ from pathlib import Path
 from unittest.mock import patch
 
 from ufc_odds_model import db
+from ufc_odds_model.alerts import record_prefight_checks
 from ufc_odds_model.paper import record_paper_candidates, settle_paper_bets
-from ufc_odds_model.pipeline import utc_now, utc_string
+from ufc_odds_model.pipeline import parse_utc, utc_now, utc_string
 
 
 class PaperLedgerTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
         self.now = utc_now()
-        self.cutoff = utc_string(self.now - timedelta(minutes=5))
-        self.quote_time = utc_string(self.now - timedelta(hours=1))
+        self.cutoff = utc_string(self.now - timedelta(seconds=3))
+        self.quote_time = utc_string(self.now - timedelta(seconds=7))
+        self.book_time = utc_string(self.now - timedelta(seconds=8))
         self.event_start = utc_string(self.now + timedelta(days=7))
         self.event_date = (self.now + timedelta(days=7)).date().isoformat()
         self.result_time = utc_string(self.now + timedelta(days=7, hours=3))
-        self.paper_clock = patch(
-            "ufc_odds_model.paper.utc_now",
-            return_value=self.now,
-        )
-        self.paper_clock.start()
         self.connection = db.connect(Path(self.temp.name) / "paper.sqlite")
         db.init_db(self.connection)
         self.event_id = "event-1"
@@ -46,7 +44,7 @@ class PaperLedgerTests(unittest.TestCase):
             price = 2.30 - index * 0.05
             db.add_quote(
                 self.connection, bout_id, "fixture-book", fighter_a, price,
-                self.quote_time, "fixture",
+                self.quote_time, "fixture", self.book_time,
             )
             quote_id = self.connection.execute(
                 "SELECT quote_id FROM odds_quotes WHERE bout_id = ?", (bout_id,)
@@ -58,16 +56,40 @@ class PaperLedgerTests(unittest.TestCase):
             self.report_rows.append({
                 "decision": "candidate", "event_id": self.event_id, "bout_id": bout_id,
                 "prediction_id": prediction_id, "quote_id": quote_id,
+                "model_version": "fixture-v1", "bookmaker": "fixture-book",
                 "as_of_utc": self.cutoff,
                 "quote_captured_at_utc": self.quote_time,
+                "bookmaker_updated_at_utc": self.book_time,
+                "model_selection_probability": 0.6,
                 "decimal_odds": price,
             })
+        raw = Path(self.temp.name) / "odds.json"
+        raw.write_text("[]", encoding="utf-8")
+        self.receipt_id = self.connection.execute(
+            "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256, snapshot_at_utc) "
+            "VALUES (?, ?, ?, ?, ?)",
+            ("the-odds-api", self.quote_time, str(raw), hashlib.sha256(b"[]").hexdigest(),
+             self.quote_time),
+        ).lastrowid
         self.connection.commit()
+        self.report_rows = record_prefight_checks(
+            self.connection, self.report_rows, ingestion_run_id=self.receipt_id,
+        )
+        self.now = parse_utc(self.report_rows[0]["alert_checked_at_utc"])
+        self.paper_clock = patch("ufc_odds_model.paper.utc_now", return_value=self.now)
+        self.paper_clock.start()
 
     def tearDown(self) -> None:
         self.connection.close()
         self.paper_clock.stop()
         self.temp.cleanup()
+
+    def _receipt(self, snapshot_at_utc: str) -> int:
+        return int(self.connection.execute(
+            "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256, snapshot_at_utc) "
+            "SELECT source, ?, payload_path, sha256, ? FROM ingestion_runs WHERE run_id = ?",
+            (snapshot_at_utc, snapshot_at_utc, self.receipt_id),
+        ).lastrowid)
 
     def test_caps_across_calls_and_idempotent_report(self):
         first = record_paper_candidates(
@@ -122,6 +144,29 @@ class PaperLedgerTests(unittest.TestCase):
             "won": 0, "lost": 0, "pending_review": 0, "open": 0,
         })
 
+    def test_saved_paper_decision_cannot_be_changed_or_deleted(self):
+        record_paper_candidates(self.connection, self.report_rows[:1], 1000)
+        paper_bet_id = self.connection.execute(
+            "SELECT paper_bet_id FROM paper_bets"
+        ).fetchone()[0]
+        for column, value in (
+            ("stake_units", 500),
+            ("quoted_decimal_odds", 9.0),
+            ("gate_check_id", None),
+        ):
+            with self.subTest(column=column), self.assertRaisesRegex(Exception, "immutable"):
+                self.connection.execute(
+                    f"UPDATE paper_bets SET {column} = ? WHERE paper_bet_id = ?",
+                    (value, paper_bet_id),
+                )
+        with self.assertRaisesRegex(Exception, "immutable"):
+            self.connection.execute(
+                "DELETE FROM paper_bets WHERE paper_bet_id = ?", (paper_bet_id,)
+            )
+        self.assertEqual(self.connection.execute(
+            "SELECT stake_units, quoted_decimal_odds, gate_check_id FROM paper_bets"
+        ).fetchone()["stake_units"], 10)
+
     def test_cancelled_bout_is_flagged_for_review(self):
         record_paper_candidates(self.connection, self.report_rows[:1], 1000)
         self.connection.execute("UPDATE bouts SET status = 'cancelled' WHERE bout_id = 'bout-0'")
@@ -151,7 +196,7 @@ class PaperLedgerTests(unittest.TestCase):
         )
         stale_report = dict(self.report_rows[0], prediction_id=old_prediction,
                             as_of_utc=old_cutoff)
-        with self.assertRaisesRegex(ValueError, "report is too old"):
+        with self.assertRaisesRegex(ValueError, "matching accepted pre-fight gate"):
             record_paper_candidates(self.connection, [stale_report], 1000)
 
         stale_quote_time = utc_string(self.now - timedelta(hours=25))
@@ -165,9 +210,118 @@ class PaperLedgerTests(unittest.TestCase):
         ).fetchone()["quote_id"]
         stale_quote = dict(self.report_rows[0], quote_id=stale_quote_id,
                            quote_captured_at_utc=stale_quote_time)
-        with self.assertRaisesRegex(ValueError, "quote is too old"):
+        with self.assertRaisesRegex(ValueError, "matching accepted pre-fight gate"):
             record_paper_candidates(self.connection, [stale_quote], 1000)
         self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM paper_bets").fetchone()[0], 0)
+
+    def test_ungated_or_rejected_candidate_cannot_write_paper_entry(self):
+        bare = dict(self.report_rows[0])
+        bare.pop("gate_check_id")
+        with self.assertRaisesRegex(ValueError, "accepted gate"):
+            record_paper_candidates(self.connection, [bare], 1000)
+        raw = dict(self.report_rows[0])
+        raw.pop("alert_eligible")
+        with self.assertRaisesRegex(ValueError, "stored pre-fight gate"):
+            record_paper_candidates(self.connection, [raw], 1000)
+        rejected = dict(self.report_rows[0], alert_eligible=False)
+        self.assertEqual(record_paper_candidates(self.connection, [rejected], 1000), [])
+        self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM paper_bets").fetchone()[0], 0)
+
+    def test_stale_snapshot_is_saved_as_rejection_and_cannot_be_paper_traded(self):
+        old = utc_string(self.now - timedelta(minutes=2))
+        older = utc_string(self.now - timedelta(minutes=2, seconds=1))
+        db.add_quote(
+            self.connection, "bout-0", "fixture-book", "fighter-0-a", 2.3,
+            old, "fixture", older,
+        )
+        quote_id = self.connection.execute(
+            "SELECT quote_id FROM odds_quotes WHERE bout_id = ? AND captured_at_utc = ?",
+            ("bout-0", old),
+        ).fetchone()["quote_id"]
+        raw = dict(self.report_rows[0], quote_id=quote_id,
+                   quote_captured_at_utc=old, bookmaker_updated_at_utc=older)
+        rejected = record_prefight_checks(
+            self.connection, [raw], ingestion_run_id=self._receipt(old),
+        )
+        self.assertEqual(rejected[0]["alert_reason"], "stale_data")
+        self.assertEqual(record_paper_candidates(self.connection, rejected, 1000), [])
+        saved = self.connection.execute(
+            "SELECT gate_decision, gate_reason FROM prefight_gate_checks WHERE gate_check_id = ?",
+            (rejected[0]["gate_check_id"],),
+        ).fetchone()
+        self.assertEqual((saved["gate_decision"], saved["gate_reason"]), ("reject", "stale_data"))
+
+    def test_mismatched_snapshot_or_price_drift_is_saved_as_rejection(self):
+        newer = utc_string(self.now - timedelta(seconds=1))
+        mismatch = record_prefight_checks(
+            self.connection, [self.report_rows[0]], ingestion_run_id=self._receipt(newer),
+        )
+        self.assertEqual(mismatch[0]["alert_reason"], "different_snapshot")
+        self.assertEqual(record_paper_candidates(self.connection, mismatch, 1000), [])
+        drift_failure = record_prefight_checks(
+            self.connection, [self.report_rows[0]], ingestion_run_id=self._receipt(self.quote_time),
+            decimal_odds_drift=0.75,
+        )
+        self.assertEqual(drift_failure[0]["alert_reason"], "edge_below_floor")
+        self.assertEqual(record_paper_candidates(self.connection, drift_failure, 1000), [])
+        self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM paper_bets").fetchone()[0], 0)
+
+    def test_gate_checks_are_immutable_and_scored_evidence_cannot_be_changed(self):
+        with self.assertRaisesRegex(Exception, "immutable"):
+            self.connection.execute(
+                "UPDATE prefight_gate_checks SET gate_decision = 'reject' WHERE gate_check_id = ?",
+                (self.report_rows[0]["gate_check_id"],),
+            )
+        tampered = dict(self.report_rows[0], decimal_odds=9.0)
+        with self.assertRaisesRegex(ValueError, "differ from saved evidence"):
+            record_prefight_checks(
+                self.connection, [tampered], ingestion_run_id=self.receipt_id,
+            )
+        raw_path = Path(self.connection.execute(
+            "SELECT payload_path FROM ingestion_runs WHERE run_id = ?", (self.receipt_id,)
+        ).fetchone()[0])
+        raw_path.write_text("changed", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "snapshot is missing or changed"):
+            record_prefight_checks(
+                self.connection, [self.report_rows[0]], ingestion_run_id=self.receipt_id,
+            )
+
+    def test_newer_odds_import_or_expired_gate_blocks_paper_recording(self):
+        with patch("ufc_odds_model.paper.utc_now", return_value=self.now + timedelta(seconds=61)):
+            with self.assertRaisesRegex(ValueError, "gate check is too old"):
+                record_paper_candidates(self.connection, self.report_rows[:1], 1000)
+        self.connection.execute(
+            "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256, snapshot_at_utc) "
+            "SELECT source, fetched_at_utc, payload_path, sha256, snapshot_at_utc "
+            "FROM ingestion_runs WHERE run_id = ?", (self.receipt_id,),
+        )
+        self.connection.commit()
+        with self.assertRaisesRegex(ValueError, "newer live odds import"):
+            record_paper_candidates(self.connection, self.report_rows[:1], 1000)
+
+    def test_newer_saved_quote_blocks_reuse_of_checked_price(self):
+        db.add_quote(
+            self.connection, "bout-0", "fixture-book", "fighter-0-a", 2.2,
+            utc_string(self.now), "fixture", utc_string(self.now),
+        )
+        self.connection.commit()
+        with self.assertRaisesRegex(ValueError, "newer quote superseded"):
+            record_paper_candidates(self.connection, self.report_rows[:1], 1000)
+
+    def test_database_rejects_direct_paper_insert_without_gate(self):
+        row = self.report_rows[0]
+        with self.assertRaisesRegex(Exception, "matching accepted pre-fight gate"):
+            self.connection.execute(
+                """INSERT INTO paper_bets(prediction_id, quote_id, event_id, bout_id,
+                   selection_fighter_id, bookmaker, decision_at_utc, recorded_at_utc,
+                   quote_captured_at_utc, quoted_decimal_odds, model_probability,
+                   expected_profit_per_unit, bankroll_units, per_bet_cap_units,
+                   event_cap_units, stake_units)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (row["prediction_id"], row["quote_id"], row["event_id"], row["bout_id"],
+                 "fighter-0-a", "fixture-book", self.cutoff, utc_string(self.now),
+                 self.quote_time, 2.3, 0.6, 0.38, 1000, 10, 50, 10),
+            )
 
     def test_invalid_inputs_and_mismatched_quote_are_rejected(self):
         for value in (0, -1, math.inf, math.nan):

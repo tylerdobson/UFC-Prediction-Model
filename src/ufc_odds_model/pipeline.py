@@ -35,11 +35,14 @@ def best_quote(
     p_fighter_a: float,
     as_of: datetime,
     max_quote_age_hours: float,
+    required_snapshot_at_utc: str | None = None,
 ) -> dict | None:
     """Choose from the latest available price for each book and fighter."""
     seen: set[tuple[str, str]] = set()
     candidates: list[dict] = []
     for quote in db.quotes_as_of(connection, bout["bout_id"], utc_string(as_of)):
+        if required_snapshot_at_utc is not None and quote["captured_at_utc"] != required_snapshot_at_utc:
+            continue
         key = (quote["bookmaker"], quote["selection_fighter_id"])
         if key in seen:
             continue
@@ -48,6 +51,8 @@ def best_quote(
         if as_of - captured > timedelta(hours=max_quote_age_hours):
             continue
         updated_at = quote["bookmaker_updated_at_utc"]
+        if required_snapshot_at_utc is not None and not updated_at:
+            continue
         if updated_at:
             updated = parse_utc(updated_at)
             if updated > captured or updated > as_of or as_of - updated > timedelta(hours=max_quote_age_hours):
@@ -95,6 +100,7 @@ def score_event(
     max_quote_age_hours: float = 24.0,
     model_kind: str = "elo",
     model_dir: str | Path = "models",
+    required_snapshot_at_utc: str | None = None,
 ) -> tuple[Path, list[dict]]:
     if as_of.tzinfo is None or as_of.utcoffset() is None:
         raise ValueError("Prediction cutoff needs a timezone")
@@ -156,7 +162,10 @@ def score_event(
         prediction_id = db.save_prediction(
             connection, bout["bout_id"], model_version, as_of_str, now_str, probability_a
         )
-        quote = best_quote(connection, bout, probability_a, as_of, max_quote_age_hours)
+        quote = best_quote(
+            connection, bout, probability_a, as_of, max_quote_age_hours,
+            required_snapshot_at_utc=required_snapshot_at_utc,
+        )
         row = {
             "event_id": event_id,
             "event_name": event["name"],

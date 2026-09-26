@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -57,6 +59,43 @@ class OddsIngestTests(unittest.TestCase):
         )
         self.assertEqual(result["future_timestamp_quotes"], 2)
         self.assertEqual(self.connection.execute("SELECT count(*) FROM odds_quotes").fetchone()[0], 0)
+
+    def test_live_and_historical_snapshots_are_content_addressed_and_not_overwritten(self):
+        snapshot = "2026-10-03T00:00:00Z"
+        event = self._event("2026-10-02T23:59:00Z")
+        for historical, payload in (
+            (False, [event]),
+            (True, {"timestamp": snapshot, "data": [event]}),
+        ):
+            with self.subTest(historical=historical):
+                raw_dir = self.root / ("historical" if historical else "live")
+                first = import_odds_payload(
+                    self.connection, payload, snapshot, raw_dir, historical=historical,
+                )
+                raw_path = Path(first["raw_path"])
+                serialized = json.dumps(payload, indent=2, ensure_ascii=False).encode("utf-8")
+                digest = hashlib.sha256(serialized).hexdigest()
+                self.assertEqual(raw_path.name, f"{digest}.json")
+                self.assertEqual(raw_path.read_bytes(), serialized)
+                second = import_odds_payload(
+                    self.connection, payload, snapshot, raw_dir, historical=historical,
+                )
+                self.assertEqual(second["raw_path"], first["raw_path"])
+                self.assertEqual(raw_path.read_bytes(), serialized)
+                before = self.connection.execute(
+                    "SELECT COUNT(*) FROM ingestion_runs WHERE source = ?",
+                    ("the-odds-api-historical" if historical else "the-odds-api",),
+                ).fetchone()[0]
+                raw_path.write_bytes(b"tampered evidence")
+                with self.assertRaisesRegex(ValueError, "differs from its content address"):
+                    import_odds_payload(
+                        self.connection, payload, snapshot, raw_dir, historical=historical,
+                    )
+                self.assertEqual(raw_path.read_bytes(), b"tampered evidence")
+                self.assertEqual(self.connection.execute(
+                    "SELECT COUNT(*) FROM ingestion_runs WHERE source = ?",
+                    ("the-odds-api-historical" if historical else "the-odds-api",),
+                ).fetchone()[0], before)
 
     def _event(self, updated_at: str) -> dict:
         return {
