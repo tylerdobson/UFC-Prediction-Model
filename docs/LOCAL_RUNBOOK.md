@@ -27,11 +27,16 @@ The demo contains no real market signal. It has too little history for the calib
 
 ## Configure real sources
 
-The operator approved free API accounts. Obtain keys through the providers' own account pages and set them in the shell that runs the CLI. The application does not read `.env` automatically. Do not paste keys into the dashboard, commit them, or include them in bug reports. Check that each account's terms permit this project's intended use.
+The operator approved free API accounts. Obtain keys through the providers' own account pages and set them in the shell that runs the CLI. Check that each account's terms permit this project's intended use. For a local `.env` file, copy the ignored template, edit `ODDS_API_KEY=` with your key, and load it into the current terminal before running a CLI command:
 
 ```bash
-export ODDS_API_KEY="your-key"
+cp .env.example .env
+chmod 600 .env
+# Edit .env locally; keep the key out of chat and Git.
+set -a; source .env; set +a
 ```
+
+The application reads the exported shell variable; it does not load `.env` automatically. Run the `source` command again in each new terminal. Do not put keys into the dashboard, commit them, or include them in bug reports.
 
 The Odds API free tier can collect prospective snapshots, while historical odds generally need a paid plan. A reviewed rights-cleared CSV import is supported for fight history. The optional Sportradar adapter is for permitted internal source evaluation; its current free-trial terms restrict publication/display and require express written approval for betting-related use. Do not run a decision workflow on trial data without the appropriate rights. Read [DATA_SOURCE_DECISION.md](DATA_SOURCE_DECISION.md) for the checked limits and terms.
 

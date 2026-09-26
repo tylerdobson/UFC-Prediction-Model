@@ -1,0 +1,458 @@
+{
+  "schema_version": 2,
+  "decisions": [
+    {
+      "event_id": "wikipedia_research:68803939",
+      "bout_position": 5,
+      "fighter_name": "Tresean Gore",
+      "source_revision_id": 1321880599,
+      "source_receipt_sha256": "b684d093ba1caf1ae92acb27cec2ace5fb8cb28b4999cac3242eec5f7f4286e6",
+      "fighter_id": "wikidata:Q139675367",
+      "canonical_name": "Tresean Gore",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1321880599",
+        "https://www.wikidata.org/w/index.php?title=Q139675367&oldid=2530044627",
+        "https://www.ufc.com/athlete/tresean-gore",
+        "https://www.ufc.com/event/ufc-fight-night-february-05-2022"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:69637026",
+      "bout_position": 11,
+      "fighter_name": "Piera Rodríguez",
+      "source_revision_id": 1345527216,
+      "source_receipt_sha256": "d2f38daa6ab651195772f59866034609f2c2f560fe579e85d093f73c96412c05",
+      "fighter_id": "wikidata:Q126718723",
+      "canonical_name": "Piera Rodríguez",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1345527216",
+        "https://www.wikidata.org/w/index.php?title=Q126718723&oldid=2529584594",
+        "https://www.ufc.com/athlete/piera-rodriguez"
+      ],
+      "reviewed_by": "Codex event-and-opponent source review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:70396043",
+      "bout_position": 7,
+      "fighter_name": "Tresean Gore",
+      "source_revision_id": 1300267431,
+      "source_receipt_sha256": "2dcf7c9977a4b253ce876fb686465de3fbae8635856097a52b0e8b954d13fa1d",
+      "fighter_id": "wikidata:Q139675367",
+      "canonical_name": "Tresean Gore",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1300267431",
+        "https://www.wikidata.org/w/index.php?title=Q139675367&oldid=2530044627",
+        "https://www.ufc.com/athlete/tresean-gore",
+        "https://www.ufc.com/event/ufc-fight-night-july-09-2022"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:70648367",
+      "bout_position": 12,
+      "fighter_name": "Ihor Potieria",
+      "source_revision_id": 1354135713,
+      "source_receipt_sha256": "5d9a9344dc3599f147b26834331bbb4de3254c70a6dca23756946c30e353c206",
+      "fighter_id": "wikidata:Q109339054",
+      "canonical_name": "Ihor Potieria",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1354135713",
+        "https://www.wikidata.org/w/index.php?title=Q109339054&oldid=2539172064",
+        "https://www.ufc.com/athlete/ihor-potieria",
+        "https://www.ufc.com/event/ufc-277"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:70828263",
+      "bout_position": 13,
+      "fighter_name": "Da'Mon Blackshear",
+      "source_revision_id": 1370701210,
+      "source_receipt_sha256": "3ef993dc464ae3c968f9a4f7dfc1921c684001e885ed9bd5da1044d8c49d8a8a",
+      "fighter_id": "wikidata:Q136338224",
+      "canonical_name": "Da'Mon Blackshear",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1370701210",
+        "https://www.wikidata.org/w/index.php?title=Q136338224&oldid=2513797090",
+        "https://www.ufc.com/athlete/damon-blackshear",
+        "https://www.ufc.com/news/official-scorecards-ufc-fight-night-vera-vs-cruz-san-diego"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:71198972",
+      "bout_position": 9,
+      "fighter_name": "Piera Rodríguez",
+      "source_revision_id": 1360072711,
+      "source_receipt_sha256": "da58834679acb70749ee144a723d851f10f3e475adf32e0b9806f65c7e495647",
+      "fighter_id": "wikidata:Q126718723",
+      "canonical_name": "Piera Rodríguez",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1360072711",
+        "https://www.wikidata.org/w/index.php?title=Q126718723&oldid=2529584594",
+        "https://www.ufc.com/athlete/piera-rodriguez"
+      ],
+      "reviewed_by": "Codex event-and-opponent source review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:71496793",
+      "bout_position": 6,
+      "fighter_name": "Ihor Potieria",
+      "source_revision_id": 1372042139,
+      "source_receipt_sha256": "c9184859d78916872fa9bd27b736fbf2e88257b299e1c2d8bf480c4e9b4d820a",
+      "fighter_id": "wikidata:Q109339054",
+      "canonical_name": "Ihor Potieria",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1372042139",
+        "https://www.wikidata.org/w/index.php?title=Q109339054&oldid=2539172064",
+        "https://www.ufc.com/athlete/ihor-potieria",
+        "https://www.ufc.com/news/ufc-283-teixeira-vs-hill-results-winner-interviews-rio-de-janeiro-light-heavyweight-flyweight-title"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:72272842",
+      "bout_position": 13,
+      "fighter_name": "Da'Mon Blackshear",
+      "source_revision_id": 1346020816,
+      "source_receipt_sha256": "038b32436d2af6e9c1ddb37b8b6af99708efc7dc1348cf269da3544521ed449f",
+      "fighter_id": "wikidata:Q136338224",
+      "canonical_name": "Da'Mon Blackshear",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1346020816",
+        "https://www.wikidata.org/w/index.php?title=Q136338224&oldid=2513797090",
+        "https://www.ufc.com/athlete/damon-blackshear",
+        "https://www.ufc.com/news/ufc-285-jones-vs-gane-results-highlights-winner-interviews-las-vegas"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:72768791",
+      "bout_position": 10,
+      "fighter_name": "Piera Rodríguez",
+      "source_revision_id": 1372910845,
+      "source_receipt_sha256": "d928724221e769f26f5dfa9f01f1a2d2ffc20812389a9560056f192825c3a04c",
+      "fighter_id": "wikidata:Q126718723",
+      "canonical_name": "Piera Rodríguez",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1372910845",
+        "https://www.wikidata.org/w/index.php?title=Q126718723&oldid=2529584594",
+        "https://www.ufc.com/athlete/piera-rodriguez"
+      ],
+      "reviewed_by": "Codex event-and-opponent source review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:72840683",
+      "bout_position": 4,
+      "fighter_name": "Ihor Potieria",
+      "source_revision_id": 1375770802,
+      "source_receipt_sha256": "880fc1914c792d7abc61d49ca4e1a779df7ec6756af92e600a873a9c5e831e46",
+      "fighter_id": "wikidata:Q109339054",
+      "canonical_name": "Ihor Potieria",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1375770802",
+        "https://www.wikidata.org/w/index.php?title=Q109339054&oldid=2539172064",
+        "https://www.ufc.com/athlete/ihor-potieria",
+        "https://www.ufc.com/event/ufc-fight-night-may-13-2023"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:75325441",
+      "bout_position": 3,
+      "fighter_name": "Ihor Potieria",
+      "source_revision_id": 1321829376,
+      "source_receipt_sha256": "8bb67a3d86b4bce4abe895965681caae4ba68215a03faa31f9578ba1f5bcde9a",
+      "fighter_id": "wikidata:Q109339054",
+      "canonical_name": "Ihor Potieria",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1321829376",
+        "https://www.wikidata.org/w/index.php?title=Q109339054&oldid=2539172064",
+        "https://www.ufc.com/athlete/ihor-potieria",
+        "https://www.ufc.com/event/ufc-fight-night-february-10-2024"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:75768841",
+      "bout_position": 10,
+      "fighter_name": "Piera Rodríguez",
+      "source_revision_id": 1367853635,
+      "source_receipt_sha256": "553d79296ce4a5f65861ea39b6d29b3fbab37e92e09afa5b2fce66c3b822462a",
+      "fighter_id": "wikidata:Q126718723",
+      "canonical_name": "Piera Rodríguez",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1367853635",
+        "https://www.wikidata.org/w/index.php?title=Q126718723&oldid=2529584594",
+        "https://www.ufc.com/athlete/piera-rodriguez"
+      ],
+      "reviewed_by": "Codex event-and-opponent source review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:75861511",
+      "bout_position": 4,
+      "fighter_name": "Ihor Potieria",
+      "source_revision_id": 1365704176,
+      "source_receipt_sha256": "6e2cc83856b7efd28ce6a18eba2b9b724e9d0dba0a53b1434827e7fe93832ef4",
+      "fighter_id": "wikidata:Q109339054",
+      "canonical_name": "Ihor Potieria",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1365704176",
+        "https://www.wikidata.org/w/index.php?title=Q109339054&oldid=2539172064",
+        "https://www.ufc.com/athlete/ihor-potieria",
+        "https://www.ufc.com/event/ufc-301"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:77090257",
+      "bout_position": 9,
+      "fighter_name": "Da'Mon Blackshear",
+      "source_revision_id": 1367854715,
+      "source_receipt_sha256": "405123c51125c90bb0d003e8b27e0700409cfca85556f38dea2bd31c4a32045f",
+      "fighter_id": "wikidata:Q136338224",
+      "canonical_name": "Da'Mon Blackshear",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1367854715",
+        "https://www.wikidata.org/w/index.php?title=Q136338224&oldid=2513797090",
+        "https://www.ufc.com/athlete/damon-blackshear",
+        "https://www.ufc.com/event/ufc-fight-night-july-13-2024"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:77246118",
+      "bout_position": 9,
+      "fighter_name": "Ihor Potieria",
+      "source_revision_id": 1345997120,
+      "source_receipt_sha256": "1f0a474ae77bc2e0832af4da260ae76b689ba14c5d0a43556bdcc32b175e83d8",
+      "fighter_id": "wikidata:Q109339054",
+      "canonical_name": "Ihor Potieria",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1345997120",
+        "https://www.wikidata.org/w/index.php?title=Q109339054&oldid=2539172064",
+        "https://www.ufc.com/athlete/ihor-potieria",
+        "https://www.ufc.com/news/official-judges-scorecards-ufc-307-pereira-vs-rountree-jr"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:77488221",
+      "bout_position": 9,
+      "fighter_name": "Da'Mon Blackshear",
+      "source_revision_id": 1268600397,
+      "source_receipt_sha256": "6e0ac8eb60124a363bf32f0cb9b8f1329442289d13059cffd41fe12939455f28",
+      "fighter_id": "wikidata:Q136338224",
+      "canonical_name": "Da'Mon Blackshear",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1268600397",
+        "https://www.wikidata.org/w/index.php?title=Q136338224&oldid=2513797090",
+        "https://www.ufc.com/athlete/damon-blackshear",
+        "https://www.ufc.com/event/ufc-fight-night-november-09-2024"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:77637158",
+      "bout_position": 13,
+      "fighter_name": "Piera Rodríguez",
+      "source_revision_id": 1344755001,
+      "source_receipt_sha256": "4f1e360c8d6a0c2fa6e305027923882c0570aaff84642aba17843f68c0924876",
+      "fighter_id": "wikidata:Q126718723",
+      "canonical_name": "Piera Rodríguez",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1344755001",
+        "https://www.wikidata.org/w/index.php?title=Q126718723&oldid=2529584594",
+        "https://www.ufc.com/athlete/piera-rodriguez"
+      ],
+      "reviewed_by": "Codex event-and-opponent source review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:78342921",
+      "bout_position": 4,
+      "fighter_name": "Da'Mon Blackshear",
+      "source_revision_id": 1358843677,
+      "source_receipt_sha256": "2b7088466b6a1a47ecbf3af83d83c6927f90fd3c8f7c822fcb0f34797e4ffee0",
+      "fighter_id": "wikidata:Q136338224",
+      "canonical_name": "Da'Mon Blackshear",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1358843677",
+        "https://www.wikidata.org/w/index.php?title=Q136338224&oldid=2513797090",
+        "https://www.ufc.com/athlete/damon-blackshear",
+        "https://www.ufc.com/event/ufc-fight-night-march-15-2025"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:78371865",
+      "bout_position": 6,
+      "fighter_name": "Morgan Charrière",
+      "source_revision_id": 1350227601,
+      "source_receipt_sha256": "7829bcc95a6b5579f8b302dda2fd933e8414e97f37d3301fda7665c5fb359585",
+      "fighter_id": "wikidata:Q65123042",
+      "canonical_name": "Morgan Charrière",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1350227601",
+        "https://www.wikidata.org/w/index.php?title=Q65123042&oldid=2529463881",
+        "https://www.ufc.com/athlete/morgan-charriere"
+      ],
+      "reviewed_by": "Codex event-and-opponent source review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:79104719",
+      "bout_position": 10,
+      "fighter_name": "Da'Mon Blackshear",
+      "source_revision_id": 1305767546,
+      "source_receipt_sha256": "e9dd3e2f0d5867ceebf7bc224e6307d420f5bf4b382f11b96651bf8cb323f337",
+      "fighter_id": "wikidata:Q136338224",
+      "canonical_name": "Da'Mon Blackshear",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1305767546",
+        "https://www.wikidata.org/w/index.php?title=Q136338224&oldid=2513797090",
+        "https://www.ufc.com/athlete/damon-blackshear",
+        "https://www.ufc.com/news/prelim-results-highlights-winner-interviews-ufc-fight-night-machado-garry-vs-prates-t-mobile-center-kansas-city"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:79139932",
+      "bout_position": 4,
+      "fighter_name": "Morgan Charrière",
+      "source_revision_id": 1367854134,
+      "source_receipt_sha256": "793e9f9c0f7e6c7771cc9dbda9611698be478b0dac0de70c17b39a646a52d5bb",
+      "fighter_id": "wikidata:Q65123042",
+      "canonical_name": "Morgan Charrière",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1367854134",
+        "https://www.wikidata.org/w/index.php?title=Q65123042&oldid=2529463881",
+        "https://www.ufc.com/athlete/morgan-charriere"
+      ],
+      "reviewed_by": "Codex event-and-opponent source review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:79315912",
+      "bout_position": 8,
+      "fighter_name": "Da'Mon Blackshear",
+      "source_revision_id": 1360770783,
+      "source_receipt_sha256": "6ff71ea13de6a261fb3138201b68bb4addaa18dc77f6d4c60526ff956c431609",
+      "fighter_id": "wikidata:Q136338224",
+      "canonical_name": "Da'Mon Blackshear",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1360770783",
+        "https://www.wikidata.org/w/index.php?title=Q136338224&oldid=2513797090",
+        "https://www.ufc.com/athlete/damon-blackshear",
+        "https://www.ufc.com/news/prelim-results-highlights-winner-interviews-ufc-fight-night-whittaker-vs-de-ridder-abu-dhabi"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:79809935",
+      "bout_position": 4,
+      "fighter_name": "Morgan Charrière",
+      "source_revision_id": 1358019075,
+      "source_receipt_sha256": "0093fdb12885d8b18708075744bd0ea9d0a7239bec3cc5db1ef45a4f4f8f4788",
+      "fighter_id": "wikidata:Q65123042",
+      "canonical_name": "Morgan Charrière",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1358019075",
+        "https://www.wikidata.org/w/index.php?title=Q65123042&oldid=2529463881",
+        "https://www.ufc.com/athlete/morgan-charriere"
+      ],
+      "reviewed_by": "Codex event-and-opponent source review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:80009397",
+      "bout_position": 8,
+      "fighter_name": "Tresean Gore",
+      "source_revision_id": 1346020417,
+      "source_receipt_sha256": "aa71747a7b74914cb3e7c41c17790669ad4e04857b5112010c20c22651e1c3dc",
+      "fighter_id": "wikidata:Q139675367",
+      "canonical_name": "Tresean Gore",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1346020417",
+        "https://www.wikidata.org/w/index.php?title=Q139675367&oldid=2530044627",
+        "https://www.ufc.com/athlete/tresean-gore",
+        "https://www.ufc.com/event/ufc-fight-night-august-02-2025"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:80009397",
+      "bout_position": 12,
+      "fighter_name": "Piera Rodríguez",
+      "source_revision_id": 1346020417,
+      "source_receipt_sha256": "aa71747a7b74914cb3e7c41c17790669ad4e04857b5112010c20c22651e1c3dc",
+      "fighter_id": "wikidata:Q126718723",
+      "canonical_name": "Piera Rodríguez",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1346020417",
+        "https://www.wikidata.org/w/index.php?title=Q126718723&oldid=2529584594",
+        "https://www.ufc.com/athlete/piera-rodriguez"
+      ],
+      "reviewed_by": "Codex event-and-opponent source review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:81776511",
+      "bout_position": 11,
+      "fighter_name": "Tresean Gore",
+      "source_revision_id": 1360785638,
+      "source_receipt_sha256": "696bb163404a3104d829c11698d3fd1d919907e6c81b44700fb6ecf29523b946",
+      "fighter_id": "wikidata:Q139675367",
+      "canonical_name": "Tresean Gore",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1360785638",
+        "https://www.wikidata.org/w/index.php?title=Q139675367&oldid=2530044627",
+        "https://www.ufc.com/athlete/tresean-gore",
+        "https://www.ufc.com/news/ufc-fight-night-moicano-vs-duncan-official-scorecards-judges"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:81827541",
+      "bout_position": 14,
+      "fighter_name": "Piera Rodríguez",
+      "source_revision_id": 1347971781,
+      "source_receipt_sha256": "c430a251f81ff7ad5e28d74d558bf25f38693bf99f0ec4eed7eacc069100bcc1",
+      "fighter_id": "wikidata:Q126718723",
+      "canonical_name": "Piera Rodríguez",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1347971781",
+        "https://www.wikidata.org/w/index.php?title=Q126718723&oldid=2529584594",
+        "https://www.ufc.com/athlete/piera-rodriguez"
+      ],
+      "reviewed_by": "Codex event-and-opponent source review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:82953602",
+      "bout_position": 9,
+      "fighter_name": "Tresean Gore",
+      "source_revision_id": 1376043434,
+      "source_receipt_sha256": "4552cfe6c99bc490a7f5a8172de2924e1899eaaf166fbcef27f33ebdd61b73a6",
+      "fighter_id": "wikidata:Q139675367",
+      "canonical_name": "Tresean Gore",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1376043434",
+        "https://www.wikidata.org/w/index.php?title=Q139675367&oldid=2530044627",
+        "https://www.ufc.com/athlete/tresean-gore",
+        "https://www.ufc.com/event/ufc-330"
+      ],
+      "reviewed_by": "Codex event-and-opponent UFC result review, 2026-09-26"
+    },
+    {
+      "event_id": "wikipedia_research:83413060",
+      "bout_position": 7,
+      "fighter_name": "Morgan Charrière",
+      "source_revision_id": 1373731495,
+      "source_receipt_sha256": "6676738f698cf4b846dd01ed01e2bc88850c1dfce6d0c63de26d62224d7aacc0",
+      "fighter_id": "wikidata:Q65123042",
+      "canonical_name": "Morgan Charrière",
+      "evidence_urls": [
+        "https://en.wikipedia.org/w/index.php?oldid=1373731495",
+        "https://www.wikidata.org/w/index.php?title=Q65123042&oldid=2529463881",
+        "https://www.ufc.com/athlete/morgan-charriere"
+      ],
+      "reviewed_by": "Codex event-and-opponent source review, 2026-09-26"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Public UFC dataset survey
 
-Checked **2026-09-26**. This survey responds to the request for more completed UFC events, bouts, fighters, and results. Counts below are publisher claims unless marked as a CSV line count. They are **not** deduplicated against our [research dataset](RESEARCH_DATASET_CARD.md), which now spans 1993–2026 with 790 events and 7,229 accepted bouts after a scoped identity review. A public download or repository license does not itself establish rights to its upstream fight data for a betting decision product.
+Checked **2026-09-26**. This survey responds to the request for more completed UFC events, bouts, fighters, and results. Counts below are publisher claims unless marked as a CSV line count. They are **not** deduplicated against our [research dataset](RESEARCH_DATASET_CARD.md), which now spans 1993–2026 with 790 events and 7,258 accepted bouts after two scoped identity reviews. A public download or repository license does not itself establish rights to its upstream fight data for a betting decision product.
 
 ## Ranked leads
 

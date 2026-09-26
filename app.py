@@ -864,14 +864,6 @@ def _render_historical_data(snapshot: Mapping[str, Any]) -> None:
     if snapshot.get("status") not in {"available", "empty"}:
         st.markdown(_notice(snapshot), unsafe_allow_html=True)
         return
-    st.markdown(
-        "<div class='notice notice-demo'><strong>Research-only source.</strong> "
-        "Wikipedia event pages are retrospective. Their current revisions do not establish "
-        "what a pre-fight model could have known at decision time. The import has no "
-        "historical bookmaker prices or source-dated card snapshots, so it cannot "
-        "authorize betting alerts.</div>",
-        unsafe_allow_html=True,
-    )
     if not history.get("events"):
         st.markdown(
             "<section class='panel'><h2>No historical research data in this database</h2>"
@@ -880,6 +872,14 @@ def _render_historical_data(snapshot: Mapping[str, Any]) -> None:
             unsafe_allow_html=True,
         )
         return
+    st.markdown(
+        "<div class='notice notice-demo'><strong>Research-only source.</strong> "
+        "Wikipedia event pages are retrospective. Their current revisions do not establish "
+        "what a pre-fight model could have known at decision time. The import has no "
+        "historical bookmaker prices or source-dated card snapshots, so it cannot "
+        "authorize betting alerts.</div>",
+        unsafe_allow_html=True,
+    )
 
     summary = (
         ("Completed events", history.get("events")),
