@@ -66,7 +66,9 @@ def _scheduled_bouts(wikitext: str) -> tuple[ArchivedBout, ...]:
     rows: list[ArchivedBout] = []
     for position, match in enumerate(_BOUT_OPEN.finditer(section), 1):
         parts = _split_template(_template_text(section, match.start()))
-        if parts[0].casefold() != "mmaevent bout" or len(parts) < 9:
+        # The final optional placeholder is absent in some archived cards.
+        # The three result fields at positions 5–7 must still be present.
+        if parts[0].casefold() != "mmaevent bout" or len(parts) < 8:
             raise ValueError(f"Scheduled bout {position} has unexpected markup")
         first, second = _fighter_ref(parts[2]), _fighter_ref(parts[4])
         if not parts[1].strip() or parts[3].strip().casefold() not in {"vs.", "vs", "v.", "v"}:

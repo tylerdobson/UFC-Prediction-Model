@@ -75,13 +75,13 @@ reports are `reports/ufc331-prefight-review.json` and
 `reports/ufc331-result-review.json`; all raw receipts and reports are ignored
 by Git. These counts are a source coverage check, not a predictive result.
 
-The same receipt process was then run across the 15 consecutive event dates
-from June 6 through September 19, 2026. The checked
+The same receipt process was then run across 23 UFC event dates
+from April 4 through September 19, 2026. The checked
 [cutoff manifest](HISTORICAL_2026_PILOT_CARDS.json) records the earliest UFC
 segment time, its official source URL, a 24-hour pre-fight decision cutoff,
 and the following event's decision cutoff for each completed result. UFC 331's
-completed result uses the September 26 research cutoff. UFC 330 and UFC 331
-have conflicting official start times; the manifest records the conflict and
+completed result uses the September 26 research cutoff. UFC 327, UFC 330,
+and UFC 331 have conflicting official start times; the manifest records the conflict and
 uses the earlier time. Freedom 250 began at midnight UTC on June 15, although
 its local event date was June 14. These start times were manually reviewed
 from the linked official pages; the offline cohort command verifies the
@@ -96,7 +96,7 @@ without making a network request:
 
 ```bash
 .venv/bin/python -m scripts.review_historical_pilot \
-  --output reports/historical-2026-fifteen-event-cohort.json
+  --output reports/historical-2026-twenty-three-event-cohort.json
 ```
 
 Choose a new output path when rerunning; the command does not overwrite an
@@ -104,6 +104,14 @@ existing report.
 
 | Event date and card | Source bouts | Paired binary bouts | Pre-fight rows held |
 | --- | ---: | ---: | ---: |
+| Apr 4, Moicano–Duncan | 13 | 2 | 11 |
+| Apr 11, UFC 327 | 12 | 9 | 3 |
+| Apr 18, Burns–Malott | 12 | 3 | 9 |
+| Apr 25, Sterling–Zalal | 13 | 5 | 8 |
+| May 2, Perth | 13 | 4 | 9 |
+| May 9, UFC 328 | 13 | 7 | 6 |
+| May 16, Allen–Costa | 13 | 4 | 9 |
+| May 30, Macau | 13 | 5 | 7 |
 | Jun 6, Muhammad–Bonfim | 12 | 7 | 5 |
 | Jun 14, Freedom 250 | 7 | 7 | 0 |
 | Jun 20, Kape–Horiguchi | 12 | 3 | 9 |
@@ -119,34 +127,82 @@ existing report.
 | Sep 5, Paris | 14 | 3 | 11 |
 | Sep 12, Noche UFC | 13 | 7 | 6 |
 | Sep 19, UFC 331 | 12 | 7 | 5 |
-| **Total** | **186** | **73** | **113** |
+| **Total** | **288** | **112** | **175** |
 
-Each of the 73 paired bouts has a stable fighter ID match in the archived
-pre-fight card and a binary result in the following saved completed revision.
+Each of the 112 binary paired bouts has a stable fighter ID match in the archived
+pre-fight card and a result in the following saved completed revision. A 113th
+paired bout in Macau has a no-contest result and is excluded from binary training.
 Paris's later result revision has one additional linked result, but that
 fight was not linked in the pre-fight source and is still held as a model
-target. Earlier completed revisions must also be selected at *every later*
-historical model cutoff; the table only establishes availability by the next
-event. These 15 cards do not meet the model's 100-bout history floor or the
-50/30/30 chronological evaluation floor. There are no matched historical
-bookmaker quotes in this cohort, so it cannot support a priced return claim.
+target. The cohort table establishes outcome availability by the next event.
 
-## Promotion work still required
+## Archived point-in-time replay
+
+For a model decision, the result page for **every** earlier event must be
+selected again at that decision's cutoff. The resumable matrix fetcher saves
+these 253 earlier-event/target-cutoff combinations across the 23 cards. It
+reuses and verifies existing receipts, uses a short delay between new proofs,
+and stops rather than retrying rapidly after an API rate limit:
+
+```bash
+.venv/bin/python -m scripts.fetch_historical_matrix
+.venv/bin/python -m ufc_odds_model.archived_pit_evaluation \
+  --output reports/historical-2026-archived-pit-research.json
+```
+
+The evaluator rechecks the exact publisher selection and content receipts
+and the research database without writing to it. For each target, it builds
+features from stable-ID results in the latest completed revisions selected at
+that target's cutoff. If any earlier revision is absent or invalid, it holds
+the whole target event. Muhammad–Bonfim illustrates why this matters: seven
+stable-ID completed bouts were in its immediate next-event revision, while a
+later selected revision contained eight. The extra result enters history only
+at later decision cutoffs where it was published.
+
+The complete 23-event replay checks all **253 earlier-event/target-cutoff
+result selections** and scores **112 paired binary bouts** across the 23
+target dates. Its chronological slices have 79 training bouts on 16 dates,
+12 validation bouts on three dates, and 21 later bouts on four dates.
+Temperature calibration is not applied because validation has fewer than 30
+bouts. On the 21-bout later slice, Elo's Brier score is 0.255 and logistic
+regression's is 0.256; both have 47.6% accuracy. This small, selectively
+matched slice gives no evidence of a useful betting edge. It overlaps the
+previously inspected 15-event pilot's later slice, so it is exploratory rather
+than untouched model-selection evidence. There are no matched historical
+bookmaker quotes, so no priced baseline or ROI is reported. The retained local
+report is `reports/historical-2026-archived-pit-research-23-final.json`, with
+checked-input digest
+`5e8dc1e5954f1c9cfdfe23bbe037390191b1a4f15d5b9086b6eace932e73e845`.
+It always sets `research_only: true` and `promotion_eligible: false`.
+
+The archived fighter page-ID lookup receipts were fetched retrospectively and
+are identity cross-checks, not proof of a pre-fight identity observation.
+The manifest's official start times were manually reviewed but are not yet
+backed by immutable official-page receipts. The cohort begins in April 2026,
+so earlier fighter history is left truncated. These limits and the 175 held
+pre-fight source rows can bias the exploratory metrics. The operating
+`evaluate` and alert gates do not consume this research report.
+
+## Operating integration and promotion work still required
 
 1. Capture a dated, rights-checked official UTC start for each target event.
    Hold events with conflicting or missing starts until the earlier plausible
    start is resolved.
 2. Extend the saved title-to-page-ID lookup check to each archived matchup.
    Hold unlinked, renamed, substituted, and ambiguous fighters.
-3. For each historical model cutoff, select the *latest* archived scheduled
-   card for its target and the latest completed revisions of all prior events.
-   The existing research DB's current results cannot be silently substituted.
-4. Admit an event to chronological evaluation only after exact source/DB
-   status, pairing, winner, and start-time checks pass at that cutoff. Keep
-   publisher revision evidence separate from the live roster gate.
+3. Carry the research replay's latest-revision selection into a rights-cleared
+   operating history, including the archived scheduled target card and every
+   earlier completed card at each decision cutoff. The current research DB's
+   final results cannot be silently substituted for an operating snapshot.
+4. Apply the research replay's exact source/DB status, pairing, winner, and
+   start-time checks to the operating history, then satisfy the live roster
+   gate independently. Keep publisher revision evidence separate from a
+   contemporaneous operating card observation.
 5. Collect historical bookmaker quotes at a fixed pre-fight time before
    comparing priced returns; otherwise report model prediction metrics and
    paper trade live events without an ROI claim.
 
 The current [model gate](../src/ufc_odds_model/alerts.py) remains closed for
-real cards until its result-history and validation thresholds are met.
+real cards until rights-cleared operating history, result-history and
+validation thresholds, a verified live roster, and fresh matched quotes are
+all present.

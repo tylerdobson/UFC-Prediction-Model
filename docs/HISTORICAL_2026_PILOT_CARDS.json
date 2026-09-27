@@ -3,6 +3,79 @@
   "description": "Conservative 24-hour pre-event cutoffs reviewed from official UFC earliest segment schedules; retrospective research only",
   "events": [
     {
+      "slug": "moicano2026",
+      "page_id": 81776511,
+      "event_date": "2026-04-04",
+      "earliest_start_at_utc": "2026-04-04T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-04-03T21:00:00Z",
+      "result_cutoff_at_utc": "2026-04-10T21:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-fight-night-moicano-vs-duncan"
+    },
+    {
+      "slug": "ufc327",
+      "page_id": 82036370,
+      "event_date": "2026-04-11",
+      "earliest_start_at_utc": "2026-04-11T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-04-10T21:00:00Z",
+      "result_cutoff_at_utc": "2026-04-17T21:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-327-prochazka-vs-ulberg",
+      "start_conflict_note": "UFC event page and fight preview say 5:30 PM EDT early prelims; weigh-in says 5:00 PM EDT prelims. Earlier time is used."
+    },
+    {
+      "slug": "burns2026",
+      "page_id": 82387592,
+      "event_date": "2026-04-18",
+      "earliest_start_at_utc": "2026-04-18T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-04-17T21:00:00Z",
+      "result_cutoff_at_utc": "2026-04-24T21:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-burns-malott-winnipeg"
+    },
+    {
+      "slug": "sterling2026",
+      "page_id": 82479607,
+      "event_date": "2026-04-25",
+      "earliest_start_at_utc": "2026-04-25T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-04-24T21:00:00Z",
+      "result_cutoff_at_utc": "2026-05-01T08:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-fight-night-sterling-vs-zalal"
+    },
+    {
+      "slug": "perth2026",
+      "page_id": 82539732,
+      "event_date": "2026-05-02",
+      "earliest_start_at_utc": "2026-05-02T08:00:00Z",
+      "prefight_cutoff_at_utc": "2026-05-01T08:00:00Z",
+      "result_cutoff_at_utc": "2026-05-08T21:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-in-results-ufc-perth-della-maddalena-prates"
+    },
+    {
+      "slug": "ufc328",
+      "page_id": 82563044,
+      "event_date": "2026-05-09",
+      "earliest_start_at_utc": "2026-05-09T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-05-08T21:00:00Z",
+      "result_cutoff_at_utc": "2026-05-15T21:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-328-chimaev-vs-strickland"
+    },
+    {
+      "slug": "allen2026",
+      "page_id": 82520461,
+      "event_date": "2026-05-16",
+      "earliest_start_at_utc": "2026-05-16T21:00:00Z",
+      "prefight_cutoff_at_utc": "2026-05-15T21:00:00Z",
+      "result_cutoff_at_utc": "2026-05-29T08:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-fight-night-allen-vs-costa-vegas-117"
+    },
+    {
+      "slug": "macau2026",
+      "page_id": 82300864,
+      "event_date": "2026-05-30",
+      "earliest_start_at_utc": "2026-05-30T08:00:00Z",
+      "prefight_cutoff_at_utc": "2026-05-29T08:00:00Z",
+      "result_cutoff_at_utc": "2026-06-05T21:00:00Z",
+      "official_start_url": "https://www.ufc.com/news/official-weigh-results-ufc-macau-song-figueiredo"
+    },
+    {
       "slug": "bonfim2026",
       "page_id": 82666422,
       "event_date": "2026-06-06",

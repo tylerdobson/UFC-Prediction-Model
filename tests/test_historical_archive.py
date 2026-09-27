@@ -104,6 +104,13 @@ class HistoricalArchiveTest(unittest.TestCase):
         self.assertEqual(report["holds"][0]["reason"], "unlinked_fighter_identity")
         self.assertFalse(report["model_eligible"])
 
+    def test_scheduled_revision_accepts_absent_optional_final_placeholder(self) -> None:
+        compact = SCHEDULE.replace("|||||}}", "|||}}", 1)
+        card = parse_archived_card(proof(compact), "scheduled")
+        self.assertEqual(len(card.bouts), 2)
+        self.assertEqual(card.bouts[0].fighter_a.name, "Joshua Van")
+        self.assertIsNone(card.bouts[0].outcome)
+
     def test_retained_title_lookup_verifies_stable_pair_ids(self) -> None:
         self.add_lookup()
         card = parse_archived_card(proof(SCHEDULE), "scheduled")
