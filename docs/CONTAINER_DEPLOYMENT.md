@@ -2,7 +2,7 @@
 
 The Compose deployment packages the **read-only dashboard** for one operator on macOS or Linux. It publishes port 8501 only on `127.0.0.1`. It does not run ingestion, refresh odds, alert, paper-trade, or place wagers. Continue using the [local operator runbook](LOCAL_RUNBOOK.md) for those CLI jobs. There is no user authentication; do not expose this port through a public reverse proxy or a remote Docker host.
 
-The image contains application code and pinned Python dependencies. It excludes the database, raw sources, reports, backups, model artifacts, `.env`, and Streamlit secrets. Compose mounts only `data/` and `reports/` read-only, runs with the operator's non-root UID/GID and a read-only root filesystem, and gives Streamlit a temporary cache directory. Matching the host user lets it read private `0600` source files without widening their permissions. No API key is supplied to the web process.
+The image contains application code and pinned Python dependencies. It excludes the database, raw sources, reports, backups, model artifacts, `.env`, and Streamlit secrets. Compose mounts `data/`, `reports/`, and `docs/` read-only at their original host paths, runs with the operator's non-root UID/GID and a read-only root filesystem, and gives Streamlit a temporary cache directory. The forward research panel needs the historical manifest in `docs/` and saved proof files in `data/`; it independently verifies them before display. Matching the host user lets it read private `0600` source files without widening their permissions. No API key is supplied to the web process.
 
 ## Prepare a stable snapshot
 
@@ -17,6 +17,8 @@ python -m ufc_odds_model.backup create \
 The startup preflight rejects a snapshot whose schema is older than the packaged code. If the source database is already current, the migration command reports no pending migrations; use a fresh backup path on every later attempt.
 
 Source receipts in that snapshot must point to files inside this checkout's `data/` directory. The container mounts `data/` at the **same absolute path** as on the host so those immutable receipt paths remain valid. If source files live elsewhere, use the [evidence-bundle restore](EVIDENCE_BUNDLE.md) into a new directory under `data/`, then select its `database.sqlite`. Do not edit receipt paths by hand. If a dataset was copied from another machine, the bundle restore rebases its paths. The container startup check rejects missing or changed payloads and live SQLite sidecars.
+
+The optional UFC 332 forward reports also contain absolute paths to their saved card, lookup, odds, research database, and historical receipts. Their verifier rejects missing paths and reports outside the selected evidence root. A container on the **same checkout path** can display them with the three read-only mounts above. Moving them to another machine requires a deliberate evidence relocation and new report sealing step; copying only the JSON reports or changing their paths by hand will leave the panel unavailable. Keep the panel unavailable until that relocation has been independently verified.
 
 Regenerate any saved reports against the **snapshot path**, since an operating evaluation and integrity report are tied to the exact database file. For example:
 
@@ -52,7 +54,7 @@ When a new event or correction arrives, create a new standalone backup and regen
 
 - `UFC_DEPLOY_ROOT` must be an absolute, physical host path. This same-path bind-mount layout is for local macOS/Linux Docker; Windows drive paths need a separate packaging plan.
 - `UFC_DEPLOY_UID` and `UFC_DEPLOY_GID` must match a **non-root** operator that owns `data/` and `reports/`. The entrypoint refuses UID 0. Private raw payloads remain `0600`; do not make them world-readable for the container. The CI container smoke test uses a `0600` payload.
-- Both `data/` and `reports/` must exist. Compose refuses to create missing host directories. Place all retained receipt payloads under `data/`; the preflight rejects an outside path even when its bytes still hash correctly.
+- `data/`, `reports/`, and `docs/` must exist. Compose refuses to create missing host directories. Place all retained receipt payloads under `data/`; the preflight rejects an outside path even when its bytes still hash correctly. The dashboard uses `UFC_MODEL_FORWARD_EVIDENCE_ROOT` to resolve optional saved UFC 332 reports and historical proofs against this mounted checkout. Those reports remain unavailable if the ignored local evidence has not been restored; they do not change the startup database preflight.
 - The selected database must be a standalone backup without `-wal`, `-shm`, or `-journal` sidecars. This keeps the web container separate from concurrent CLI writes.
 - The published host port is loopback-only. Remote access needs a separate authenticated design and security review.
 - The container does not receive provider credentials and cannot fetch live odds. Run `alert-event` or `paper-trade` in the operator environment with server-side keys, then publish a fresh snapshot for the dashboard. Displayed quotes remain observations, not a live offer.

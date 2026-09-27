@@ -9,6 +9,7 @@ reports
 backups
 models
 docs
+deploy
 examples
 tests
 __pycache__

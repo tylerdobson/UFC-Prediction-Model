@@ -1,0 +1,93 @@
+# Add with: docker compose --env-file deploy/hosted.env -f compose.yaml
+# -f deploy/compose.hosted.yaml up --build -d
+# Base compose keeps Streamlit on 127.0.0.1:8501 and mounts evidence read-only.
+services:
+  dashboard:
+    networks:
+      - hosted_app
+
+  caddy:
+    image: caddy:2.11.4-alpine
+    restart: unless-stopped
+    depends_on:
+      - dashboard
+      - oauth2-proxy
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m,mode=1777
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      hosted_auth:
+        ipv4_address: 172.30.62.2
+      hosted_app:
+
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.4
+    restart: unless-stopped
+    user: "${UFC_DEPLOY_UID:?Set UFC_DEPLOY_UID from id -u}:${UFC_DEPLOY_GID:?Set UFC_DEPLOY_GID from id -g}"
+    command:
+      - --http-address=0.0.0.0:4180
+      - --provider=github
+      - --github-user=${UFC_GITHUB_USER:?Set the sole allowed GitHub username}
+      - --email-domain=*
+      - --client-id=${UFC_GITHUB_OAUTH_CLIENT_ID:?Set GitHub OAuth client ID}
+      - --client-secret-file=/run/ufc-secrets/github-client-secret
+      - --cookie-secret-file=/run/ufc-secrets/cookie-secret
+      - --cookie-name=__Host-ufc-auth
+      - --cookie-secure=true
+      - --cookie-httponly=true
+      - --cookie-samesite=lax
+      - --cookie-expire=12h
+      - --redirect-url=https://app.tylerjamesdobson.com/oauth2/callback
+      - --whitelist-domain=app.tylerjamesdobson.com
+      - --reverse-proxy=true
+      - --trusted-proxy-ip=172.30.62.2/32
+      - --upstream=static://200
+    volumes:
+      - type: bind
+        source: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/deploy/secrets/github-client-secret
+        target: /run/ufc-secrets/github-client-secret
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/deploy/secrets/cookie-secret
+        target: /run/ufc-secrets/cookie-secret
+        read_only: true
+        bind:
+          create_host_path: false
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - hosted_auth
+
+networks:
+  hosted_auth:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.62.0/28
+  hosted_app:
+    driver: bridge
+    internal: true
+
+volumes:
+  caddy_data:
+  caddy_config:

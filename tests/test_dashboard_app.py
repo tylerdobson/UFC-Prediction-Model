@@ -110,6 +110,8 @@ class DashboardAppSmokeTests(unittest.TestCase):
         report = {
             "status": "available", "cutoff_at_utc": "2026-09-27T16:01:50Z",
             "capture_receipts_verified": True,
+            "source_revision_url": "https://en.wikipedia.org/w/index.php?title=UFC_332&oldid=1376571633",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
             "strict_history_scope": {"events": 23, "stable_id_result_bouts": 118},
             "captured_history_scope": {"events": 790, "accepted_result_bouts": 7258},
             "source_card_bouts": 13, "selected_card_bouts": 8,
@@ -136,7 +138,49 @@ class DashboardAppSmokeTests(unittest.TestCase):
         })
         markup = "\n".join(item.value for item in app.tabs[2].markdown)
         self.assertIn("hash-checked capture receipts", markup)
+        self.assertIn("Wikipedia contributors, exact UFC 332 revision", markup)
+        self.assertIn("CC BY-SA 4.0", markup)
         self.assertNotIn("availability at the saved odds cutoff is unproven", markup)
+
+    def test_forward_evidence_root_selects_mounted_fresh_or_legacy_paths(self) -> None:
+        fresh_files = (
+            "reports/ufc332-forward-research-20260927T1601Z.json",
+            "reports/ufc332-forward-research-full-20260927T1601Z.json",
+            "data/raw/ufc332-odds-20260927T1602Z/card-with-odds-manifest.json",
+            "data/raw/ufc332-odds-20260927T1602Z/odds-intake-manifest.json",
+            "data/raw/ufc332-odds-20260927T1602Z/reviewed-card-template.csv",
+        )
+        with tempfile.TemporaryDirectory() as temporary, patch(
+            "ufc_odds_model.dashboard_data.load_ufc332_forward_research",
+            return_value={"status": "missing_report", "reason": "fixture"},
+        ) as loader, patch.dict(os.environ, {
+            "UFC_MODEL_FORWARD_EVIDENCE_ROOT": temporary,
+        }) as environ:
+            for name in ("UFC_MODEL_UFC332_STRICT_REPORT",
+                         "UFC_MODEL_UFC332_CAPTURED_REPORT"):
+                environ.pop(name, None)
+            root = Path(temporary)
+            app = self._run_app(root / "missing.sqlite", root / "missing.json")
+            self.assertEqual(list(app.exception), [])
+            self.assertEqual(loader.call_args.args[:2], (
+                root / "reports/ufc332-forward-research-20260926-sealed-v2.json",
+                root / "reports/ufc332-captured-forward-research-20260926-sealed-v2.json",
+            ))
+            self.assertEqual(loader.call_args.kwargs["evidence_root"], root)
+            for location in fresh_files:
+                path = root / location
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("fixture", encoding="utf-8")
+            app = self._run_app(root / "missing.sqlite", root / "missing.json")
+            self.assertEqual(list(app.exception), [])
+            self.assertEqual(loader.call_args.args[:2], (
+                root / fresh_files[0], root / fresh_files[1],
+            ))
+            self.assertEqual(loader.call_args.kwargs["evidence_files"], {
+                "card_manifest": fresh_files[2], "odds_manifest": fresh_files[3],
+                "card_csv": fresh_files[4],
+            })
+            self.assertEqual(loader.call_args.kwargs["evidence_root"], root)
 
     def test_imported_history_is_visible_and_labelled_research_only(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

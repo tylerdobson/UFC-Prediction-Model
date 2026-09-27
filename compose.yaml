@@ -19,6 +19,7 @@ services:
       UFC_MODEL_EVALUATION_REPORT: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/reports/evaluation.json
       UFC_MODEL_RESEARCH_REPORT: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/reports/ufc_research_1993_2026_holdout.json
       UFC_MODEL_INTEGRITY_REPORT: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/reports/integrity.json
+      UFC_MODEL_FORWARD_EVIDENCE_ROOT: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}
       STREAMLIT_SERVER_HEADLESS: "true"
       STREAMLIT_SERVER_FILE_WATCHER_TYPE: none
       STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
@@ -32,6 +33,12 @@ services:
       - type: bind
         source: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/reports
         target: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/reports
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/docs
+        target: ${UFC_DEPLOY_ROOT:?Set UFC_DEPLOY_ROOT}/docs
         read_only: true
         bind:
           create_host_path: false

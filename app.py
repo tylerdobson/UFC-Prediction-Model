@@ -46,8 +46,18 @@ _UFC332_FRESH_FULL = Path("reports/ufc332-forward-research-full-20260927T1601Z.j
 CSS_PATH = Path(__file__).with_name("dashboard.css")
 
 
+def _ufc332_evidence_root() -> Path:
+    configured = os.environ.get("UFC_MODEL_FORWARD_EVIDENCE_ROOT")
+    return Path(configured).expanduser() if configured else Path(__file__).resolve().parent
+
+
 def _ufc332_forward_selection() -> tuple[Path, Path, dict[str, str] | None]:
     """Select the newer sealed snapshot only when every required input exists."""
+    configured_root = os.environ.get("UFC_MODEL_FORWARD_EVIDENCE_ROOT")
+    evidence_root = _ufc332_evidence_root()
+    def default_path(path: Path) -> Path:
+        return evidence_root / path if configured_root else path
+
     overrides = {
         key: os.environ.get(name)
         for key, name in (
@@ -58,12 +68,17 @@ def _ufc332_forward_selection() -> tuple[Path, Path, dict[str, str] | None]:
     }
     if (not os.environ.get("UFC_MODEL_UFC332_STRICT_REPORT")
             and not os.environ.get("UFC_MODEL_UFC332_CAPTURED_REPORT")
-            and all(path.is_file() for path in (
+            and all(default_path(path).is_file() for path in (
                 _UFC332_FRESH_STRICT, _UFC332_FRESH_FULL,
                 *(Path(value) for value in _UFC332_FRESH_FILES.values()),
             ))):
-        return _UFC332_FRESH_STRICT, _UFC332_FRESH_FULL, dict(_UFC332_FRESH_FILES)
-    return UFC332_STRICT_REPORT_PATH, UFC332_CAPTURED_REPORT_PATH, overrides or None
+        return (default_path(_UFC332_FRESH_STRICT),
+                default_path(_UFC332_FRESH_FULL), dict(_UFC332_FRESH_FILES))
+    strict = (UFC332_STRICT_REPORT_PATH if os.environ.get("UFC_MODEL_UFC332_STRICT_REPORT")
+              else default_path(UFC332_STRICT_REPORT_PATH))
+    full = (UFC332_CAPTURED_REPORT_PATH if os.environ.get("UFC_MODEL_UFC332_CAPTURED_REPORT")
+            else default_path(UFC332_CAPTURED_REPORT_PATH))
+    return strict, full, overrides or None
 
 
 def _text(value: Any, fallback: str = "—") -> str:
@@ -753,7 +768,7 @@ def _render_ufc332_forward_research() -> None:
     strict_path, full_path, evidence_files = _ufc332_forward_selection()
     report = load_ufc332_forward_research(
         strict_path, full_path,
-        evidence_root=Path(__file__).resolve().parent,
+        evidence_root=_ufc332_evidence_root(),
         evidence_files=evidence_files,
     )
     if report.get("status") != "available":
@@ -823,6 +838,11 @@ def _render_ufc332_forward_research() -> None:
         "holdout. Differences reflect data scope, not a validated betting edge. "
         "Book counts describe the saved odds snapshot; no price is verified executable. "
         "The five held matchups are excluded from the probability table.</p>"
+        + "<p class='table-note'>Card source: "
+        + _source_link(report.get("source_revision_url"), "Wikipedia contributors, exact UFC 332 revision")
+        + ". Fighter names and matchups are transformed from that source under "
+        + _source_link(report.get("license_url"), "CC BY-SA 4.0")
+        + ".</p>"
         "</section>", unsafe_allow_html=True,
     )
 

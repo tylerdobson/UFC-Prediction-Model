@@ -1,0 +1,27 @@
+# The /oauth2/ paths implement login; every other path, including Streamlit's
+# WebSocket and health paths, passes through forward_auth before dashboard.
+app.tylerjamesdobson.com {
+    header Strict-Transport-Security "max-age=31536000"
+
+    handle /oauth2/* {
+        reverse_proxy oauth2-proxy:4180 {
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-Uri {uri}
+        }
+    }
+
+    handle {
+        forward_auth oauth2-proxy:4180 {
+            uri /oauth2/auth
+            header_up X-Real-IP {remote_host}
+
+            @unauthorized status 401
+            handle_response @unauthorized {
+                redir * /oauth2/sign_in?rd={scheme}://{host}{uri}
+            }
+        }
+        reverse_proxy dashboard:8501 {
+            header_up -Authorization
+        }
+    }
+}
