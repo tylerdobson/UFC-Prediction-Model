@@ -65,6 +65,18 @@ After the timestamped card lookup, one server-side The Odds API call returned a 
 
 The ignored `data/raw/ufc332-odds-20260927T1602Z/` snapshot has 29 MMA events, of which 10 were future events on the card's local date. Of the 13 saved UFC card rows, four matched by exact fighter pair and had a usable named-book, two-sided market; three have alias or opponent review holds, three lack an event in this response, and three have unresolved source identity. The eight linked-ID rows remain **unreviewed**. The isolated provisional import at `data/raw/ufc332-pilot-20260927T1602Z/` retained 40 quote rows and 10 verified receipts, with zero alerts, predictions, paper decisions, or bets. Its verified portable evidence bundle is `backups/ufc332-timestamped-card-odds-20260927T1602Z.zip` (SHA-256 `a312ac1bbe7fdacc287f7f536a571fbde85ca3269f7793c4743391be575482d2`). These ignored local artifacts and the API key are not in Git.
 
+The five card rows held for identity contain seven missing Wikipedia page IDs. The retained 19-title lookup has none of them; the saved odds names cannot establish fighter identity. The required person and matchup review is:
+
+| Card row | Matchup | Evidence still needed |
+| --- | --- | --- |
+| 6 | Imanol Rodríguez vs. Alden Coria | Stable IDs for both; confirm current matchup. |
+| 7 | Damian Pinas vs. Andrey Pulyaev | Stable IDs for both; confirm current matchup. |
+| 8 | Marcus McGhee vs. Bernardo Sopaj | Stable ID for Bernardo; reconcile the official/odds spelling “Benardo” with a source-backed alias and the exact opponent. |
+| 9 | Anthony Wint vs. Lucas Armand | Stable ID for Lucas; confirm the matchup and capture an odds event because none is saved. |
+| 13 | Court McGee vs. Eric Nolan | Stable ID for Eric; confirm current matchup. |
+
+The eight selected rows also have blank `reviewed_by` cells. No held row can be added from the retained lookup alone, and no selected row is approved for an alert.
+
 Rebuild the same paper-only scenario from the retained raw evidence with a **new** output directory:
 
 ```bash
