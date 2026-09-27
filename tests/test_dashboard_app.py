@@ -47,6 +47,50 @@ class DashboardAppSmokeTests(unittest.TestCase):
         self.assertIn("No paper decisions recorded", markup)
         self.assertIn("No manually entered wagers", markup)
 
+    def test_saved_forward_research_stays_in_model_evidence_with_lookup_caveat(self) -> None:
+        report = {
+            "status": "available", "cutoff_at_utc": "2026-09-26T22:47:55Z",
+            "strict_history_scope": {"events": 23, "stable_id_result_bouts": 118},
+            "captured_history_scope": {"events": 790, "accepted_result_bouts": 7258},
+            "source_card_bouts": 13, "selected_card_bouts": 8,
+            "identity_hold_positions": [9, 10, 11, 12, 13],
+            "selected_bouts_with_two_sided_saved_books": 4,
+            "rows": [{
+                "bout": f"Fighter A{i} vs Fighter B{i}",
+                "strict_elo_probability_fighter_a": 0.45,
+                "captured_elo_probability_fighter_a": 0.55,
+                "captured_logistic_probability_fighter_a": 0.52,
+                "strict_prior_bouts": (1, 2), "captured_prior_bouts": (10, 12),
+                "saved_two_sided_book_count": int(i <= 4),
+            } for i in range(1, 9)],
+        }
+        with tempfile.TemporaryDirectory() as temporary, patch(
+            "ufc_odds_model.dashboard_data.load_ufc332_forward_research",
+            return_value=report,
+        ) as loader, patch.dict(os.environ, {}) as environ:
+            environ.pop("UFC_MODEL_UFC332_STRICT_REPORT", None)
+            environ.pop("UFC_MODEL_UFC332_CAPTURED_REPORT", None)
+            app = self._run_app(
+                Path(temporary) / "missing.sqlite", Path(temporary) / "missing.json",
+            )
+        self.assertEqual(list(app.exception), [])
+        self.assertEqual(loader.call_args.args[:2], (
+            Path("reports/ufc332-forward-research-20260926-sealed-v2.json"),
+            Path("reports/ufc332-captured-forward-research-20260926-sealed-v2.json"),
+        ))
+        evidence_markup = "\n".join(item.value for item in app.tabs[2].markdown)
+        other_markup = "\n".join(
+            item.value for index, tab in enumerate(app.tabs) if index != 2
+            for item in tab.markdown
+        )
+        self.assertIn("UFC 332 forward research · exploratory only", evidence_markup)
+        self.assertIn("Fighter A8 vs Fighter B8", evidence_markup)
+        self.assertIn("4 of 8", evidence_markup)
+        self.assertIn("target fighter ID lookup is hash-verified", evidence_markup)
+        self.assertIn("availability at the saved odds cutoff is unproven", evidence_markup)
+        self.assertNotIn("UFC 332 forward research", other_markup)
+        self.assertNotIn("Fighter A8 vs Fighter B8", other_markup)
+
     def test_imported_history_is_visible_and_labelled_research_only(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "history.sqlite"

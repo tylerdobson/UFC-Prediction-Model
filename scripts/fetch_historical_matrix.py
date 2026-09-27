@@ -28,6 +28,14 @@ def required_matrix(events: list[dict]) -> list[tuple[str, int, str, str]]:
     return pairs
 
 
+def required_forward(events: list[dict], cutoff: str) -> list[tuple[str, int, str, str]]:
+    """Select every cohort result at one later research forecast cutoff."""
+    decision = canonical_utc(cutoff)
+    if decision <= max(canonical_utc(item["earliest_start_at_utc"]) for item in events):
+        raise ValueError("Forward cutoff must follow every cohort event start")
+    return [(item["slug"], item["page_id"], cutoff, "forward") for item in events]
+
+
 def _already_complete(root: Path, slug: str, cutoff: str) -> bool:
     marker = cutoff.replace(":", "").replace("-", "")
     stem = root / slug / f"result-{marker}"
@@ -42,6 +50,7 @@ def fetch_matrix(
     output_root: str | Path,
     *,
     max_new_proofs: int | None = None,
+    forward_cutoff: str | None = None,
     sleep=time.sleep,
     save=save_proof,
 ) -> dict[str, int]:
@@ -56,7 +65,8 @@ def fetch_matrix(
         raise ValueError("Historical raw root must not be a symlink")
     root = requested_root.resolve()
     now = datetime.now(timezone.utc)
-    pairs = required_matrix(events)
+    pairs = (required_forward(events, forward_cutoff) if forward_cutoff is not None
+             else required_matrix(events))
     new, reused = 0, 0
     for slug, page_id, cutoff, target_slug in pairs:
         if canonical_utc(cutoff) > now:
@@ -90,10 +100,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output-root", type=Path,
                         default=Path("data/raw/historical-revisions"))
     parser.add_argument("--max-new-proofs", type=int)
+    parser.add_argument("--forward-cutoff-utc",
+                        help="Save each cohort result revision at one later research decision cutoff")
     args = parser.parse_args(argv)
     try:
         result = fetch_matrix(args.manifest, args.output_root,
-                              max_new_proofs=args.max_new_proofs)
+                              max_new_proofs=args.max_new_proofs,
+                              forward_cutoff=args.forward_cutoff_utc)
     except (OSError, TypeError, ValueError, RuntimeError, json.JSONDecodeError) as exc:
         print(f"historical matrix fetch stopped: {exc}", file=sys.stderr)
         return 1

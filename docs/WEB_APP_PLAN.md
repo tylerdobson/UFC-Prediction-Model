@@ -17,6 +17,10 @@ The first release covers pre-fight decisions only. The [latency policy](LATENCY_
 
 The local Streamlit prototype is now implemented in `app.py` with a read-only SQLite adapter. It has explicit demo, missing, stale, and rejected states, a saved evaluation view, and separate ledgers. See [DASHBOARD_RUNBOOK.md](DASHBOARD_RUNBOOK.md) to launch it. Real event validation and a durable rights-cleared fight-history source remain release gates.
 
+## Domain and deployment target
+
+The intended private app address is `app.tylerjamesdobson.com`. Keep the portfolio at the main domain and `www`. On September 26, 2026, public authoritative DNS pointed the main domain to GitHub Pages and `www` to `tylerdobson.github.io`; `app` had no DNS record. A cached resolver may still show the old Squarespace parking page while the main-domain change propagates. Do not point `app` at the local Streamlit port. First select a host, add authentication, deploy with server-side secrets and durable storage, and verify HTTPS on the host's temporary URL. Then add the host-required `app` DNS record in Squarespace and verify it resolves before sharing the link.
+
 ## Data flow
 
 ```mermaid
@@ -45,4 +49,4 @@ flowchart LR
 
 ## Current limits
 
-The repository has no selected rights-cleared operating fight-history source or licensed live credentials, so the adapters are covered by offline fixtures and cannot yet prove end-to-end live coverage. The local operating database has no real historical age, reach, or per-fight stat snapshots. Do not display those as model inputs until they can be reconstructed at each prediction cutoff. Event start is a conservative time reference for all bouts on a card; individual bout start times and bookmaker settlement rules need separate source data for more exact simulations.
+The repository has no selected rights-cleared operating fight-history source. A local ignored `.env` contains an Odds API key, and one real UFC 332 response is retained for a provisional intake, but this is not an event-day quote or end-to-end operating coverage. The local operating database has no real historical age, reach, or per-fight stat snapshots. Do not display those as model inputs until they can be reconstructed at each prediction cutoff. Event start is a conservative time reference for all bouts on a card; individual bout start times and bookmaker settlement rules need separate source data for more exact simulations.

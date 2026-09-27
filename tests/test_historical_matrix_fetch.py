@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.fetch_historical_matrix import fetch_matrix, required_matrix
+from scripts.fetch_historical_matrix import fetch_matrix, required_forward, required_matrix
 
 
 def _events() -> list[dict]:
@@ -70,6 +70,32 @@ class HistoricalMatrixFetchTests(unittest.TestCase):
                              save=lambda *args: {"cutoff_at_utc": "2026-01-01T00:00:00Z",
                                                  "expected_page_id": 1},
                              sleep=lambda _: None)
+
+    def test_forward_cutoff_selects_each_prior_card_at_exact_same_time(self):
+        events = _events()
+        cutoff = "2026-07-01T00:00:00Z"
+        self.assertEqual(required_forward(events, cutoff), [
+            (event["slug"], event["page_id"], cutoff, "forward") for event in events
+        ])
+        calls = []
+
+        def fake_save(path, role, page_id, at):
+            calls.append((role, page_id, at))
+            return {"cutoff_at_utc": at, "expected_page_id": page_id,
+                    "revision_id": 10, "revision_timestamp_utc": "2026-06-21T00:00:00Z"}
+
+        with tempfile.TemporaryDirectory() as temp:
+            manifest = Path(temp) / "manifest.json"
+            manifest.write_text(json.dumps({"schema_version": 1, "events": events}))
+            result = fetch_matrix(manifest, Path(temp) / "raw", max_new_proofs=2,
+                                  forward_cutoff=cutoff, save=fake_save, sleep=lambda _: None)
+        self.assertEqual(result, {"required_pairs": 3, "new_proofs": 2,
+                                  "reused_proofs": 0, "unvisited_pairs": 1})
+        self.assertEqual(calls, [("result", 1, cutoff), ("result", 2, cutoff)])
+
+    def test_forward_cutoff_cannot_precede_cohort_end(self):
+        with self.assertRaisesRegex(ValueError, "follow every cohort"):
+            required_forward(_events(), "2026-06-20T00:00:00Z")
 
 
 if __name__ == "__main__":

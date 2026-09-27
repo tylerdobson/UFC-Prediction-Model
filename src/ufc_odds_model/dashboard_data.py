@@ -9,6 +9,7 @@ pre-fight alert gate before it can be treated as an alert candidate.
 from __future__ import annotations
 
 import hashlib
+import csv
 import json
 import math
 import sqlite3
@@ -21,7 +22,7 @@ from urllib.parse import unquote, urlsplit
 from .audit import audit_database
 from .evaluation import MIN_PRIOR_RESULT_EVIDENCE_COVERAGE
 from .features import COVERAGE_NAMES
-from .integrity import database_file_state
+from .integrity import database_file_state, verify_evidence
 from .pipeline import utc_string
 from .research_evaluation import RESEARCH_EVALUATION_VERSION, SOURCE as RESEARCH_SOURCE, _source_results
 from .wikipedia_recount import reviewed_same_revision_recount
@@ -124,6 +125,17 @@ _REQUIRED_TABLES = {
 }
 _PREFIGHT_STATUSES = {None, "scheduled", "not_started"}
 _DEFAULT_MAX_AGE_SECONDS = 60
+_UFC332_EVENT_ID = "wikipedia_pilot:83826247"
+_UFC332_EVENT_DATE = "2026-10-03"
+_UFC332_CAPTURE = "2026-09-26T22:47:55Z"
+_FORWARD_EVIDENCE_FILES = {
+    "historical_manifest": "docs/HISTORICAL_2026_PILOT_CARDS.json",
+    "card_manifest": "data/raw/ufc332-intake/manifest.json",
+    "card_csv": "data/raw/ufc332-intake/reviewed-card-template.csv",
+    "odds_manifest": "data/raw/ufc332-odds-intake/intake_manifest.json",
+    "research_db": "data/ufc_research_2011_2025.sqlite",
+    "holdout_report": "reports/ufc_research_1993_2026_holdout.json",
+}
 
 
 def _timestamp(value: str | None) -> datetime | None:
@@ -1480,6 +1492,410 @@ def _integrity_report(path: str | Path | None, db_path: Path, as_of: datetime) -
         "status": display_status, "reason": reason, "checked_at_utc": saved["checked_at_utc"],
         "receipt_count": count, "verified_receipts": verified,
     }
+
+
+class _ForwardEvidenceError(ValueError):
+    def __init__(self, status: str, reason: str):
+        self.status = status
+        super().__init__(reason)
+
+
+def _forward_digest(value: object) -> str:
+    return hashlib.sha256(json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")).hexdigest()
+
+
+def _forward_sha(value: object) -> bool:
+    return (isinstance(value, str) and len(value) == 64
+            and all(char in "0123456789abcdef" for char in value))
+
+
+def _forward_file(root: Path, location: str | Path, expected_sha: object) -> Path:
+    """Check one local proof without allowing a report to read outside the project."""
+    if not _forward_sha(expected_sha):
+        raise _ForwardEvidenceError("invalid_report", "A forward report has an invalid source digest.")
+    try:
+        path = Path(location).expanduser()
+        if not path.is_absolute():
+            path = root / path
+        if path.is_symlink() or not path.is_file():
+            raise OSError("missing or linked proof")
+        resolved = path.resolve(strict=True)
+        if not resolved.is_relative_to(root):
+            raise OSError("proof is outside project root")
+        digest = hashlib.sha256()
+        with path.open("rb") as stream:
+            for block in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(block)
+        if digest.hexdigest() != expected_sha:
+            raise OSError("source digest changed")
+        return resolved
+    except (OSError, TypeError, ValueError, RuntimeError) as exc:
+        raise _ForwardEvidenceError(
+            "stale_evidence", "A local UFC 332 source or receipt no longer matches the saved report."
+        ) from exc
+
+
+def _forward_json(path: Path) -> dict:
+    try:
+        if path.is_symlink() or not path.is_file():
+            raise OSError("missing or linked JSON")
+        saved = json.loads(path.read_text(encoding="utf-8"))
+        json.dumps(saved, allow_nan=False)
+        if not isinstance(saved, dict):
+            raise ValueError("JSON object required")
+        return saved
+    except (OSError, UnicodeError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise _ForwardEvidenceError("invalid_report", "A saved UFC 332 report is unreadable or invalid JSON.") from exc
+
+
+def _forward_probability(value: object) -> bool:
+    return (isinstance(value, (int, float)) and not isinstance(value, bool)
+            and math.isfinite(value) and 0 < value < 1)
+
+
+def _forward_source_inputs(root: Path, strict: dict, full: dict) -> tuple[dict, dict, set[int]]:
+    """Bind both reports to the same saved card, selected CSV, and odds bytes."""
+    inputs = strict["checked_inputs"]
+    pairs = (
+        ("card_manifest_sha256", "card_manifest"),
+        ("selected_card_csv_sha256", "card_csv"),
+        ("odds_manifest_sha256", "odds_manifest"),
+        ("research_database_sha256", "research_db"),
+    )
+    for digest_key, file_key in pairs:
+        full_key = "database_sha256" if file_key == "research_db" else digest_key
+        if inputs.get(digest_key) != full.get(full_key):
+            raise _ForwardEvidenceError("mismatched_reports", "Forward reports use different source evidence.")
+        _forward_file(root, _FORWARD_EVIDENCE_FILES[file_key], inputs.get(digest_key))
+    card_path = root / _FORWARD_EVIDENCE_FILES["card_manifest"]
+    odds_path = root / _FORWARD_EVIDENCE_FILES["odds_manifest"]
+    card = _forward_json(card_path)
+    odds = _forward_json(odds_path)
+    for key, value in (
+        ("card_source_sha256", card.get("source", {}).get("raw_sha256")),
+        ("card_fighter_lookup_sha256", card.get("fighter_lookup", {}).get("raw_sha256")),
+    ):
+        if inputs.get(key) != value or full.get(key) != value:
+            raise _ForwardEvidenceError("mismatched_reports", "Forward card source hashes do not agree.")
+    if (inputs.get("odds_manifest_sha256") != card.get("odds_coverage_comparison", {}).get(
+            "source_manifest_sha256")
+            or inputs.get("odds_response_sha256") != odds.get("sha256")
+            or full.get("odds_response_sha256") != odds.get("sha256")):
+        raise _ForwardEvidenceError("mismatched_reports", "Forward odds source hashes do not agree.")
+    _forward_file(root, card["source"]["raw_path"], inputs["card_source_sha256"])
+    _forward_file(root, card["fighter_lookup"]["raw_path"],
+                  inputs["card_fighter_lookup_sha256"])
+    _forward_file(root, odds["raw_path"], inputs["odds_response_sha256"])
+    event = card.get("event") or {}
+    start = (card.get("official_start_review") or {}).get(
+        "event_start_utc_for_conservative_cutoff")
+    if (event.get("source_page_id") != 83826247 or event.get("event_date") != _UFC332_EVENT_DATE
+            or event.get("name") != strict.get("event_name")
+            or event.get("name") != full.get("event_name")
+            or event.get("source_revision_url") != strict.get("card_source_revision_url")
+            or event.get("source_revision_url") != full.get("card_source_revision_url")
+            or start != strict.get("event_start_at_utc")
+            or start != full.get("event_start_at_utc")
+            or card.get("captured_at_utc") != strict.get("card_captured_at_utc")
+            or card.get("captured_at_utc") != full.get("card_captured_at_utc")
+            or odds.get("captured_at_utc") != _UFC332_CAPTURE):
+        raise _ForwardEvidenceError("mismatched_reports", "Forward card identity or capture time differs from source.")
+    rows = card.get("fight_card_rows")
+    if (not isinstance(rows, list) or len(rows) != 13
+            or [row.get("position") for row in rows if isinstance(row, dict)] != list(range(1, 14))):
+        raise _ForwardEvidenceError("invalid_report", "Saved UFC 332 card positions are incomplete.")
+    try:
+        with (root / _FORWARD_EVIDENCE_FILES["card_csv"]).open(
+                encoding="utf-8-sig", newline="") as stream:
+            selected_csv = list(csv.DictReader(stream))
+        selected_positions = {int(row["source_position"]) for row in selected_csv}
+        if len(selected_positions) != len(selected_csv) or len(selected_positions) != 8:
+            raise ValueError("selected positions are not eight unique rows")
+        for row in selected_csv:
+            source = rows[int(row["source_position"]) - 1]
+            for side in ("fighter_a", "fighter_b"):
+                if (row.get(f"{side}_id") != source[side].get("stable_id")
+                        or row.get(f"{side}_name") != source[side].get("name")):
+                    raise ValueError("selected fighter differs from source")
+    except (OSError, TypeError, KeyError, ValueError, IndexError) as exc:
+        raise _ForwardEvidenceError("invalid_report", "Selected UFC 332 card rows do not match the source.") from exc
+    return card, odds, selected_positions
+
+
+def _forward_strict_proofs(root: Path, strict: dict, manifest: dict) -> None:
+    inputs = strict["checked_inputs"]
+    if inputs.get("historical_manifest_sha256") is None:
+        raise _ForwardEvidenceError("invalid_report", "Strict report lacks its historical manifest hash.")
+    _forward_file(root, _FORWARD_EVIDENCE_FILES["historical_manifest"],
+                  inputs["historical_manifest_sha256"])
+    expected_events = manifest.get("events")
+    proofs = inputs.get("historical_result_proofs")
+    lookups = inputs.get("historical_identity_lookup_receipts")
+    if (not isinstance(expected_events, list) or len(expected_events) != 23
+            or not isinstance(proofs, list) or len(proofs) != len(expected_events)
+            or not isinstance(lookups, list)
+            or inputs.get("exact_cutoff_proof_failures") != []):
+        raise _ForwardEvidenceError("invalid_report", "Strict report has incomplete result proof coverage.")
+    marker = _UFC332_CAPTURE.replace(":", "").replace("-", "")
+    for event, proof in zip(expected_events, proofs):
+        if (not isinstance(event, dict) or not isinstance(proof, dict)
+                or proof.get("slug") != event.get("slug")
+                or proof.get("page_id") != event.get("page_id")
+                or proof.get("cutoff_at_utc") != _UFC332_CAPTURE
+                or (_timestamp(proof.get("revision_timestamp_utc")) is None)
+                or _timestamp(proof["revision_timestamp_utc"]) > _timestamp(_UFC332_CAPTURE)):
+            raise _ForwardEvidenceError("invalid_report", "Strict result revision differs from the exact cutoff.")
+        for kind in ("selection", "content"):
+            prefix = (f"data/raw/historical-revisions/{event['slug']}/"
+                      f"result-{marker}.{kind}")
+            sidecar = _forward_file(root, prefix + ".receipt.json",
+                                    proof.get(f"{kind}_sidecar_sha256"))
+            response = _forward_file(root, prefix + ".response.json",
+                                     proof.get(f"{kind}_sha256"))
+            saved_sidecar = _forward_json(sidecar)
+            if (saved_sidecar.get("page_id") != event["page_id"]
+                    or saved_sidecar.get("cutoff_utc") != _UFC332_CAPTURE
+                    or saved_sidecar.get("role") != "result"
+                    or saved_sidecar.get("response_kind") != kind
+                    or saved_sidecar.get("response_sha256") != proof.get(f"{kind}_sha256")
+                    or Path(str(saved_sidecar.get("response_path"))).resolve() != response
+                    or saved_sidecar.get("fetched_at_utc") != proof.get(f"{kind}_fetched_at_utc")):
+                raise _ForwardEvidenceError("invalid_report", "Strict result proof metadata differs from its saved files.")
+    seen_runs: set[int] = set()
+    for item in lookups:
+        if (not isinstance(item, dict) or type(item.get("run_id")) is not int
+                or item["run_id"] <= 0 or item["run_id"] in seen_runs
+                or item.get("source") != "wikipedia_action_api"
+                or _timestamp(item.get("fetched_at_utc")) is None
+                or _timestamp(item["fetched_at_utc"]) > _timestamp(_UFC332_CAPTURE)):
+            raise _ForwardEvidenceError("invalid_report", "Strict identity lookup evidence is invalid.")
+        seen_runs.add(item["run_id"])
+        _forward_file(root, item.get("payload_path"), item.get("payload_sha256"))
+
+
+def _forward_full_history(root: Path, full: dict) -> None:
+    database = _forward_file(root, full.get("database_path"), full.get("database_sha256"))
+    holdout = _forward_file(root, full.get("holdout_report_path"),
+                            full.get("holdout_report_sha256"))
+    if (database != (root / _FORWARD_EVIDENCE_FILES["research_db"]).resolve()
+            or holdout != (root / _FORWARD_EVIDENCE_FILES["holdout_report"]).resolve()):
+        raise _ForwardEvidenceError("mismatched_reports", "Full-history report belongs to another local source.")
+    saved_holdout = _forward_json(holdout)
+    if (saved_holdout.get("research_only") is not True
+            or saved_holdout.get("promotion_eligible") is not False
+            or saved_holdout.get("source_summary") != full.get("source_summary")):
+        raise _ForwardEvidenceError("invalid_report", "Saved full-history holdout differs from its report.")
+    catalog = full.get("receipt_catalog") or {}
+    integrity = verify_evidence(database)
+    if (not integrity.get("ok") or integrity.get("receipt_count") != catalog.get("ingestion_runs")
+            or integrity.get("verified_receipts") != full.get("integrity_verified_receipts")):
+        raise _ForwardEvidenceError("stale_evidence", "Full-history source receipts no longer verify.")
+    digest = hashlib.sha256()
+    counts: Counter[str] = Counter()
+    latest = ""
+    try:
+        with sqlite3.connect(database.as_uri() + "?mode=ro", uri=True) as connection:
+            connection.execute("PRAGMA query_only = ON")
+            for run_id, source, fetched, stated_sha in connection.execute(
+                    "SELECT run_id, source, fetched_at_utc, sha256 FROM ingestion_runs ORDER BY run_id"):
+                if (_timestamp(fetched) is None
+                        or _timestamp(fetched) >= _timestamp(_UFC332_CAPTURE)
+                        or not _forward_sha(stated_sha)):
+                    raise ValueError("research receipt is after cutoff or lacks a hash")
+                counts[source] += 1
+                latest = max(latest, fetched)
+                digest.update(json.dumps([run_id, source, fetched, stated_sha],
+                                         separators=(",", ":")).encode("utf-8") + b"\n")
+    except (OSError, TypeError, ValueError, sqlite3.Error) as exc:
+        raise _ForwardEvidenceError("stale_evidence", "Full-history receipt catalog could not be checked.") from exc
+    if (digest.hexdigest() != catalog.get("catalog_sha256")
+            or dict(sorted(counts.items())) != catalog.get("by_source")
+            or latest != catalog.get("latest_fetch_at_utc")):
+        raise _ForwardEvidenceError("stale_evidence", "Full-history receipt catalog changed.")
+    _forward_file(root, full["database_path"], full["database_sha256"])
+
+
+def load_ufc332_forward_research(
+    strict_report: str | Path | None,
+    full_report: str | Path | None,
+    *,
+    evidence_root: str | Path,
+) -> dict[str, Any]:
+    """Verify two saved UFC 332 research scenarios without fitting on page load."""
+    if strict_report is None or full_report is None:
+        return {"status": "unavailable", "reason": "Both saved UFC 332 research reports are required."}
+    strict_path, full_path = Path(strict_report).expanduser(), Path(full_report).expanduser()
+    if not strict_path.is_file() or not full_path.is_file():
+        return {"status": "missing_report", "reason": "A saved UFC 332 forward report is missing."}
+    try:
+        root = Path(evidence_root).expanduser().resolve(strict=True)
+        strict, full = _forward_json(strict_path), _forward_json(full_path)
+        expected = (_UFC332_EVENT_ID, _UFC332_EVENT_DATE, _UFC332_CAPTURE)
+        if (strict.get("schema_version") != 1
+                or strict.get("replay_version") != "archived-forward-research-v1"
+                or strict.get("status") != "research_only"
+                or strict.get("research_only") is not True
+                or strict.get("model_eligible") is not False
+                or strict.get("promotion_eligible") is not False
+                or strict.get("alert_eligible") is not False
+                or strict.get("paper_decisions_created") != 0
+                or strict.get("bets_placed") != 0
+                or strict.get("database_access") != "read_only"
+                or (strict.get("event_id"), strict.get("event_date"),
+                    strict.get("history_cutoff_at_utc")) != expected
+                or strict.get("odds_captured_at_utc") != _UFC332_CAPTURE
+                or strict.get("historical_result_selection_rule") !=
+                    "latest_publisher_result_revision_at_exact_odds_capture_for_every_prior_event"):
+            raise _ForwardEvidenceError("invalid_report", "Strict UFC 332 report is not a research-only exact-cutoff replay.")
+        if (full.get("schema_version") != 1
+                or full.get("version") != "captured-forward-research-v1"
+                or full.get("scenario") != "captured_full_result_history"
+                or full.get("status") != "research_only"
+                or full.get("research_only") is not True
+                or full.get("promotion_eligible") is not False
+                or full.get("alert_eligible") is not False
+                or (full.get("event_id"), full.get("target_event_date"),
+                    full.get("cutoff_at_utc")) != expected
+                or full.get("odds_captured_at_utc") != _UFC332_CAPTURE):
+            raise _ForwardEvidenceError("invalid_report", "Full-history UFC 332 report is not research-only.")
+        inputs = strict.get("checked_inputs")
+        if (not isinstance(inputs, dict) or strict.get("checked_input_sha256") != _forward_digest(inputs)
+                or strict.get("holds") != []):
+            raise _ForwardEvidenceError("invalid_report", "Strict report input digest or hold status is invalid.")
+        if strict.get("forecast_rows_sha256") != _forward_digest(strict.get("bouts")):
+            raise _ForwardEvidenceError("invalid_report", "Strict forecast rows changed after the saved replay.")
+        forecasts = full.get("forecasts")
+        if not isinstance(forecasts, list) or len(forecasts) != 8:
+            raise _ForwardEvidenceError("invalid_report", "Full-history report lacks eight selected forecasts.")
+        if full.get("forecast_rows_sha256") != _forward_digest(forecasts):
+            raise _ForwardEvidenceError("invalid_report", "Full-history forecast rows changed after the saved replay.")
+        pairs = [{"position": row.get("position"), "fighter_a_id": row.get("fighter_a_id"),
+                  "fighter_b_id": row.get("fighter_b_id")} for row in forecasts]
+        catalog = full.get("receipt_catalog") or {}
+        history_digest = _forward_digest({
+            "cutoff_at_utc": full["cutoff_at_utc"],
+            "target_event_date": full["target_event_date"],
+            "pairs": pairs, "database_sha256": full.get("database_sha256"),
+            "holdout_report_sha256": full.get("holdout_report_sha256"),
+            "receipt_catalog_sha256": catalog.get("catalog_sha256"),
+            "source_summary": full.get("source_summary"),
+        })
+        final_digest = _forward_digest({
+            "history_checked_input_sha256": history_digest,
+            **{key: full.get(key) for key in (
+                "card_manifest_sha256", "card_source_sha256",
+                "card_fighter_lookup_sha256", "selected_card_csv_sha256",
+                "odds_manifest_sha256", "odds_response_sha256")},
+        })
+        if full.get("checked_input_sha256") != final_digest:
+            raise _ForwardEvidenceError("invalid_report", "Full-history report input digest is invalid.")
+        card, odds, selected = _forward_source_inputs(root, strict, full)
+        manifest = _forward_json(root / _FORWARD_EVIDENCE_FILES["historical_manifest"])
+        _forward_strict_proofs(root, strict, manifest)
+        _forward_full_history(root, full)
+        strict_rows = strict.get("bouts")
+        if (not isinstance(strict_rows, list) or len(strict_rows) != 13
+                or [row.get("source_position") for row in strict_rows] != list(range(1, 14))
+                or {row.get("source_position") for row in strict_rows
+                    if row.get("selected_for_replay") is True} != selected
+                or [row.get("position") for row in forecasts] != sorted(selected)
+                or full.get("source_card_bouts") != 13
+                or full.get("selected_card_bouts") != 8):
+            raise _ForwardEvidenceError("invalid_report", "Forward reports do not cover the same eight card rows.")
+        source_rows = card["fight_card_rows"]
+        rows: list[dict[str, Any]] = []
+        for forecast in forecasts:
+            position = forecast["position"]
+            source, strict_row = source_rows[position - 1], strict_rows[position - 1]
+            if (forecast.get("alert_eligible") is not False
+                    or strict_row.get("alert_eligible") is not False
+                    or strict_row.get("forecast_status") != "exploratory_elo_only"
+                    or strict_row.get("source_position") != position
+                    or not _forward_probability(strict_row.get("elo_fighter_a_probability"))
+                    or any(not _forward_probability(forecast.get(key)) for key in (
+                        "elo_probability_fighter_a",
+                        "logistic_raw_probability_fighter_a",
+                        "logistic_calibrated_probability_fighter_a"))):
+                raise _ForwardEvidenceError("invalid_report", "Forward probabilities or alert flags are invalid.")
+            for side in ("fighter_a", "fighter_b"):
+                if (strict_row.get(side) != source[side].get("name")
+                        or forecast.get(side + "_name") != source[side].get("name")
+                        or strict_row.get(side + "_id") != source[side].get("stable_id")
+                        or forecast.get(side + "_id") != source[side].get("stable_id")):
+                    raise _ForwardEvidenceError("mismatched_reports", "Forward fighter identities differ from the card.")
+            books = strict_row.get("saved_two_sided_books")
+            if (not isinstance(books, list) or books != forecast.get("saved_two_sided_books")
+                    or any(not isinstance(book, dict) or book.get("executable_price_verified") is not False
+                           or book.get("captured_at_utc") != _UFC332_CAPTURE
+                           or not _forward_probability(book.get("fighter_a_no_vig_implied_probability"))
+                           for book in books)):
+                raise _ForwardEvidenceError("mismatched_reports", "Forward saved bookmaker observations differ.")
+            rows.append({
+                "source_position": position,
+                "bout": f"{strict_row['fighter_a']} vs {strict_row['fighter_b']}",
+                "strict_elo_probability_fighter_a": strict_row["elo_fighter_a_probability"],
+                "captured_elo_probability_fighter_a": forecast["elo_probability_fighter_a"],
+                "captured_logistic_probability_fighter_a": forecast[
+                    "logistic_calibrated_probability_fighter_a"],
+                "strict_prior_bouts": (
+                    strict_row.get("fighter_a_prior_result_bouts_in_cohort"),
+                    strict_row.get("fighter_b_prior_result_bouts_in_cohort")),
+                "captured_prior_bouts": (
+                    forecast.get("prior_binary_or_draw_bouts_fighter_a"),
+                    forecast.get("prior_binary_or_draw_bouts_fighter_b")),
+                "saved_two_sided_book_count": len(books),
+                "alert_eligible": False,
+            })
+        identity_holds = [row["position"] for row in source_rows
+                          if not row["fighter_a"].get("stable_id")
+                          or not row["fighter_b"].get("stable_id")]
+        strict_coverage = strict.get("coverage") or {}
+        priced = sum(row["saved_two_sided_book_count"] > 0 for row in rows)
+        if (full.get("source_identity_hold_positions") != identity_holds
+                or strict_coverage.get("source_card_bouts") != 13
+                or strict_coverage.get("stable_id_eligible_card_bouts") != 8
+                or strict_coverage.get("selected_card_bouts") != 8
+                or strict_coverage.get("historical_events_required") != 23
+                or strict_coverage.get("historical_events_verified") != 23
+                or strict_coverage.get("selected_bouts_with_exploratory_elo") != 8
+                or strict_coverage.get("selected_bouts_with_two_sided_saved_books") != priced
+                or full.get("selected_bouts_with_two_sided_saved_books") != priced):
+            raise _ForwardEvidenceError("invalid_report", "Forward card coverage does not reconcile.")
+        return {
+            "status": "available", "research_only": True, "promotion_eligible": False,
+            "alert_eligible": False, "event_id": _UFC332_EVENT_ID,
+            "event_name": strict["event_name"], "event_date": _UFC332_EVENT_DATE,
+            "cutoff_at_utc": _UFC332_CAPTURE,
+            "event_start_at_utc": strict["event_start_at_utc"],
+            "strict_history_scope": {
+                "events": 23, "source_result_bouts": strict_coverage["historical_source_result_bouts"],
+                "stable_id_result_bouts": strict_coverage["historical_stable_id_result_bouts"],
+            },
+            "captured_history_scope": {
+                "events": full["source_summary"]["accepted_events_with_results"],
+                "accepted_result_bouts": full["source_summary"]["accepted_bouts_with_results"],
+                "training_bouts": full["model"]["logistic_training_bouts"],
+                "validation_bouts": full["model"]["calibration_validation_bouts"],
+                "test_bouts": full["model"]["historical_test_bouts"],
+            },
+            "source_card_bouts": 13, "selected_card_bouts": 8,
+            "identity_hold_positions": identity_holds,
+            "selected_bouts_with_two_sided_saved_books": priced,
+            "rows": rows,
+            "source_revision_url": strict["card_source_revision_url"],
+            "license_url": strict["card_license_url"],
+            "strict_report_path": str(strict_path),
+            "full_report_path": str(full_path),
+            "strict_checked_input_sha256": strict["checked_input_sha256"],
+            "full_checked_input_sha256": full["checked_input_sha256"],
+        }
+    except _ForwardEvidenceError as exc:
+        return {"status": exc.status, "reason": str(exc)}
+    except (OSError, TypeError, ValueError, KeyError, IndexError, sqlite3.Error) as exc:
+        return {"status": "invalid_report", "reason": "Saved UFC 332 research evidence could not be verified."}
 
 
 def load_dashboard(

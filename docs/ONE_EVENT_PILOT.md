@@ -39,6 +39,59 @@ The [official UFC event listing](https://www.ufc.com/event/ufc-332) and [watch s
 
 The manual name holds are material. Wikipedia spells **Bernardo Sopaj**, while the [official UFC athlete page](https://www.ufc.com/athlete/benardo-sopaj) and saved odds say **Benardo Sopaj**. The odds response also says **Michael Parkin** where the card says Mick Parkin, and **Alex Hernandez** where it says Alexander Hernandez. The script does not silently map these names. The saved odds response lacks bouts for Roberto Soldić vs. Khaos Williams, Ateba Gautier vs. Roman Kopylov, and Anthony Wint vs. Lucas Armand.
 
+## Two forward research replays at the saved cutoff
+
+The saved card was captured at `2026-09-26T22:47:45Z`, and its odds response at
+`2026-09-26T22:47:55Z`. A result revision selected for 23:00 UTC cannot be
+silently used for a 22:47 decision. First save a separate latest-at-cutoff
+result proof for **every** event in the 23-card historical cohort:
+
+```bash
+.venv/bin/python -m scripts.fetch_historical_matrix \
+  --forward-cutoff-utc 2026-09-26T22:47:55Z
+.venv/bin/python -m ufc_odds_model.archived_forward_replay \
+  --output reports/ufc332-forward-research-20260926-sealed-v2.json
+```
+
+The local strict-revision report checks all 23 exact-cutoff result proofs,
+covering 287 source result rows and 118 stable-ID matched results. It gives an
+exploratory Elo probability for the eight selected, source-linked UFC 332
+bouts. Only four of those eight have an unambiguous saved two-sided named-book
+observation. Fighter histories in this April–September cohort have only zero
+to two prior bouts per target fighter; logistic remains unavailable in this
+strict replay. The proofs were fetched retrospectively, with their actual
+download times retained. Its checked-input digest is
+`237edbcca1751b5f7b68ca844687ce099babc0440f79b2d580c95cc69f895b98`.
+
+A separate full-history **forward** scenario uses the 790 completed events
+and 7,258 accepted results in the research database. It checks all 2,837
+retained ingestion receipts, their fetch times and publisher revision times
+against the saved odds cutoff, exact event receipt IDs and result counts, and
+the unchanged database hash. All retained source captures predate the cutoff;
+the latest was `2026-09-26T22:30:36Z`. It reproduces the saved chronological
+holdout's Elo/logistic weights and metrics before applying result-only
+features to the eight source-linked bouts:
+
+```bash
+.venv/bin/python -m ufc_odds_model.captured_forward_history \
+  --output reports/ufc332-captured-forward-research-20260926-sealed-v2.json
+```
+
+The full-history holdout tested 800 accepted bouts: Elo Brier 0.2494 and
+calibrated logistic Brier 0.2462. These modest, retrospective results do not
+establish a betting edge. Another 1,647 source bout rows remain held for
+unresolved identities, and historical roster observation times were not
+reconstructed for that holdout. The full-history scenario's checked-input
+digest is `d6ee89959dbc24bc99caa197312c02a3e31c9fcb6102e2b514a1e6e938bf5466`.
+
+Both reports are ignored by Git and remain on the operator workstation. Both
+set `research_only: true`, `promotion_eligible: false`, and
+`alert_eligible: false`. Each report seals its forecast rows with
+`forecast_rows_sha256`. The target fighter-title lookup is hash verified but
+has no retained fetch timestamp, so its availability at the saved odds cutoff
+is unproven. Saved week-ahead quotes are observations, not current
+offers. No stakes, paper decisions, alerts, or ROI are inferred.
+
 ## Review before any real event-day decision
 
 1. Check the current official card, cancellations, substitutions, and start times again. The saved Wikipedia revision is a time-stamped community report; it is not a real-time official feed. Resolve all held identities and aliases with documented evidence. A later card change needs a new source snapshot and a **new** isolated intake, not an edit to an old receipt.

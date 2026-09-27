@@ -16,7 +16,7 @@ from urllib.parse import urlsplit
 
 import streamlit as st
 
-from ufc_odds_model.dashboard_data import load_dashboard
+from ufc_odds_model.dashboard_data import load_dashboard, load_ufc332_forward_research
 
 
 DB_PATH = Path(os.environ.get("UFC_MODEL_DB", "data/ufc.sqlite"))
@@ -29,6 +29,13 @@ INTEGRITY_PATH = Path(
 RESEARCH_REPORT_PATH = Path(
     os.environ.get("UFC_MODEL_RESEARCH_REPORT", "reports/ufc_research_1993_2026_holdout.json")
 )
+UFC332_STRICT_REPORT_PATH = Path(os.environ.get(
+    "UFC_MODEL_UFC332_STRICT_REPORT", "reports/ufc332-forward-research-20260926-sealed-v2.json"
+))
+UFC332_CAPTURED_REPORT_PATH = Path(os.environ.get(
+    "UFC_MODEL_UFC332_CAPTURED_REPORT",
+    "reports/ufc332-captured-forward-research-20260926-sealed-v2.json",
+))
 CSS_PATH = Path(__file__).with_name("dashboard.css")
 
 
@@ -711,6 +718,73 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
             unsafe_allow_html=True,
         )
     _render_research_holdout(snapshot)
+    _render_ufc332_forward_research()
+
+
+def _render_ufc332_forward_research() -> None:
+    """Show saved forward research alongside, never inside, operating predictions."""
+    report = load_ufc332_forward_research(
+        UFC332_STRICT_REPORT_PATH, UFC332_CAPTURED_REPORT_PATH,
+        evidence_root=Path(__file__).resolve().parent,
+    )
+    if report.get("status") != "available":
+        st.markdown(
+            "<section class='panel'><h2>UFC 332 forward research · unavailable</h2>"
+            "<p>The two saved scenarios appear only when their reports, card, odds, "
+            "historical proofs, and local source files still verify.</p>"
+            f"<div class='notice'>{_esc(report.get('reason'), 'Saved research evidence is unavailable.')}</div>"
+            "</section>", unsafe_allow_html=True,
+        )
+        return
+    strict = _mapping(report.get("strict_history_scope"))
+    captured = _mapping(report.get("captured_history_scope"))
+    rows = []
+    for row in report.get("rows") or []:
+        strict_prior = row.get("strict_prior_bouts") or (0, 0)
+        captured_prior = row.get("captured_prior_bouts") or (0, 0)
+        rows.append([
+            row.get("bout"),
+            _percent(row.get("strict_elo_probability_fighter_a")),
+            _percent(row.get("captured_elo_probability_fighter_a")),
+            _percent(row.get("captured_logistic_probability_fighter_a")),
+            f"{strict_prior[0]} / {strict_prior[1]}",
+            f"{captured_prior[0]} / {captured_prior[1]}",
+            row.get("saved_two_sided_book_count"),
+        ])
+    st.markdown(
+        "<section class='panel'><h2>UFC 332 forward research · exploratory only</h2>"
+        "<div class='notice'><strong>No betting alert or model promotion.</strong> "
+        "These forecasts use a provisional community card and saved week-ahead odds. "
+        "The prices were captured on Sep 26 for an Oct 3 event and are stale for event-day decisions. "
+        "The target fighter ID lookup is hash-verified, but its fetch time was not independently "
+        "recorded, so availability at the saved odds cutoff is unproven. "
+        "Verify the current roster and market independently.</div>"
+        f"<p>Both scenarios use the saved {_esc(_utc(report.get('cutoff_at_utc')))} cutoff. "
+        f"The strict scope has {_esc(strict.get('events'))} archived events and "
+        f"{_esc(strict.get('stable_id_result_bouts'))} stable-ID result bouts, "
+        "with earlier careers left out. The captured-history scope has "
+        f"{_esc(captured.get('events'))} events and "
+        f"{_esc(captured.get('accepted_result_bouts'))} accepted results captured before that cutoff; "
+        "its historical pre-fight rosters were not reconstructed.</p>"
+        f"<p>{_esc(report.get('selected_card_bouts'))} of "
+        f"{_esc(report.get('source_card_bouts'))} card bouts have selected stable IDs; "
+        f"{_esc(len(report.get('identity_hold_positions') or []))} remain on identity hold. "
+        f"Saved two-sided named-book observations cover "
+        f"{_esc(report.get('selected_bouts_with_two_sided_saved_books'))} of "
+        f"{_esc(report.get('selected_card_bouts'))} selected bouts.</p>"
+        + _table(
+            ["Bout (probability for first fighter)", "Strict Elo", "Captured Elo",
+             "Captured logistic", "Strict prior fights A / B", "Captured prior fights A / B",
+             "Saved books"],
+            rows, "No verified forward rows",
+        )
+        + "<p class='table-note'>Strict Elo uses only the 23-event archived revision cohort. "
+        "Captured Elo and logistic use the larger result history and a separate retrospective "
+        "holdout. Differences reflect data scope, not a validated betting edge. "
+        "Book counts describe the saved September snapshot; no price is verified executable. "
+        "The five held matchups are excluded from the probability table.</p>"
+        "</section>", unsafe_allow_html=True,
+    )
 
 
 def _render_research_holdout(snapshot: Mapping[str, Any]) -> None:
