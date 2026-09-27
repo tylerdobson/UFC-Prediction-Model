@@ -36,7 +36,34 @@ UFC332_CAPTURED_REPORT_PATH = Path(os.environ.get(
     "UFC_MODEL_UFC332_CAPTURED_REPORT",
     "reports/ufc332-captured-forward-research-20260926-sealed-v2.json",
 ))
+_UFC332_FRESH_FILES = {
+    "card_manifest": "data/raw/ufc332-odds-20260927T1602Z/card-with-odds-manifest.json",
+    "odds_manifest": "data/raw/ufc332-odds-20260927T1602Z/odds-intake-manifest.json",
+    "card_csv": "data/raw/ufc332-odds-20260927T1602Z/reviewed-card-template.csv",
+}
+_UFC332_FRESH_STRICT = Path("reports/ufc332-forward-research-20260927T1601Z.json")
+_UFC332_FRESH_FULL = Path("reports/ufc332-forward-research-full-20260927T1601Z.json")
 CSS_PATH = Path(__file__).with_name("dashboard.css")
+
+
+def _ufc332_forward_selection() -> tuple[Path, Path, dict[str, str] | None]:
+    """Select the newer sealed snapshot only when every required input exists."""
+    overrides = {
+        key: os.environ.get(name)
+        for key, name in (
+            ("card_manifest", "UFC_MODEL_UFC332_CARD_MANIFEST"),
+            ("odds_manifest", "UFC_MODEL_UFC332_ODDS_MANIFEST"),
+            ("card_csv", "UFC_MODEL_UFC332_CARD_CSV"),
+        ) if os.environ.get(name)
+    }
+    if (not os.environ.get("UFC_MODEL_UFC332_STRICT_REPORT")
+            and not os.environ.get("UFC_MODEL_UFC332_CAPTURED_REPORT")
+            and all(path.is_file() for path in (
+                _UFC332_FRESH_STRICT, _UFC332_FRESH_FULL,
+                *(Path(value) for value in _UFC332_FRESH_FILES.values()),
+            ))):
+        return _UFC332_FRESH_STRICT, _UFC332_FRESH_FULL, dict(_UFC332_FRESH_FILES)
+    return UFC332_STRICT_REPORT_PATH, UFC332_CAPTURED_REPORT_PATH, overrides or None
 
 
 def _text(value: Any, fallback: str = "—") -> str:
@@ -723,9 +750,11 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
 
 def _render_ufc332_forward_research() -> None:
     """Show saved forward research alongside, never inside, operating predictions."""
+    strict_path, full_path, evidence_files = _ufc332_forward_selection()
     report = load_ufc332_forward_research(
-        UFC332_STRICT_REPORT_PATH, UFC332_CAPTURED_REPORT_PATH,
+        strict_path, full_path,
         evidence_root=Path(__file__).resolve().parent,
+        evidence_files=evidence_files,
     )
     if report.get("status") != "available":
         st.markdown(
@@ -738,6 +767,20 @@ def _render_ufc332_forward_research() -> None:
         return
     strict = _mapping(report.get("strict_history_scope"))
     captured = _mapping(report.get("captured_history_scope"))
+    if report.get("capture_receipts_verified"):
+        capture_note = (
+            "The source card, fighter lookup, and odds response have hash-checked capture "
+            "receipts recorded before the event start. The saved prices are a research "
+            "snapshot and are not verified executable. Verify the current roster and market "
+            "independently."
+        )
+    else:
+        capture_note = (
+            "The prices were captured on Sep 26 for an Oct 3 event and are stale for "
+            "event-day decisions. The target fighter ID lookup is hash-verified, but its "
+            "fetch time was not independently recorded, so availability at the saved odds "
+            "cutoff is unproven. Verify the current roster and market independently."
+        )
     rows = []
     for row in report.get("rows") or []:
         strict_prior = row.get("strict_prior_bouts") or (0, 0)
@@ -755,10 +798,7 @@ def _render_ufc332_forward_research() -> None:
         "<section class='panel'><h2>UFC 332 forward research · exploratory only</h2>"
         "<div class='notice'><strong>No betting alert or model promotion.</strong> "
         "These forecasts use a provisional community card and saved week-ahead odds. "
-        "The prices were captured on Sep 26 for an Oct 3 event and are stale for event-day decisions. "
-        "The target fighter ID lookup is hash-verified, but its fetch time was not independently "
-        "recorded, so availability at the saved odds cutoff is unproven. "
-        "Verify the current roster and market independently.</div>"
+        f"{_esc(capture_note)}</div>"
         f"<p>Both scenarios use the saved {_esc(_utc(report.get('cutoff_at_utc')))} cutoff. "
         f"The strict scope has {_esc(strict.get('events'))} archived events and "
         f"{_esc(strict.get('stable_id_result_bouts'))} stable-ID result bouts, "
@@ -781,7 +821,7 @@ def _render_ufc332_forward_research() -> None:
         + "<p class='table-note'>Strict Elo uses only the 23-event archived revision cohort. "
         "Captured Elo and logistic use the larger result history and a separate retrospective "
         "holdout. Differences reflect data scope, not a validated betting edge. "
-        "Book counts describe the saved September snapshot; no price is verified executable. "
+        "Book counts describe the saved odds snapshot; no price is verified executable. "
         "The five held matchups are excluded from the probability table.</p>"
         "</section>", unsafe_allow_html=True,
     )

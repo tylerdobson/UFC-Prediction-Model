@@ -21,7 +21,7 @@ The UFC 332 template is already present on the current operator workstation. Ins
 
 The script accepts only fight-card rows whose **two Wikipedia fighter page IDs** resolved in the saved Action API response. It checks every CSV position, name, stable ID, weight class, source revision, observation time, license, and start time against the saved source. A held or altered row fails before the database is created. An operator can delete eligible rows from the CSV after review; the report then counts them as eligible but unselected. The script never invents IDs for unlinked names.
 
-The optional odds replay verifies the original response hash and original capture time (`2026-09-26T22:47:55Z`). It saves an exact-response receipt and passes only the selected, exact or accent-normalized pairings through the existing odds importer. Alias and spelling cases remain held. These week-ahead prices are observations, not current or executable quotes. Remove `--odds-manifest` to import only the card. The importer does not score, alert, or paper-trade.
+The optional odds replay verifies the original response hash and capture time. New captures also verify a separate fetch receipt. It saves exact response bytes and passes only selected, exact or accent-normalized pairings through the existing odds importer. Alias and spelling cases remain held. These week-ahead prices are observations, not current or executable quotes. Remove `--odds-manifest` to import only the card. The importer does not score, alert, or paper-trade.
 
 ## Current review and timing state
 
@@ -39,7 +39,64 @@ The [official UFC event listing](https://www.ufc.com/event/ufc-332) and [watch s
 
 The manual name holds are material. Wikipedia spells **Bernardo Sopaj**, while the [official UFC athlete page](https://www.ufc.com/athlete/benardo-sopaj) and saved odds say **Benardo Sopaj**. The odds response also says **Michael Parkin** where the card says Mick Parkin, and **Alex Hernandez** where it says Alexander Hernandez. The script does not silently map these names. The saved odds response lacks bouts for Roberto Soldić vs. Khaos Williams, Ateba Gautier vs. Roman Kopylov, and Anthony Wint vs. Lucas Armand.
 
-## Two forward research replays at the saved cutoff
+## Fresh timestamped card capture
+
+The first September 26 lookup response was hash verified but did not have a retained fetch timestamp. The new capture command records separate post-response UTC receipts for both the MediaWiki page and its fighter-title lookup. It verifies the existing manifest for event identity and official start, then fetches a fresh page and linked identities into a **new** directory. It copies no old odds comparison or reviewer decision:
+
+```bash
+.venv/bin/python -m scripts.capture_prefight_card \
+  --seed-manifest data/raw/ufc332-intake/manifest.json \
+  --output-dir data/raw/ufc332-intake-NEW-UNIQUE-NAME
+```
+
+The September 27 local capture at `2026-09-27T15:56:16Z` returned the same source revision and 13 matchups as the earlier snapshot. Eight rows have both linked page IDs; five remain on identity hold. Both response hashes and fetched-at receipts verify. Its unreviewed manifest is under ignored `data/raw/ufc332-intake-20260927T1556Z/`. A template and separate provisional database were created from it with eight unreviewed bouts, six verified receipts, **no imported quotes**, and zero alerts or paper decisions. The [official UFC event listing](https://www.ufc.com/event/ufc-332) still shows the same 13 matchups as of this check. This capture improves the target identity timing evidence but does not approve the roster or convert the older September 26 odds into a usable September 27 market.
+
+To create a candidate template and provisional import for another fresh capture, use the verified new manifest, a fresh CSV path, and a fresh output directory. Leave `--odds-manifest` out until a newly captured odds snapshot has been matched to that exact card and its capture follows both card and lookup receipts.
+
+## September 27 card plus live odds scenario
+
+After the timestamped card lookup, one server-side The Odds API call returned a new response at `2026-09-27T16:01:50Z`. The command saved its exact bytes, a separate key-free fetch receipt, an odds intake manifest, and a new card manifest with the comparison bound to that odds manifest. It did not modify the earlier capture:
+
+```bash
+.venv/bin/python -m scripts.capture_prefight_odds \
+  --card-manifest data/raw/ufc332-intake-20260927T1556Z/manifest.json \
+  --output-dir data/raw/ufc332-odds-NEW-UNIQUE-NAME
+```
+
+The ignored `data/raw/ufc332-odds-20260927T1602Z/` snapshot has 29 MMA events, of which 10 were future events on the card's local date. Of the 13 saved UFC card rows, four matched by exact fighter pair and had a usable named-book, two-sided market; three have alias or opponent review holds, three lack an event in this response, and three have unresolved source identity. The eight linked-ID rows remain **unreviewed**. The isolated provisional import at `data/raw/ufc332-pilot-20260927T1602Z/` retained 40 quote rows and 10 verified receipts, with zero alerts, predictions, paper decisions, or bets. Its verified portable evidence bundle is `backups/ufc332-timestamped-card-odds-20260927T1602Z.zip` (SHA-256 `a312ac1bbe7fdacc287f7f536a571fbde85ca3269f7793c4743391be575482d2`). These ignored local artifacts and the API key are not in Git.
+
+Rebuild the same paper-only scenario from the retained raw evidence with a **new** output directory:
+
+```bash
+.venv/bin/python -m scripts.import_reviewed_prefight_card template \
+  --manifest data/raw/ufc332-odds-20260927T1602Z/card-with-odds-manifest.json \
+  --output NEW-UNREVIEWED.csv
+.venv/bin/python -m scripts.import_reviewed_prefight_card import \
+  --manifest data/raw/ufc332-odds-20260927T1602Z/card-with-odds-manifest.json \
+  --csv NEW-UNREVIEWED.csv \
+  --odds-manifest data/raw/ufc332-odds-20260927T1602Z/odds-intake-manifest.json \
+  --output-dir data/raw/ufc332-pilot-NEW-UNIQUE-NAME --provisional
+```
+
+Both research replays were rebuilt at the **exact** odds cutoff `2026-09-27T16:01:50Z`. The strict replay verified 23 of 23 prior result revision proofs (287 result rows, 118 with stable IDs) and gave exploratory Elo forecasts for eight selected bouts, four with saved two-sided books. The full-history replay checked 790 completed events and 7,258 accepted result bouts before applying its existing holdout-tested research model to the same card. Both new reports are research-only, fail closed, and have no promotion or alert eligibility. The target fighter lookup timing is now proven at this cutoff, while linked fighter identities still need human review; retrospective historical identity availability, dated historical prices, and event-day executable quotes remain unproven. The local reports are `reports/ufc332-forward-research-20260927T1601Z.json` and `reports/ufc332-forward-research-full-20260927T1601Z.json`.
+
+```bash
+.venv/bin/python -m scripts.fetch_historical_matrix \
+  --forward-cutoff-utc 2026-09-27T16:01:50Z
+.venv/bin/python -m ufc_odds_model.archived_forward_replay \
+  --card-manifest data/raw/ufc332-odds-20260927T1602Z/card-with-odds-manifest.json \
+  --card-csv data/raw/ufc332-odds-20260927T1602Z/reviewed-card-template.csv \
+  --odds-manifest data/raw/ufc332-odds-20260927T1602Z/odds-intake-manifest.json \
+  --expected-capture-at-utc 2026-09-27T16:01:50Z \
+  --output reports/NEW-STRICT-REPORT.json
+.venv/bin/python -m ufc_odds_model.captured_forward_history \
+  --card-manifest data/raw/ufc332-odds-20260927T1602Z/card-with-odds-manifest.json \
+  --selected-csv data/raw/ufc332-odds-20260927T1602Z/reviewed-card-template.csv \
+  --odds-manifest data/raw/ufc332-odds-20260927T1602Z/odds-intake-manifest.json \
+  --output reports/NEW-FULL-REPORT.json
+```
+
+## Earlier September 26 forward research replays
 
 The saved card was captured at `2026-09-26T22:47:45Z`, and its odds response at
 `2026-09-26T22:47:55Z`. A result revision selected for 23:00 UTC cannot be

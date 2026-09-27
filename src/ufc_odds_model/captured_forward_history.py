@@ -376,6 +376,13 @@ def replay_captured_card(
         "odds_manifest_sha256": hashlib.sha256(odds["manifest_bytes"]).hexdigest(),
         "odds_response_sha256": hashlib.sha256(odds["raw_bytes"]).hexdigest(),
     })
+    result["limits"] = [
+        ("The target-card fighter lookup response is hash-verified but lacks a retained fetch timestamp; its availability at the saved odds cutoff is unproven."
+         if verified.get("lookup_fetched_at_utc") is None else
+         "The target-card fighter lookup has a verified fetch timestamp before the saved odds cutoff; linked IDs still require human identity review.")
+        if "target-card fighter lookup" in limit else limit
+        for limit in result["limits"]
+    ]
     # An altered roster or price after the model walk invalidates the report.
     if (verify_manifest(card_path)["manifest_bytes"] != verified["manifest_bytes"]
             or _odds_input(odds_path.resolve(), verified)["raw_bytes"] != odds["raw_bytes"]

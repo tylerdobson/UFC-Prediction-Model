@@ -67,9 +67,12 @@ class DashboardAppSmokeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary, patch(
             "ufc_odds_model.dashboard_data.load_ufc332_forward_research",
             return_value=report,
-        ) as loader, patch.dict(os.environ, {}) as environ:
-            environ.pop("UFC_MODEL_UFC332_STRICT_REPORT", None)
-            environ.pop("UFC_MODEL_UFC332_CAPTURED_REPORT", None)
+        ) as loader, patch.dict(os.environ, {
+            "UFC_MODEL_UFC332_STRICT_REPORT":
+                "reports/ufc332-forward-research-20260926-sealed-v2.json",
+            "UFC_MODEL_UFC332_CAPTURED_REPORT":
+                "reports/ufc332-captured-forward-research-20260926-sealed-v2.json",
+        }):
             app = self._run_app(
                 Path(temporary) / "missing.sqlite", Path(temporary) / "missing.json",
             )
@@ -90,6 +93,50 @@ class DashboardAppSmokeTests(unittest.TestCase):
         self.assertIn("availability at the saved odds cutoff is unproven", evidence_markup)
         self.assertNotIn("UFC 332 forward research", other_markup)
         self.assertNotIn("Fighter A8 vs Fighter B8", other_markup)
+
+    def test_new_forward_capture_is_default_when_all_inputs_exist(self) -> None:
+        paths = (
+            Path("reports/ufc332-forward-research-20260927T1601Z.json"),
+            Path("reports/ufc332-forward-research-full-20260927T1601Z.json"),
+            Path("data/raw/ufc332-odds-20260927T1602Z/card-with-odds-manifest.json"),
+            Path("data/raw/ufc332-odds-20260927T1602Z/odds-intake-manifest.json"),
+            Path("data/raw/ufc332-odds-20260927T1602Z/reviewed-card-template.csv"),
+        )
+        original_is_file = Path.is_file
+
+        def present_for_selection(path: Path) -> bool:
+            return path in paths or original_is_file(path)
+
+        report = {
+            "status": "available", "cutoff_at_utc": "2026-09-27T16:01:50Z",
+            "capture_receipts_verified": True,
+            "strict_history_scope": {"events": 23, "stable_id_result_bouts": 118},
+            "captured_history_scope": {"events": 790, "accepted_result_bouts": 7258},
+            "source_card_bouts": 13, "selected_card_bouts": 8,
+            "identity_hold_positions": [9, 10, 11, 12, 13],
+            "selected_bouts_with_two_sided_saved_books": 4,
+            "rows": [],
+        }
+        with tempfile.TemporaryDirectory() as temporary, patch.object(
+            Path, "is_file", present_for_selection,
+        ), patch(
+            "ufc_odds_model.dashboard_data.load_ufc332_forward_research",
+            return_value=report,
+        ) as loader, patch.dict(os.environ, {}) as environ:
+            environ.pop("UFC_MODEL_UFC332_STRICT_REPORT", None)
+            environ.pop("UFC_MODEL_UFC332_CAPTURED_REPORT", None)
+            app = self._run_app(
+                Path(temporary) / "missing.sqlite", Path(temporary) / "missing.json",
+            )
+        self.assertEqual(list(app.exception), [])
+        self.assertEqual(loader.call_args.args[:2], paths[:2])
+        self.assertEqual(loader.call_args.kwargs["evidence_files"], {
+            "card_manifest": str(paths[2]), "odds_manifest": str(paths[3]),
+            "card_csv": str(paths[4]),
+        })
+        markup = "\n".join(item.value for item in app.tabs[2].markdown)
+        self.assertIn("hash-checked capture receipts", markup)
+        self.assertNotIn("availability at the saved odds cutoff is unproven", markup)
 
     def test_imported_history_is_visible_and_labelled_research_only(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

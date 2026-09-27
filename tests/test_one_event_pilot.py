@@ -172,6 +172,73 @@ class OneEventPilotTests(unittest.TestCase):
             writer.writerows(rows)
         return path
 
+    def _add_capture_receipts(self, *, lookup_at: str = "2026-09-26T10:00:30Z") -> None:
+        manifest = json.loads(self.manifest_path.read_text())
+        for key, fetched_at in (("source", manifest["captured_at_utc"]),
+                                ("fighter_lookup", lookup_at)):
+            info = manifest[key]
+            receipt_path = self.root / f"{key}-fetch-receipt.json"
+            receipt_sha = _save_json(receipt_path, {
+                "schema_version": 1, "request_url": info["api_url"],
+                "response_sha256": info["raw_sha256"],
+                "fetched_at_utc": fetched_at,
+            })
+            info.update({"receipt_path": str(receipt_path),
+                         "receipt_sha256": receipt_sha,
+                         "fetched_at_utc": fetched_at})
+        _save_json(self.manifest_path, manifest)
+
+    def test_timestamped_capture_receipts_survive_provisional_import(self) -> None:
+        self._add_capture_receipts()
+        verified = verify_manifest(self.manifest_path)
+        self.assertEqual(verified["lookup_fetched_at_utc"], "2026-09-26T10:00:30Z")
+        csv_path = self._reviewed_csv()
+        output = self.root / "receipt-pilot"
+        report = run_import(self.manifest_path, csv_path, output, self.odds_path)
+        self.assertEqual(report["fighter_lookup_fetched_at_utc"],
+                         "2026-09-26T10:00:30Z")
+        self.assertEqual(report["receipt_count"], 9)
+        with sqlite3.connect(output / "paper-intake.sqlite") as connection:
+            rows = connection.execute(
+                "SELECT source, snapshot_at_utc FROM ingestion_runs "
+                "WHERE source LIKE '%fetch-receipt' ORDER BY source"
+            ).fetchall()
+        self.assertEqual(rows, [
+            ("wikipedia-prefight-lookup-fetch-receipt", "2026-09-26T10:00:30Z"),
+            ("wikipedia-prefight-rest-fetch-receipt", "2026-09-26T10:00:00Z"),
+        ])
+
+    def test_odds_must_not_precede_timestamped_fighter_lookup(self) -> None:
+        self._add_capture_receipts(lookup_at="2026-09-26T10:02:00Z")
+        csv_path = self._reviewed_csv()
+        output = self.root / "invalid-chronology"
+        with self.assertRaisesRegex(ValueError, "predates the verified fighter lookup"):
+            run_import(self.manifest_path, csv_path, output, self.odds_path)
+        self.assertFalse(output.exists())
+
+    def test_odds_must_not_precede_card_capture(self) -> None:
+        manifest = json.loads(self.manifest_path.read_text())
+        manifest["captured_at_utc"] = "2026-09-26T10:02:00Z"
+        _save_json(self.manifest_path, manifest)
+        csv_path = self._reviewed_csv()
+        output = self.root / "card-after-odds"
+        with self.assertRaisesRegex(ValueError, "predates the saved card capture"):
+            run_import(self.manifest_path, csv_path, output, self.odds_path)
+        self.assertFalse(output.exists())
+
+    def test_changed_capture_receipt_or_partial_metadata_is_rejected(self) -> None:
+        self._add_capture_receipts()
+        manifest = json.loads(self.manifest_path.read_text())
+        receipt_path = Path(manifest["fighter_lookup"]["receipt_path"])
+        receipt_path.write_text(receipt_path.read_text().replace(
+            "2026-09-26T10:00:30Z", "2026-09-26T10:02:00Z"))
+        with self.assertRaisesRegex(ValueError, "SHA-256 mismatch"):
+            verify_manifest(self.manifest_path)
+        manifest["fighter_lookup"].pop("receipt_sha256")
+        _save_json(self.manifest_path, manifest)
+        with self.assertRaisesRegex(ValueError, "receipt is incomplete"):
+            verify_manifest(self.manifest_path)
+
     def test_replays_source_csv_and_saved_odds_into_new_database(self) -> None:
         csv_path = self._reviewed_csv()
         output = self.root / "new-pilot"

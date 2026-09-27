@@ -296,6 +296,11 @@ def replay_forward(
         "historical_result_rows_sha256": _json_digest(history) if ready else None,
         "exact_cutoff_proof_failures": proof_failures,
     }
+    lookup_limit = (
+        "The target-card fighter lookup response is hash-verified but lacks a retained fetch timestamp; its availability at the saved odds cutoff is unproven."
+        if verified.get("lookup_fetched_at_utc") is None else
+        "The target-card fighter lookup has a verified fetch timestamp before the saved odds cutoff; linked IDs still require human identity review."
+    )
     return {
         "schema_version": 1, "replay_version": REPLAY_VERSION,
         "status": "research_only" if ready else "held_incomplete_exact_cutoff_history",
@@ -340,7 +345,7 @@ def replay_forward(
             "Odds are saved observations from a prior week, not executable event-day offers.",
             "The April 2026-start historical cohort omits earlier fighter career results.",
             "Retrospective fighter identity lookup does not prove identity availability at each old event cutoff.",
-            "The target-card fighter lookup response is hash-verified but lacks a retained fetch timestamp; its availability at the saved odds cutoff is unproven.",
+            lookup_limit,
             "Historical publisher revisions were downloaded after this saved decision time; their actual fetch times are retained.",
             "The historical holdout was small and showed no useful betting edge; this report cannot promote Elo.",
             "No stake, betting edge, historical bookmaker return, or ROI is inferred.",
@@ -365,12 +370,15 @@ def main(argv: list[str] | None = None) -> int:
                         default=Path("data/ufc_research_2011_2025.sqlite"))
     parser.add_argument("--raw-root", type=Path,
                         default=Path("data/raw/historical-revisions"))
+    parser.add_argument("--expected-capture-at-utc", default=UFC332_ODDS_CAPTURE,
+                        help="Exact saved odds capture time used for every prior result proof")
     parser.add_argument("--output", type=Path, required=True,
                         help="New report path; refuses overwrite")
     args = parser.parse_args(argv)
     try:
         report = replay_forward(args.manifest, args.card_manifest, args.card_csv,
-                                args.odds_manifest, args.research_db, args.raw_root)
+                                args.odds_manifest, args.research_db, args.raw_root,
+                                expected_capture_at_utc=args.expected_capture_at_utc)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         with args.output.open("x", encoding="utf-8") as stream:
             json.dump(report, stream, indent=2, ensure_ascii=False, sort_keys=True)

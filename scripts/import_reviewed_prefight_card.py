@@ -73,8 +73,8 @@ def _resolve_file(manifest_path: Path, stated_path: object) -> Path:
     path = Path(stated_path).expanduser()
     if path.is_absolute():
         return path
-    from_cwd = Path.cwd() / path
-    return from_cwd if from_cwd.exists() else manifest_path.parent / path
+    beside_manifest = manifest_path.parent / path
+    return beside_manifest if beside_manifest.exists() else Path.cwd() / path
 
 
 def _checked_bytes(path: Path, expected_sha: object, label: str) -> bytes:
@@ -98,6 +98,33 @@ def _timestamp(value: object, label: str) -> datetime:
     if utc_string(parsed) != value:
         raise ValueError(f"{label} must use canonical UTC Z format")
     return parsed
+
+
+def _capture_receipt(manifest_path: Path, info: dict, response: bytes,
+                     request_url: str, label: str) -> tuple[bytes | None, datetime | None]:
+    """Verify an optional, content-bound network receipt for a new capture.
+
+    Older one-event manifests have no receipt and remain provisional. A partial
+    receipt is rejected; a filename or timestamp alone cannot prove a fetch.
+    """
+    fields = (info.get("receipt_path"), info.get("receipt_sha256"),
+              info.get("fetched_at_utc"))
+    if all(value is None for value in fields):
+        return None, None
+    if any(value is None for value in fields):
+        raise ValueError(f"{label} capture receipt is incomplete")
+    path = _resolve_file(manifest_path, fields[0])
+    receipt_bytes = _checked_bytes(path, fields[1], f"{label} capture receipt")
+    try:
+        receipt = json.loads(receipt_bytes)
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"{label} capture receipt is invalid JSON") from exc
+    if (not isinstance(receipt, dict) or receipt.get("schema_version") != 1
+            or receipt.get("request_url") != request_url
+            or receipt.get("response_sha256") != hashlib.sha256(response).hexdigest()
+            or receipt.get("fetched_at_utc") != fields[2]):
+        raise ValueError(f"{label} capture receipt differs from response or manifest")
+    return receipt_bytes, _timestamp(fields[2], f"{label} fetch")
 
 
 def _verified_start(manifest: dict) -> datetime:
@@ -175,7 +202,10 @@ def _source_rows(page: dict) -> list[dict]:
 
 def verify_manifest(manifest_path: str | Path) -> dict:
     """Verify saved source bytes and the manifest's derived event/fighter claims."""
-    path = Path(manifest_path).expanduser().resolve()
+    requested = Path(manifest_path).expanduser()
+    if requested.is_symlink():
+        raise ValueError("One-event manifest must not be a symlink")
+    path = requested.resolve()
     manifest_bytes, manifest = _read_json(path, "One-event manifest")
     event = manifest.get("event") or {}
     source_info = manifest.get("source") or {}
@@ -222,6 +252,10 @@ def verify_manifest(manifest_path: str | Path) -> dict:
     start = _verified_start(manifest)
     if not revised <= captured < start:
         raise ValueError("Source revision/capture must precede the advertised card start")
+    source_receipt_bytes, source_fetched = _capture_receipt(
+        path, source_info, raw_bytes, api_url, "MediaWiki REST source")
+    if source_fetched is not None and source_fetched != captured:
+        raise ValueError("Source capture time differs from its network receipt")
 
     parsed_rows = _source_rows(page)
     stated_rows = manifest.get("fight_card_rows")
@@ -241,6 +275,10 @@ def verify_manifest(manifest_path: str | Path) -> dict:
         raise ValueError("Fighter lookup URL is not the MediaWiki Action API")
     if not isinstance(lookup, dict) or "query" not in lookup:
         raise ValueError("MediaWiki fighter lookup has no query results")
+    lookup_receipt_bytes, lookup_fetched = _capture_receipt(
+        path, lookup_info, lookup_bytes, lookup_url, "MediaWiki fighter lookup")
+    if lookup_fetched is not None and not captured <= lookup_fetched < start:
+        raise ValueError("Fighter lookup fetch must follow the card capture and precede card start")
     # The existing resolver constructs its one <=50-title request. Bind that
     # request to the recorded URL so a lookup for different titles fails.
     if len(titles) > 50:
@@ -282,6 +320,9 @@ def verify_manifest(manifest_path: str | Path) -> dict:
         raise ValueError("Manifest card coverage summary does not reconcile")
     return {"manifest": manifest, "manifest_bytes": manifest_bytes,
             "raw_bytes": raw_bytes, "lookup_bytes": lookup_bytes,
+            "source_receipt_bytes": source_receipt_bytes,
+            "lookup_receipt_bytes": lookup_receipt_bytes,
+            "lookup_fetched_at_utc": utc_string(lookup_fetched) if lookup_fetched else None,
             "eligible": eligible, "card_count": len(parsed_rows),
             "event_start_utc": utc_string(start)}
 
@@ -371,6 +412,8 @@ def _selected_rows(csv_path: Path, verified: dict, *, provisional: bool) -> list
 
 
 def _odds_input(odds_manifest_path: Path, verified: dict) -> dict:
+    if odds_manifest_path.is_symlink():
+        raise ValueError("Odds intake manifest must not be a symlink")
     comparison = verified["manifest"].get("odds_coverage_comparison") or {}
     expected_manifest_sha = comparison.get("source_manifest_sha256")
     odds_manifest_bytes = _checked_bytes(odds_manifest_path, expected_manifest_sha,
@@ -378,12 +421,40 @@ def _odds_input(odds_manifest_path: Path, verified: dict) -> dict:
     odds_manifest = json.loads(odds_manifest_bytes)
     raw_path = _resolve_file(odds_manifest_path, odds_manifest.get("raw_path"))
     raw_bytes = _checked_bytes(raw_path, odds_manifest.get("sha256"), "Exact Odds API response")
+    receipt_fields = (odds_manifest.get("receipt_path"), odds_manifest.get("receipt_sha256"))
+    receipt_bytes = None
+    if any(value is not None for value in receipt_fields):
+        if any(value is None for value in receipt_fields):
+            raise ValueError("Odds capture receipt is incomplete")
+        receipt_path = _resolve_file(odds_manifest_path, receipt_fields[0])
+        receipt_bytes = _checked_bytes(receipt_path, receipt_fields[1],
+                                       "Odds capture receipt")
+        try:
+            receipt = json.loads(receipt_bytes)
+        except (UnicodeError, json.JSONDecodeError) as exc:
+            raise ValueError("Odds capture receipt is invalid JSON") from exc
+        expected_receipt = {
+            "schema_version": 1,
+            "provider": "the-odds-api",
+            "sport_key": "mma_mixed_martial_arts",
+            "market": "h2h",
+            "region": odds_manifest.get("region"),
+            "fetched_at_utc": odds_manifest.get("captured_at_utc"),
+            "response_sha256": hashlib.sha256(raw_bytes).hexdigest(),
+        }
+        if receipt != expected_receipt or odds_manifest.get("source") != "the-odds-api":
+            raise ValueError("Odds capture receipt differs from response or manifest")
     payload = json.loads(raw_bytes)
     if not isinstance(payload, list) or not all(isinstance(item, dict) for item in payload):
         raise ValueError("Saved Odds API response must be an MMA events list")
     captured = _timestamp(odds_manifest.get("captured_at_utc"), "Odds capture")
+    if captured < _timestamp(verified["manifest"]["captured_at_utc"], "Source capture"):
+        raise ValueError("Odds snapshot predates the saved card capture")
     if captured >= _timestamp(verified["event_start_utc"], "Card start"):
         raise ValueError("Odds snapshot was captured at or after card start")
+    lookup_fetched = verified.get("lookup_fetched_at_utc")
+    if lookup_fetched is not None and _timestamp(lookup_fetched, "Fighter lookup fetch") > captured:
+        raise ValueError("Odds snapshot predates the verified fighter lookup fetch")
     if comparison.get("odds_capture_at_utc") != utc_string(captured):
         raise ValueError("Odds capture time differs from source comparison")
     indexed = {str(item.get("id")): item for item in payload}
@@ -401,6 +472,7 @@ def _odds_input(odds_manifest_path: Path, verified: dict) -> dict:
         return "".join(char for char in unicodedata.normalize("NFKD", name.casefold())
                        if not unicodedata.combining(char))
 
+    safe_event_ids: set[str] = set()
     for item in comparison_rows:
         if not isinstance(item, dict) or item.get("position") not in source_rows:
             raise ValueError("Odds comparison has an unknown card position")
@@ -411,6 +483,9 @@ def _odds_input(odds_manifest_path: Path, verified: dict) -> dict:
         if status in {"exact", "accent_normalization"}:
             if not event_id:
                 raise ValueError("Safe odds comparison has no event ID")
+            if event_id in safe_event_ids:
+                raise ValueError("Safe odds comparison reuses an event ID")
+            safe_event_ids.add(event_id)
             event = indexed[event_id]
             if event.get("sport_key") != "mma_mixed_martial_arts":
                 raise ValueError("Saved odds event is not MMA")
@@ -428,6 +503,7 @@ def _odds_input(odds_manifest_path: Path, verified: dict) -> dict:
                 raise ValueError("Accent odds comparison differs from source fighters")
             _timestamp(event.get("commence_time"), "Odds event commence time")
     return {"manifest_bytes": odds_manifest_bytes, "raw_bytes": raw_bytes,
+            "receipt_bytes": receipt_bytes,
             "payload": payload, "captured_at_utc": utc_string(captured),
             "comparison": comparison_by_position, "events": indexed}
 
@@ -451,7 +527,7 @@ def run_import(manifest_path: str | Path, csv_path: str | Path, output_dir: str 
     selected = _selected_rows(Path(csv_path).expanduser(), verified,
                               provisional=provisional)
     selected_positions = {int(row["source_position"]) for row in selected}
-    odds = (_odds_input(Path(odds_manifest_path).expanduser().resolve(), verified)
+    odds = (_odds_input(Path(odds_manifest_path).expanduser(), verified)
             if odds_manifest_path else None)
     target = Path(output_dir).expanduser()
     if target.exists() or target.is_symlink():
@@ -475,9 +551,19 @@ def run_import(manifest_path: str | Path, csv_path: str | Path, output_dir: str 
             _source_receipt(connection, source="wikipedia-prefight-rest",
                             payload=verified["raw_bytes"], raw_dir=raw_dir / "wikipedia",
                             snapshot_at_utc=snapshot_at)
+            if verified["source_receipt_bytes"] is not None:
+                _source_receipt(connection, source="wikipedia-prefight-rest-fetch-receipt",
+                                payload=verified["source_receipt_bytes"],
+                                raw_dir=raw_dir / "wikipedia",
+                                snapshot_at_utc=snapshot_at)
             _source_receipt(connection, source="wikipedia-prefight-fighter-lookup",
                             payload=verified["lookup_bytes"], raw_dir=raw_dir / "wikipedia",
-                            snapshot_at_utc=snapshot_at)
+                            snapshot_at_utc=verified["lookup_fetched_at_utc"] or snapshot_at)
+            if verified["lookup_receipt_bytes"] is not None:
+                _source_receipt(connection, source="wikipedia-prefight-lookup-fetch-receipt",
+                                payload=verified["lookup_receipt_bytes"],
+                                raw_dir=raw_dir / "wikipedia",
+                                snapshot_at_utc=verified["lookup_fetched_at_utc"])
             imported = import_bouts_csv(connection, csv_path, raw_dir / "reviewed-csv")
             odds_result = None
             if odds is not None:
@@ -487,6 +573,11 @@ def run_import(manifest_path: str | Path, csv_path: str | Path, output_dir: str 
                 _source_receipt(connection, source="the-odds-api-exact-response",
                                 payload=odds["raw_bytes"], raw_dir=raw_dir / "odds",
                                 snapshot_at_utc=odds["captured_at_utc"])
+                if odds["receipt_bytes"] is not None:
+                    _source_receipt(connection, source="the-odds-api-fetch-receipt",
+                                    payload=odds["receipt_bytes"],
+                                    raw_dir=raw_dir / "odds",
+                                    snapshot_at_utc=odds["captured_at_utc"])
                 safe_ids = {odds["comparison"][pos].get("odds_event_id")
                             for pos in selected_positions
                             if odds["comparison"][pos].get("status") in
@@ -516,6 +607,7 @@ def run_import(manifest_path: str | Path, csv_path: str | Path, output_dir: str 
             "reviewed_csv_path": str(Path(csv_path).expanduser().resolve()),
             "event_id": f"wikipedia_pilot:{verified['manifest']['event']['source_page_id']}",
             "official_conservative_event_start_utc": verified["event_start_utc"],
+            "fighter_lookup_fetched_at_utc": verified["lookup_fetched_at_utc"],
             "full_card_bouts": verified["card_count"],
             "source_linked_id_eligible_bouts": len(verified["eligible"]),
             "source_held_bouts": verified["card_count"] - len(verified["eligible"]),
@@ -532,7 +624,9 @@ def run_import(manifest_path: str | Path, csv_path: str | Path, output_dir: str 
             "odds_snapshot_card_coverage": comparison.get("summary") if comparison_rows else None,
             "odds_alias_or_name_hold_positions": sorted(
                 item["position"] for item in comparison_rows
-                if item.get("status") in {"alias_review_required", "source_name_discrepancy"}
+                if item.get("status") in {"alias_review_required", "source_name_discrepancy",
+                                          "alias_or_opponent_review_required",
+                                          "ambiguous_pair_review_required"}
             ),
             "odds_missing_positions": sorted(
                 item["position"] for item in comparison_rows

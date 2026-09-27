@@ -16,6 +16,8 @@ from ufc_odds_model.dashboard_data import (
 
 
 CAPTURE = "2026-09-26T22:47:55Z"
+FRESH_CAPTURE = "2026-09-27T16:01:50Z"
+FRESH_CARD_CAPTURE = "2026-09-27T15:56:16Z"
 
 
 def _saved(path: Path, body: bytes) -> str:
@@ -247,11 +249,83 @@ class DashboardForwardResearchTests(unittest.TestCase):
         _json(self.strict_path, self.strict)
         _json(self.full_path, self.full)
 
+    def _make_fresh_fixture(self) -> None:
+        """Move evidence to a second sealed snapshot with capture receipts."""
+        fresh = self.root / "data/raw/ufc332-fresh"
+        fresh.mkdir(parents=True)
+        old_card = json.loads((self.root / "data/raw/ufc332-intake/manifest.json").read_text())
+        old_odds = json.loads((self.root / "data/raw/ufc332-odds-intake/intake_manifest.json").read_text())
+        old_odds_bytes = (self.root / old_odds["raw_path"]).read_bytes()
+        _saved(fresh / "odds.response.json", old_odds_bytes)
+        odds_receipt = {
+            "schema_version": 1, "provider": "the-odds-api", "sport_key": "mma_mixed_martial_arts",
+            "market": "h2h", "region": "us", "response_sha256": old_odds["sha256"],
+            "fetched_at_utc": FRESH_CAPTURE,
+        }
+        old_odds.update({
+            "captured_at_utc": FRESH_CAPTURE, "raw_path": "odds.response.json",
+            "receipt_path": "odds.receipt.json", "receipt_sha256": _json(
+                fresh / "odds.receipt.json", odds_receipt), "region": "us",
+        })
+        odds_manifest_sha = _json(fresh / "odds-intake-manifest.json", old_odds)
+        old_card["captured_at_utc"] = FRESH_CARD_CAPTURE
+        for key, url, receipt_name in (
+            ("source", "https://en.wikipedia.org/w/rest.php/v1/page/UFC_332", "source.receipt.json"),
+            ("fighter_lookup", "https://en.wikipedia.org/w/api.php?action=query&titles=A", "lookup.receipt.json"),
+        ):
+            item = old_card[key]
+            receipt = {
+                "schema_version": 1, "request_url": url,
+                "response_sha256": item["raw_sha256"],
+                "fetched_at_utc": FRESH_CARD_CAPTURE,
+            }
+            item.update({
+                "api_url": url, "fetched_at_utc": FRESH_CARD_CAPTURE,
+                "receipt_path": str((fresh / receipt_name).relative_to(self.root)),
+                "receipt_sha256": _json(fresh / receipt_name, receipt),
+            })
+        old_card["odds_coverage_comparison"]["source_manifest_sha256"] = odds_manifest_sha
+        card_sha = _json(fresh / "card-with-odds-manifest.json", old_card)
+        csv_bytes = (self.root / "data/raw/ufc332-intake/reviewed-card-template.csv").read_bytes()
+        csv_sha = _saved(fresh / "reviewed-card-template.csv", csv_bytes)
+        self.evidence_files = {
+            "card_manifest": "data/raw/ufc332-fresh/card-with-odds-manifest.json",
+            "odds_manifest": "data/raw/ufc332-fresh/odds-intake-manifest.json",
+            "card_csv": "data/raw/ufc332-fresh/reviewed-card-template.csv",
+        }
+        inputs = self.strict["checked_inputs"]
+        inputs.update({
+            "card_manifest_sha256": card_sha, "odds_manifest_sha256": odds_manifest_sha,
+            "selected_card_csv_sha256": csv_sha,
+        })
+        self.strict.update({
+            "card_captured_at_utc": FRESH_CARD_CAPTURE,
+            "history_cutoff_at_utc": FRESH_CAPTURE,
+            "odds_captured_at_utc": FRESH_CAPTURE,
+            "checked_input_sha256": _forward_digest(inputs),
+        })
+        self.full.update({
+            "card_captured_at_utc": FRESH_CARD_CAPTURE,
+            "cutoff_at_utc": FRESH_CAPTURE,
+            "odds_captured_at_utc": FRESH_CAPTURE,
+            "card_manifest_sha256": card_sha,
+            "odds_manifest_sha256": odds_manifest_sha,
+            "selected_card_csv_sha256": csv_sha,
+        })
+        for row in self.strict_bouts:
+            for book in row["saved_two_sided_books"]:
+                book["captured_at_utc"] = FRESH_CAPTURE
+        self.strict["forecast_rows_sha256"] = _forward_digest(self.strict_bouts)
+        self.full["forecast_rows_sha256"] = _forward_digest(self.full_forecasts)
+        self._seal_full()
+        self._save_reports()
+
     def _load(self) -> dict:
         with patch("ufc_odds_model.dashboard_data._forward_strict_proofs"), patch(
             "ufc_odds_model.dashboard_data._forward_full_history"):
             return load_ufc332_forward_research(
                 self.strict_path, self.full_path, evidence_root=self.root,
+                evidence_files=getattr(self, "evidence_files", None),
             )
 
     def test_eight_research_rows_are_separate_and_source_bound(self) -> None:
@@ -294,6 +368,24 @@ class DashboardForwardResearchTests(unittest.TestCase):
     def test_missing_report_is_unavailable(self) -> None:
         self.full_path.unlink()
         self.assertEqual(self._load()["status"], "missing_report")
+
+    def test_fresh_snapshot_uses_exact_cutoff_and_receipts(self) -> None:
+        self._make_fresh_fixture()
+        view = self._load()
+        self.assertEqual(view["status"], "available")
+        self.assertEqual(view["cutoff_at_utc"], FRESH_CAPTURE)
+        self.assertTrue(view["capture_receipts_verified"])
+        self.assertEqual(view["fighter_lookup_fetched_at_utc"], FRESH_CARD_CAPTURE)
+
+    def test_fresh_snapshot_fails_closed_on_receipt_or_cutoff_change(self) -> None:
+        self._make_fresh_fixture()
+        receipt = self.root / "data/raw/ufc332-fresh/lookup.receipt.json"
+        receipt.write_text('{"modified":true}')
+        self.assertEqual(self._load()["status"], "stale_evidence")
+        self.strict["history_cutoff_at_utc"] = "2026-09-27T16:02:00Z"
+        self._save_reports()
+        self.assertEqual(self._load()["status"], "invalid_report")
+
 
 
 if __name__ == "__main__":
