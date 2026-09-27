@@ -56,23 +56,63 @@ and its [GitHub username allowlist](https://oauth2-proxy.github.io/oauth2-proxy/
    Do not allow 8501 or 4180. Install Docker Engine and Compose v2. Add a
    [read-only GitHub deploy key](https://docs.github.com/en/enterprise-cloud%40latest/authentication/connecting-to-github-with-ssh/managing-deploy-keys)
    for this private repository.
-2. For the **first** hosted snapshot, clone into the exact original absolute
-   directory:
-   `/Users/tylerjamesdobson/Documents/ChatGPT/Projects/UFC-Prediction-Model`.
-   Copy the current `data/`, `reports/`, and `docs/` to that same checkout path
-   over SSH, preserving filenames, bytes, and private file modes. Do **not** copy
-   `.env`, `ODDS_API_KEY`, provider keys, or workstation credential files. The
-   existing SQLite receipts and forward evidence refer to this absolute path;
-   moving or editing them invalidates their saved hashes. A portable rebase and
-   reseal process can replace this exact-path constraint later.
-3. Make a new standalone SQLite dashboard snapshot using the existing
-   [container deployment runbook](CONTAINER_DEPLOYMENT.md), retain its raw
-   receipts, and generate reports bound to that snapshot. Set `UFC_DB_FILE` to
-   its basename. Before publishing, run the existing deployment preflight on
-   the server and confirm the forward dashboard verifier returns `available`
-   for the copied research reports. A failed hash, missing receipt, SQLite
-   sidecar, or mismatched absolute path blocks release.
-4. Copy `deploy/hosted.env.example` to `deploy/hosted.env` on the server and fill
+2. Clone at a physical Linux path such as `/opt/ufc-prediction-model`. Copy the
+   current `data/`, `reports/`, and `docs/` into that checkout over SSH, keeping
+   filenames, bytes, and private modes. Also copy these two private bundles to
+   `backups/`: `ufc332-timestamped-card-odds-20260927T1602Z.zip` and
+   `ufc-research-1993-2026-current-20260927T162302Z.zip`. Check their SHA-256
+   digests against, respectively,
+   `a312ac1bbe7fdacc287f7f536a571fbde85ca3269f7793c4743391be575482d2`
+   and `2c1b9dfd0d0636e8f5c6ed9a910e00cf4062e65b8a1115e5888f122e0252c399`.
+   These archives and the copied source data are private and Git-ignored. Do
+   **not** copy `.env`, `ODDS_API_KEY`, provider keys, or workstation credentials.
+3. On the host, install Python 3.12 and the project's Python environment, then verify and
+   restore the two bundles to distinct new directories under `data/`. Do not
+   edit the archived database or the saved reports. The restore records its
+   receipt-path changes in `restore_report.json`; the unchanged copied research
+   database remains under `data/` for independent forward-report verification.
+
+   ```bash
+   python3.12 -m venv .venv
+   .venv/bin/python -m pip install -e .
+   .venv/bin/python -m ufc_odds_model.evidence_bundle verify --bundle backups/ufc332-timestamped-card-odds-20260927T1602Z.zip
+   .venv/bin/python -m ufc_odds_model.evidence_bundle verify --bundle backups/ufc-research-1993-2026-current-20260927T162302Z.zip
+   .venv/bin/python -m ufc_odds_model.evidence_bundle restore --bundle backups/ufc332-timestamped-card-odds-20260927T1602Z.zip --output data/restored-ufc332-pilot
+   .venv/bin/python -m ufc_odds_model.evidence_bundle restore --bundle backups/ufc-research-1993-2026-current-20260927T162302Z.zip --output data/restored-research-history
+   .venv/bin/python -m ufc_odds_model.integrity --db data/restored-ufc332-pilot/database.sqlite --output reports/integrity.json
+   .venv/bin/ufc-model --db data/restored-ufc332-pilot/database.sqlite evaluate --decision-hours-before-event 24 --output reports/evaluation.json
+   ```
+
+   The fresh operating evaluation should report insufficient historical
+   evidence for model promotion. Its report is bound to the restored pilot
+   database, while the retrospective holdout remains bound to the separate
+   research database.
+
+   Set `UFC_DB_FILE=restored-ufc332-pilot/database.sqlite`. Set
+   `UFC_HISTORY_DB_PATH` to the absolute path of the separately restored
+   `data/restored-research-history/database.sqlite`. Set
+   `UFC_FORWARD_SOURCE_ROOT` to the **original workstation checkout path**
+   embedded in the saved forward reports; the verifier maps those references
+   into the copied host checkout, checks every source byte and receipt, and
+   rejects missing files, links, or paths outside that root. The restored
+   history DB is read only in the web app and cannot supply operating alerts.
+4. Before publishing, run the combined preflight. It verifies both restored
+   databases, the research holdout, and every retained source used by the
+   copied Sep 27 forward reports. For this snapshot it should report 10
+   operating receipts, 2,837 research receipts, 790 completed research events,
+   7,258 results, and eight exploratory forward bouts.
+
+   ```bash
+   .venv/bin/python scripts/check_hosted_snapshot.py \
+     --root "$(pwd -P)" \
+     --original-root /Users/tylerjamesdobson/Documents/ChatGPT/Projects/UFC-Prediction-Model
+   ```
+
+   The [container deployment runbook](CONTAINER_DEPLOYMENT.md) explains the
+   single-file and receipt checks. A failed hash, missing receipt, SQLite
+   sidecar, or path mapping mismatch blocks release. These checks do not grant
+   data-source rights or establish a current executable quote.
+5. Copy `deploy/hosted.env.example` to `deploy/hosted.env` on the server and fill
    in its non-secret values. The actual file is Git-ignored. Create
    `deploy/secrets/github-client-secret` containing exactly the OAuth client
    secret with no newline and `deploy/secrets/cookie-secret` containing 32
@@ -80,7 +120,7 @@ and its [GitHub username allowlist](https://oauth2-proxy.github.io/oauth2-proxy/
    UID/GID and mode `0600`; `deploy/secrets/` is Git-ignored. OAuth2 Proxy
    supports [file-backed secrets](https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview/).
    The web stack gets **no** odds or fight-data provider key.
-5. From the checkout root, validate and start the overlay only after the secret
+6. From the checkout root, validate and start the overlay only after the secret
    files and snapshot exist:
 
    ```bash
@@ -119,6 +159,6 @@ Check from outside the VPS:
   test target for a drill.
 
 The daily backup protects the server's local evidence from a host failure; it
-does not replace the immutable source receipts or their hash checks. Continue
-retaining the workstation's private source copy until restore drills and the
-portable evidence packaging flow are proven.
+does not replace the immutable source receipts or their hash checks. Keep the
+workstation's private source copy and both verified bundles for further restore
+drills.

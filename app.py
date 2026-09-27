@@ -17,6 +17,7 @@ from urllib.parse import urlsplit
 import streamlit as st
 
 from ufc_odds_model.dashboard_data import load_dashboard, load_ufc332_forward_research
+from ufc_odds_model.integrity import verify_evidence
 
 
 DB_PATH = Path(os.environ.get("UFC_MODEL_DB", "data/ufc.sqlite"))
@@ -49,6 +50,46 @@ CSS_PATH = Path(__file__).with_name("dashboard.css")
 def _ufc332_evidence_root() -> Path:
     configured = os.environ.get("UFC_MODEL_FORWARD_EVIDENCE_ROOT")
     return Path(configured).expanduser() if configured else Path(__file__).resolve().parent
+
+
+def _historical_snapshot(operating: Mapping[str, Any], as_of: datetime) -> Mapping[str, Any]:
+    """Load a separate, verified research source for historical views only."""
+    configured = os.environ.get("UFC_MODEL_HISTORY_DB", "").strip()
+    if not configured:
+        return operating
+
+    def unavailable(reason: str) -> Mapping[str, Any]:
+        return {
+            "status": "unavailable", "reason": reason,
+            "data_origin": "research_only", "separate_research_source": True,
+            "historical_research": {},
+            "research_evaluation": {"status": "unavailable", "reason": reason},
+        }
+
+    path = Path(configured).expanduser()
+    if path.is_symlink() or not path.is_file():
+        return unavailable("The separate historical research database is missing or is not a regular file.")
+    if path.resolve() == DB_PATH.expanduser().resolve():
+        return unavailable("The historical research database must be separate from the operating database.")
+    try:
+        evidence = verify_evidence(path)
+        if not evidence.get("ok") or evidence.get("verified_receipts") != evidence.get("receipt_count"):
+            return unavailable("Historical research source receipts or SQLite integrity did not verify.")
+        source = load_dashboard(path, as_of=as_of, research_report=RESEARCH_REPORT_PATH)
+    except (OSError, ValueError):
+        return unavailable("The separate historical research database could not be verified.")
+    history = _mapping(source.get("historical_research"))
+    if (source.get("status") != "available"
+            or source.get("data_origin") != "research_only"
+            or history.get("receipt_status") != "verified"):
+        return unavailable("The separate database lacks a verified, research-only UFC history.")
+    return {
+        "status": "available", "reason": None,
+        "data_origin": "research_only", "separate_research_source": True,
+        "as_of_utc": source.get("as_of_utc"),
+        "historical_research": history,
+        "research_evaluation": source.get("research_evaluation"),
+    }
 
 
 def _ufc332_forward_selection() -> tuple[Path, Path, dict[str, str] | None]:
@@ -541,7 +582,9 @@ def _evaluation_has_displayable_results(result: Mapping[str, Any]) -> bool:
     return True
 
 
-def _render_model(snapshot: Mapping[str, Any]) -> None:
+def _render_model(
+    snapshot: Mapping[str, Any], research_snapshot: Mapping[str, Any] | None = None,
+) -> None:
     evaluation = _mapping(snapshot.get("evaluation"))
     result = _mapping(evaluation.get("result"))
     report_status = evaluation.get("status")
@@ -759,7 +802,7 @@ def _render_model(snapshot: Mapping[str, Any]) -> None:
             "validation period; the report records the fixed chronological splits.</p>",
             unsafe_allow_html=True,
         )
-    _render_research_holdout(snapshot)
+    _render_research_holdout(research_snapshot if research_snapshot is not None else snapshot)
     _render_ufc332_forward_research()
 
 
@@ -770,6 +813,7 @@ def _render_ufc332_forward_research() -> None:
         strict_path, full_path,
         evidence_root=_ufc332_evidence_root(),
         evidence_files=evidence_files,
+        original_evidence_root=os.environ.get("UFC_MODEL_FORWARD_SOURCE_ROOT") or None,
     )
     if report.get("status") != "available":
         st.markdown(
@@ -849,6 +893,13 @@ def _render_ufc332_forward_research() -> None:
 
 def _render_research_holdout(snapshot: Mapping[str, Any]) -> None:
     """Keep retrospective research scores visibly separate from operating evaluation."""
+    if snapshot.get("separate_research_source"):
+        st.markdown(
+            "<div class='notice notice-demo'><strong>Separate historical research database.</strong> "
+            "Its retrospective scores cannot promote the operating model or enter the "
+            "upcoming card, alert gate, or ledgers.</div>",
+            unsafe_allow_html=True,
+        )
     report = _mapping(snapshot.get("research_evaluation"))
     if report.get("status") != "available":
         if snapshot.get("data_origin") in {"research_only", "research_mixed"}:
@@ -1023,6 +1074,12 @@ def _render_historical_data(snapshot: Mapping[str, Any]) -> None:
         "<p>Completed UFC event pages imported for retrospective model research.</p></section>",
         unsafe_allow_html=True,
     )
+    if snapshot.get("separate_research_source"):
+        st.markdown(
+            "<div class='notice notice-demo'><strong>Separate historical research database.</strong> "
+            "The source is read-only and does not supply upcoming cards, alerts, or ledger entries.</div>",
+            unsafe_allow_html=True,
+        )
     if snapshot.get("status") not in {"available", "empty"}:
         st.markdown(_notice(snapshot), unsafe_allow_html=True)
         return
@@ -1226,13 +1283,16 @@ def main() -> None:
     st.set_page_config(page_title="UFC Forecast · Pre-fight workspace", page_icon="🥊", layout="wide")
     st.markdown("<style>" + CSS_PATH.read_text(encoding="utf-8") + "</style>", unsafe_allow_html=True)
     try:
+        as_of = datetime.now(timezone.utc)
         snapshot = load_dashboard(
             DB_PATH, evaluation_report=EVALUATION_PATH,
             research_report=RESEARCH_REPORT_PATH, integrity_report=INTEGRITY_PATH,
+            as_of=as_of,
         )
     except (OSError, ValueError):
         st.error("The dashboard could not read its saved data. Check the local database and report configuration.")
         return
+    historical = _historical_snapshot(snapshot, as_of)
     _header(snapshot)
     upcoming, history, model, quality, ledgers = st.tabs([
         "Upcoming card", "Historical data", "Model evidence", "Data quality", "Ledgers",
@@ -1240,9 +1300,9 @@ def main() -> None:
     with upcoming:
         _render_upcoming(snapshot)
     with history:
-        _render_historical_data(snapshot)
+        _render_historical_data(historical)
     with model:
-        _render_model(snapshot)
+        _render_model(snapshot, historical)
     with quality:
         _render_quality(snapshot)
     with ledgers:

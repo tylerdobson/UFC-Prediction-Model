@@ -5,14 +5,17 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 from ufc_odds_model.dashboard_data import (
-    _forward_digest, load_ufc332_forward_research,
+    _forward_digest, _forward_file, _forward_strict_proofs,
+    load_ufc332_forward_research,
 )
+from ufc_odds_model import db
 
 
 CAPTURE = "2026-09-26T22:47:55Z"
@@ -320,6 +323,60 @@ class DashboardForwardResearchTests(unittest.TestCase):
         self._seal_full()
         self._save_reports()
 
+    def _make_relocated_fixture(self) -> Path:
+        """Copy a signed fixture with original absolute paths and a real DB."""
+        self._make_fresh_fixture()
+        card_path = self.root / self.evidence_files["card_manifest"]
+        card = json.loads(card_path.read_text(encoding="utf-8"))
+        for key in ("source", "fighter_lookup"):
+            info = card[key]
+            for field in ("raw_path", "receipt_path"):
+                info[field] = str(self.root / info[field])
+        card_sha = _json(card_path, card)
+        self.strict["checked_inputs"]["card_manifest_sha256"] = card_sha
+        self.full["card_manifest_sha256"] = card_sha
+
+        database = self.root / "data/ufc_research_2011_2025.sqlite"
+        database.unlink()
+        payload = self.root / "data/raw/research-proof.json"
+        payload_sha = _saved(payload, b"immutable research response")
+        fetched = "2025-01-01T00:00:00Z"
+        with db.connect(database) as connection:
+            db.init_db(connection)
+            run_id = connection.execute(
+                "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+                "VALUES (?, ?, ?, ?)", ("fixture", fetched, str(payload), payload_sha),
+            ).lastrowid
+            connection.commit()
+        database_sha = hashlib.sha256(database.read_bytes()).hexdigest()
+        self.strict["checked_inputs"]["research_database_sha256"] = database_sha
+        self.full["database_sha256"] = database_sha
+        catalog_line = json.dumps([run_id, "fixture", fetched, payload_sha],
+                                  separators=(",", ":")).encode() + b"\n"
+        self.full["receipt_catalog"] = {
+            "catalog_sha256": hashlib.sha256(catalog_line).hexdigest(),
+            "ingestion_runs": 1, "by_source": {"fixture": 1},
+            "latest_fetch_at_utc": fetched,
+        }
+        self.full["integrity_verified_receipts"] = 1
+        self.strict["checked_input_sha256"] = _forward_digest(self.strict["checked_inputs"])
+        self._seal_full()
+        self._save_reports()
+
+        relocated_temp = tempfile.TemporaryDirectory()
+        self.addCleanup(relocated_temp.cleanup)
+        moved = Path(relocated_temp.name) / "checkout"
+        shutil.copytree(self.root, moved)
+        return moved
+
+    def _load_relocated(self, moved: Path, original: Path | None = None) -> dict:
+        with patch("ufc_odds_model.dashboard_data._forward_strict_proofs"):
+            return load_ufc332_forward_research(
+                self.strict_path, self.full_path, evidence_root=moved,
+                evidence_files=self.evidence_files,
+                original_evidence_root=self.root if original is None else original,
+            )
+
     def _load(self) -> dict:
         with patch("ufc_odds_model.dashboard_data._forward_strict_proofs"), patch(
             "ufc_odds_model.dashboard_data._forward_full_history"):
@@ -385,6 +442,118 @@ class DashboardForwardResearchTests(unittest.TestCase):
         self.strict["history_cutoff_at_utc"] = "2026-09-27T16:02:00Z"
         self._save_reports()
         self.assertEqual(self._load()["status"], "invalid_report")
+
+    def test_relocated_snapshot_keeps_signed_bytes_and_verifies_db_receipts(self) -> None:
+        moved = self._make_relocated_fixture()
+        view = self._load_relocated(moved)
+        self.assertEqual(view["status"], "available")
+        self.assertTrue(view["capture_receipts_verified"])
+        self.assertFalse(view["alert_eligible"])
+        self.assertEqual(view["cutoff_at_utc"], FRESH_CAPTURE)
+        without_map = load_ufc332_forward_research(
+            moved / "reports/strict.json", moved / "reports/full.json",
+            evidence_root=moved, evidence_files=self.evidence_files,
+        )
+        self.assertEqual(without_map["status"], "stale_evidence")
+
+    def test_relocated_report_paths_allow_alias_above_the_new_root(self) -> None:
+        moved = self._make_relocated_fixture()
+        alias_parent = moved.parent / "alias-parent"
+        alias_parent.symlink_to(moved.parent, target_is_directory=True)
+        alias_root = alias_parent / moved.name
+        with patch("ufc_odds_model.dashboard_data._forward_strict_proofs"):
+            view = load_ufc332_forward_research(
+                alias_root / "reports/strict.json",
+                alias_root / "reports/full.json",
+                evidence_root=alias_root, evidence_files=self.evidence_files,
+                original_evidence_root=self.root,
+            )
+        self.assertEqual(view["status"], "available")
+
+    def test_relocated_snapshot_rejects_tampered_or_linked_payloads(self) -> None:
+        moved = self._make_relocated_fixture()
+        payload = moved / "data/raw/research-proof.json"
+        payload.write_bytes(b"changed payload")
+        self.assertEqual(self._load_relocated(moved)["status"], "stale_evidence")
+        payload.unlink()
+        payload.symlink_to(self.root / "data/raw/research-proof.json")
+        self.assertEqual(self._load_relocated(moved)["status"], "stale_evidence")
+
+        payload.unlink()
+        _saved(payload, b"immutable research response")
+        intake = moved / "data/raw/ufc332-intake"
+        shutil.rmtree(intake)
+        intake.symlink_to(self.root / "data/raw/ufc332-intake", target_is_directory=True)
+        self.assertEqual(self._load_relocated(moved)["status"], "stale_evidence")
+
+    def test_relocated_strict_result_sidecars_and_identity_lookup_paths(self) -> None:
+        moved = self._make_relocated_fixture().resolve()
+        events: list[dict] = []
+        proofs: list[dict] = []
+        marker = FRESH_CAPTURE.replace(":", "").replace("-", "")
+        for position in range(1, 24):
+            event = {"slug": f"event-{position}", "page_id": 1000 + position}
+            events.append(event)
+            proof = {
+                **event,
+                "cutoff_at_utc": FRESH_CAPTURE,
+                "revision_timestamp_utc": "2025-01-01T00:00:00Z",
+            }
+            for kind in ("selection", "content"):
+                prefix = (f"data/raw/historical-revisions/{event['slug']}/"
+                          f"result-{marker}.{kind}")
+                response_relative = Path(prefix + ".response.json")
+                response_sha = _saved(moved / response_relative, b"{}")
+                receipt = {
+                    "page_id": event["page_id"],
+                    "cutoff_utc": FRESH_CAPTURE,
+                    "role": "result",
+                    "response_kind": kind,
+                    "response_sha256": response_sha,
+                    "response_path": str(self.root / response_relative),
+                    "fetched_at_utc": "2026-09-27T16:02:00Z",
+                }
+                receipt_sha = _json(moved / (prefix + ".receipt.json"), receipt)
+                proof[f"{kind}_sha256"] = response_sha
+                proof[f"{kind}_sidecar_sha256"] = receipt_sha
+                proof[f"{kind}_fetched_at_utc"] = receipt["fetched_at_utc"]
+            proofs.append(proof)
+        manifest = {"events": events}
+        manifest_relative = "docs/HISTORICAL_2026_PILOT_CARDS.json"
+        manifest_sha = _json(moved / manifest_relative, manifest)
+        lookup_relative = Path("data/raw/historical-identity.json")
+        lookup_sha = _saved(moved / lookup_relative, b"lookup bytes")
+        inputs = self.strict["checked_inputs"]
+        inputs["historical_manifest_sha256"] = manifest_sha
+        inputs["historical_result_proofs"] = proofs
+        inputs["historical_identity_lookup_receipts"] = [{
+            "run_id": 1,
+            "source": "wikipedia_action_api",
+            "fetched_at_utc": "2025-01-01T00:00:00Z",
+            "payload_path": str(self.root / lookup_relative),
+            "payload_sha256": lookup_sha,
+        }]
+        files = {"historical_manifest": manifest_relative}
+        _forward_strict_proofs(moved, self.strict, manifest, files,
+                               FRESH_CAPTURE, self.root)
+
+        receipt_path = moved / (f"data/raw/historical-revisions/event-1/"
+                                f"result-{marker}.selection.receipt.json")
+        receipt_path.write_bytes(b"tampered receipt")
+        with self.assertRaises(ValueError) as raised:
+            _forward_strict_proofs(moved, self.strict, manifest, files,
+                                   FRESH_CAPTURE, self.root)
+        self.assertEqual(raised.exception.status, "stale_evidence")
+
+    def test_relocated_snapshot_rejects_wrong_original_root_and_outside_paths(self) -> None:
+        moved = self._make_relocated_fixture()
+        self.assertEqual(self._load_relocated(moved, self.root / "wrong")["status"],
+                         "stale_evidence")
+        outside = moved.parent / "outside.txt"
+        outside.write_bytes(b"same")
+        with self.assertRaises(ValueError) as raised:
+            _forward_file(moved, outside, hashlib.sha256(b"same").hexdigest(), self.root)
+        self.assertEqual(raised.exception.status, "stale_evidence")
 
 
 

@@ -34,6 +34,44 @@ class DashboardAppSmokeTests(unittest.TestCase):
     def _all_markup(app) -> str:
         return "\n".join(item.value for item in app.markdown)
 
+    @staticmethod
+    def _seed_research_db(path: Path) -> Path:
+        with db.connect(path) as connection:
+            db.init_db(connection)
+            for fighter_id in ("a", "b"):
+                db.upsert_fighter(connection, fighter_id, fighter_id.upper(),
+                                  "wikipedia_research", fighter_id)
+            db.upsert_event(connection, "history", "UFC Archive", "2025-01-11",
+                            "completed", source="wikipedia_research",
+                            source_event_id="12345")
+            db.upsert_bout(connection, "history-bout", "history", "a", "b",
+                           "completed", source="wikipedia_research",
+                           source_bout_id="12345:1")
+            db.upsert_result(connection, "history-bout", "win", "a",
+                             "2025-01-11T20:00:00Z")
+            raw = path.with_name("research-source.json")
+            raw.write_text('{"checked":true}', encoding="utf-8")
+            digest = hashlib.sha256(raw.read_bytes()).hexdigest()
+            run_id = connection.execute(
+                "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+                "VALUES ('wikipedia_research', '2025-01-12T00:00:00Z', ?, ?)",
+                (str(raw), digest),
+            ).lastrowid
+            connection.execute(
+                """
+                INSERT INTO wikipedia_source_receipts(
+                    run_id, event_page_id, event_title, page_url, revision_id,
+                    revision_timestamp_utc, license_title, license_url,
+                    imported_bouts, skipped_unresolved_bouts
+                ) VALUES (?, 12345, 'UFC Archive',
+                          'https://en.wikipedia.org/wiki/UFC_Archive',
+                          1, '2025-01-12T00:00:00Z', 'CC BY-SA 4.0',
+                          'https://creativecommons.org/licenses/by-sa/4.0/', 1, 1)
+                """, (run_id,),
+            )
+            connection.commit()
+        return raw
+
     def test_missing_database_renders_all_views_without_exception(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             app = self._run_app(Path(temporary) / "missing.sqlite", Path(temporary) / "missing.json")
@@ -155,6 +193,7 @@ class DashboardAppSmokeTests(unittest.TestCase):
             return_value={"status": "missing_report", "reason": "fixture"},
         ) as loader, patch.dict(os.environ, {
             "UFC_MODEL_FORWARD_EVIDENCE_ROOT": temporary,
+            "UFC_MODEL_FORWARD_SOURCE_ROOT": "/original/research/project",
         }) as environ:
             for name in ("UFC_MODEL_UFC332_STRICT_REPORT",
                          "UFC_MODEL_UFC332_CAPTURED_REPORT"):
@@ -167,6 +206,8 @@ class DashboardAppSmokeTests(unittest.TestCase):
                 root / "reports/ufc332-captured-forward-research-20260926-sealed-v2.json",
             ))
             self.assertEqual(loader.call_args.kwargs["evidence_root"], root)
+            self.assertEqual(loader.call_args.kwargs["original_evidence_root"],
+                             "/original/research/project")
             for location in fresh_files:
                 path = root / location
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -181,44 +222,13 @@ class DashboardAppSmokeTests(unittest.TestCase):
                 "card_csv": fresh_files[4],
             })
             self.assertEqual(loader.call_args.kwargs["evidence_root"], root)
+            self.assertEqual(loader.call_args.kwargs["original_evidence_root"],
+                             "/original/research/project")
 
     def test_imported_history_is_visible_and_labelled_research_only(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "history.sqlite"
-            with db.connect(path) as connection:
-                db.init_db(connection)
-                for fighter_id in ("a", "b"):
-                    db.upsert_fighter(connection, fighter_id, fighter_id.upper(),
-                                      "wikipedia_research", fighter_id)
-                db.upsert_event(connection, "history", "UFC Archive", "2025-01-11",
-                                "completed", source="wikipedia_research",
-                                source_event_id="12345")
-                db.upsert_bout(connection, "history-bout", "history", "a", "b",
-                               "completed", source="wikipedia_research",
-                               source_bout_id="12345:1")
-                db.upsert_result(connection, "history-bout", "win", "a",
-                                 "2025-01-11T20:00:00Z")
-                raw = Path(temporary) / "research-source.json"
-                raw.write_text('{"checked":true}', encoding="utf-8")
-                digest = hashlib.sha256(raw.read_bytes()).hexdigest()
-                run_id = connection.execute(
-                    "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
-                    "VALUES ('wikipedia_research', '2025-01-12T00:00:00Z', ?, ?)",
-                    (str(raw), digest),
-                ).lastrowid
-                connection.execute(
-                    """
-                    INSERT INTO wikipedia_source_receipts(
-                        run_id, event_page_id, event_title, page_url, revision_id,
-                        revision_timestamp_utc, license_title, license_url,
-                        imported_bouts, skipped_unresolved_bouts
-                    ) VALUES (?, 12345, 'UFC Archive',
-                              'https://en.wikipedia.org/wiki/UFC_Archive',
-                              1, '2025-01-12T00:00:00Z', 'CC BY-SA 4.0',
-                              'https://creativecommons.org/licenses/by-sa/4.0/', 1, 1)
-                    """, (run_id,),
-                )
-                connection.commit()
+            raw = self._seed_research_db(path)
             before = path.stat().st_mtime_ns
             app = self._run_app(path, Path(temporary) / "missing.json")
             self.assertEqual(path.stat().st_mtime_ns, before)
@@ -238,6 +248,107 @@ class DashboardAppSmokeTests(unittest.TestCase):
         unverified_markup = self._all_markup(unverified_app)
         self.assertIn("Identity coverage unavailable", unverified_markup)
         self.assertNotIn("Identity and source-row coverage", unverified_markup)
+
+    def test_separate_verified_history_feeds_only_historical_and_research_views(self) -> None:
+        from ufc_odds_model.dashboard_data import load_dashboard as real_load_dashboard
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            operating_path = root / "operating.sqlite"
+            history_path = root / "history.sqlite"
+            with db.connect(operating_path) as connection:
+                db.init_db(connection)
+                demo.seed_demo(connection)
+            self._seed_research_db(history_path)
+            operating_mtime = operating_path.stat().st_mtime_ns
+            history_mtime = history_path.stat().st_mtime_ns
+            metrics = {"bouts": 1, "brier_score": 0.1234, "log_loss": 0.4567}
+            split = {name: {"first_date": "2025-01-11", "last_date": "2025-01-11",
+                            "binary_bouts": 1} for name in ("train", "validation", "test")}
+
+            def with_saved_research(path, **kwargs):
+                source = real_load_dashboard(path, **kwargs)
+                if Path(path) == history_path:
+                    source["research_evaluation"] = {
+                        "status": "available", "split": split,
+                        "test": {"elo": {"metrics": metrics},
+                                 "logistic_calibrated": {"metrics": metrics}},
+                        "identity_coverage": {"by_split_dates": {
+                            "test": {"accepted_share_of_accepted_plus_held": 0.5,
+                                     "accepted_bouts_all_outcomes": 1,
+                                     "held_source_bout_rows": 1}}},
+                        "test_uncertainty": {},
+                    }
+                return source
+
+            with patch.dict(os.environ, {"UFC_MODEL_HISTORY_DB": str(history_path)}), patch(
+                "ufc_odds_model.dashboard_data.load_dashboard", side_effect=with_saved_research,
+            ) as loader, patch(
+                "ufc_odds_model.dashboard_data.load_ufc332_forward_research",
+                return_value={"status": "missing_report", "reason": "fixture"},
+            ):
+                app = self._run_app(operating_path, root / "missing.json")
+            self.assertEqual(operating_path.stat().st_mtime_ns, operating_mtime)
+            self.assertEqual(history_path.stat().st_mtime_ns, history_mtime)
+
+        self.assertEqual(list(app.exception), [])
+        self.assertEqual([Path(call.args[0]) for call in loader.call_args_list],
+                         [operating_path, history_path])
+        upcoming = "\n".join(item.value for item in app.tabs[0].markdown)
+        historical = "\n".join(item.value for item in app.tabs[1].markdown)
+        model = "\n".join(item.value for item in app.tabs[2].markdown)
+        quality = "\n".join(item.value for item in app.tabs[3].markdown)
+        ledgers = "\n".join(item.value for item in app.tabs[4].markdown)
+        self.assertIn("Demo card", upcoming)
+        self.assertNotIn("UFC Archive", upcoming)
+        self.assertIn("Separate historical research database", historical)
+        self.assertIn("UFC Archive", historical)
+        self.assertIn("Imported bouts by year", historical)
+        self.assertIn("Retrospective research holdout", model)
+        self.assertIn("0.1234", model)
+        self.assertNotIn("UFC Archive", quality)
+        self.assertNotIn("UFC Archive", ledgers)
+        self.assertNotIn("0.1234", upcoming + historical + quality + ledgers)
+
+    def test_separate_history_with_broken_receipt_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            operating_path = root / "operating.sqlite"
+            history_path = root / "history.sqlite"
+            with db.connect(operating_path) as connection:
+                db.init_db(connection)
+                demo.seed_demo(connection)
+            raw = self._seed_research_db(history_path)
+            raw.unlink()
+            with patch.dict(os.environ, {"UFC_MODEL_HISTORY_DB": str(history_path)}), patch(
+                "ufc_odds_model.dashboard_data.load_ufc332_forward_research",
+                return_value={"status": "missing_report", "reason": "fixture"},
+            ):
+                app = self._run_app(operating_path, root / "missing.json")
+        self.assertEqual(list(app.exception), [])
+        upcoming = "\n".join(item.value for item in app.tabs[0].markdown)
+        historical = "\n".join(item.value for item in app.tabs[1].markdown)
+        model = "\n".join(item.value for item in app.tabs[2].markdown)
+        self.assertIn("Demo card", upcoming)
+        self.assertIn("Historical research source receipts or SQLite integrity did not verify", historical)
+        self.assertNotIn("UFC Archive", historical)
+        self.assertIn("Retrospective research holdout · unavailable", model)
+        self.assertNotIn("Retrospective research holdout · not operational evidence", model)
+
+    def test_operating_database_cannot_be_reused_as_separate_history(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "operating.sqlite"
+            with db.connect(path) as connection:
+                db.init_db(connection)
+                demo.seed_demo(connection)
+            with patch.dict(os.environ, {"UFC_MODEL_HISTORY_DB": str(path)}), patch(
+                "ufc_odds_model.dashboard_data.load_ufc332_forward_research",
+                return_value={"status": "missing_report", "reason": "fixture"},
+            ):
+                app = self._run_app(path, Path(temporary) / "missing.json")
+        self.assertEqual(list(app.exception), [])
+        historical = "\n".join(item.value for item in app.tabs[1].markdown)
+        self.assertIn("must be separate from the operating database", historical)
 
     def test_demo_card_is_labelled_and_database_is_unchanged(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

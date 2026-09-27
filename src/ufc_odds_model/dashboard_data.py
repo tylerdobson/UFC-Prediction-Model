@@ -15,6 +15,7 @@ import math
 import sqlite3
 from collections import Counter
 from datetime import date, datetime, timedelta, timezone
+from importlib.resources import files as package_files
 from pathlib import Path
 from typing import Any, TypedDict
 from urllib.parse import unquote, urlsplit
@@ -1512,26 +1513,54 @@ def _forward_sha(value: object) -> bool:
             and all(char in "0123456789abcdef" for char in value))
 
 
-def _forward_file(root: Path, location: str | Path, expected_sha: object) -> Path:
-    """Check one local proof without allowing a report to read outside the project."""
+def _forward_local_path(root: Path, location: str | Path,
+                        original_root: Path | None = None) -> Path:
+    """Map an original-root path, then reject escapes and every symlink component."""
+    try:
+        path = Path(location).expanduser()
+        if ".." in path.parts:
+            raise OSError("parent traversal in saved path")
+        if path.is_absolute():
+            if path.is_relative_to(root):
+                pass
+            elif original_root is not None and path.is_relative_to(original_root):
+                path = root / path.relative_to(original_root)
+            else:
+                raise OSError("saved path is outside the evidence roots")
+        else:
+            path = root / path
+        relative = path.relative_to(root)
+        cursor = root
+        for component in relative.parts:
+            cursor /= component
+            if cursor.is_symlink():
+                raise OSError("linked proof path")
+        resolved = path.resolve(strict=False)
+        if not resolved.is_relative_to(root):
+            raise OSError("proof escapes project root")
+        return path
+    except (OSError, TypeError, ValueError, RuntimeError) as exc:
+        raise _ForwardEvidenceError(
+            "stale_evidence", "A saved UFC 332 source path is missing, linked, or outside the evidence root."
+        ) from exc
+
+
+def _forward_file(root: Path, location: str | Path, expected_sha: object,
+                  original_root: Path | None = None) -> Path:
+    """Hash one local proof after its explicit original-root mapping."""
     if not _forward_sha(expected_sha):
         raise _ForwardEvidenceError("invalid_report", "A forward report has an invalid source digest.")
     try:
-        path = Path(location).expanduser()
-        if not path.is_absolute():
-            path = root / path
-        if path.is_symlink() or not path.is_file():
-            raise OSError("missing or linked proof")
-        resolved = path.resolve(strict=True)
-        if not resolved.is_relative_to(root):
-            raise OSError("proof is outside project root")
+        path = _forward_local_path(root, location, original_root)
+        if not path.is_file():
+            raise OSError("missing proof")
         digest = hashlib.sha256()
         with path.open("rb") as stream:
             for block in iter(lambda: stream.read(1024 * 1024), b""):
                 digest.update(block)
         if digest.hexdigest() != expected_sha:
             raise OSError("source digest changed")
-        return resolved
+        return path.resolve(strict=True)
     except (OSError, TypeError, ValueError, RuntimeError) as exc:
         raise _ForwardEvidenceError(
             "stale_evidence", "A local UFC 332 source or receipt no longer matches the saved report."
@@ -1552,7 +1581,8 @@ def _forward_json(path: Path) -> dict:
 
 
 def _forward_referenced_file(root: Path, manifest_path: Path,
-                             location: object, expected_sha: object) -> Path:
+                             location: object, expected_sha: object,
+                             original_root: Path | None = None) -> Path:
     """Resolve a saved path beside its manifest, or the older repo-relative path."""
     if not isinstance(location, str) or not location.strip():
         raise _ForwardEvidenceError("invalid_report", "A forward source path is missing.")
@@ -1560,7 +1590,7 @@ def _forward_referenced_file(root: Path, manifest_path: Path,
     if not candidate.is_absolute():
         beside = manifest_path.parent / candidate
         candidate = beside if beside.exists() or beside.is_symlink() else root / candidate
-    return _forward_file(root, candidate, expected_sha)
+    return _forward_file(root, candidate, expected_sha, original_root)
 
 
 def _forward_probability(value: object) -> bool:
@@ -1575,7 +1605,8 @@ def _forward_canonical_utc(value: object) -> datetime | None:
 
 
 def _forward_capture_receipts(root: Path, card: dict, odds: dict,
-                              odds_manifest_path: Path, cutoff: str) -> bool:
+                              odds_manifest_path: Path, cutoff: str,
+                              original_root: Path | None = None) -> bool:
     """Check captured network times and exact hashes without trusting report flags."""
     source = card.get("source") or {}
     lookup = card.get("fighter_lookup") or {}
@@ -1597,11 +1628,11 @@ def _forward_capture_receipts(root: Path, card: dict, odds: dict,
                 or not parsed.path.startswith(path)):
             raise _ForwardEvidenceError("invalid_report", "Fresh MediaWiki receipt URL is invalid.")
     source_receipt = _forward_json(_forward_file(
-        root, source["receipt_path"], source["receipt_sha256"]))
+        root, source["receipt_path"], source["receipt_sha256"], original_root))
     lookup_receipt = _forward_json(_forward_file(
-        root, lookup["receipt_path"], lookup["receipt_sha256"]))
+        root, lookup["receipt_path"], lookup["receipt_sha256"], original_root))
     odds_receipt = _forward_json(_forward_referenced_file(
-        root, odds_manifest_path, odds["receipt_path"], odds["receipt_sha256"]))
+        root, odds_manifest_path, odds["receipt_path"], odds["receipt_sha256"], original_root))
     for info, receipt in ((source, source_receipt), (lookup, lookup_receipt)):
         if (receipt.get("schema_version") != 1
                 or receipt.get("request_url") != info["api_url"]
@@ -1630,7 +1661,8 @@ def _forward_capture_receipts(root: Path, card: dict, odds: dict,
 
 
 def _forward_source_inputs(root: Path, strict: dict, full: dict,
-                           files: dict[str, str], cutoff: str
+                           files: dict[str, str], cutoff: str,
+                           original_root: Path | None = None,
                            ) -> tuple[dict, dict, set[int], bool]:
     """Bind both reports to the same saved card, selected CSV, and odds bytes."""
     inputs = strict["checked_inputs"]
@@ -1640,13 +1672,15 @@ def _forward_source_inputs(root: Path, strict: dict, full: dict,
         ("odds_manifest_sha256", "odds_manifest"),
         ("research_database_sha256", "research_db"),
     )
+    checked_paths: dict[str, Path] = {}
     for digest_key, file_key in pairs:
         full_key = "database_sha256" if file_key == "research_db" else digest_key
         if inputs.get(digest_key) != full.get(full_key):
             raise _ForwardEvidenceError("mismatched_reports", "Forward reports use different source evidence.")
-        _forward_file(root, files[file_key], inputs.get(digest_key))
-    card_path = root / files["card_manifest"]
-    odds_path = root / files["odds_manifest"]
+        checked_paths[file_key] = _forward_file(
+            root, files[file_key], inputs.get(digest_key), original_root)
+    card_path = checked_paths["card_manifest"]
+    odds_path = checked_paths["odds_manifest"]
     card = _forward_json(card_path)
     odds = _forward_json(odds_path)
     for key, value in (
@@ -1661,11 +1695,11 @@ def _forward_source_inputs(root: Path, strict: dict, full: dict,
             or full.get("odds_response_sha256") != odds.get("sha256")):
         raise _ForwardEvidenceError("mismatched_reports", "Forward odds source hashes do not agree.")
     _forward_referenced_file(root, card_path, card["source"]["raw_path"],
-                             inputs["card_source_sha256"])
+                             inputs["card_source_sha256"], original_root)
     _forward_referenced_file(root, card_path, card["fighter_lookup"]["raw_path"],
-                             inputs["card_fighter_lookup_sha256"])
+                             inputs["card_fighter_lookup_sha256"], original_root)
     _forward_referenced_file(root, odds_path, odds["raw_path"],
-                             inputs["odds_response_sha256"])
+                             inputs["odds_response_sha256"], original_root)
     event = card.get("event") or {}
     start = (card.get("official_start_review") or {}).get(
         "event_start_utc_for_conservative_cutoff")
@@ -1680,13 +1714,14 @@ def _forward_source_inputs(root: Path, strict: dict, full: dict,
             or card.get("captured_at_utc") != full.get("card_captured_at_utc")
             or odds.get("captured_at_utc") != cutoff):
         raise _ForwardEvidenceError("mismatched_reports", "Forward card identity or capture time differs from source.")
-    receipts_verified = _forward_capture_receipts(root, card, odds, odds_path, cutoff)
+    receipts_verified = _forward_capture_receipts(
+        root, card, odds, odds_path, cutoff, original_root)
     rows = card.get("fight_card_rows")
     if (not isinstance(rows, list) or len(rows) != 13
             or [row.get("position") for row in rows if isinstance(row, dict)] != list(range(1, 14))):
         raise _ForwardEvidenceError("invalid_report", "Saved UFC 332 card positions are incomplete.")
     try:
-        with (root / files["card_csv"]).open(
+        with checked_paths["card_csv"].open(
                 encoding="utf-8-sig", newline="") as stream:
             selected_csv = list(csv.DictReader(stream))
         selected_positions = {int(row["source_position"]) for row in selected_csv}
@@ -1704,12 +1739,13 @@ def _forward_source_inputs(root: Path, strict: dict, full: dict,
 
 
 def _forward_strict_proofs(root: Path, strict: dict, manifest: dict,
-                           files: dict[str, str], cutoff: str) -> None:
+                           files: dict[str, str], cutoff: str,
+                           original_root: Path | None = None) -> None:
     inputs = strict["checked_inputs"]
     if inputs.get("historical_manifest_sha256") is None:
         raise _ForwardEvidenceError("invalid_report", "Strict report lacks its historical manifest hash.")
     _forward_file(root, files["historical_manifest"],
-                  inputs["historical_manifest_sha256"])
+                  inputs["historical_manifest_sha256"], original_root)
     expected_events = manifest.get("events")
     proofs = inputs.get("historical_result_proofs")
     lookups = inputs.get("historical_identity_lookup_receipts")
@@ -1731,16 +1767,17 @@ def _forward_strict_proofs(root: Path, strict: dict, manifest: dict,
             prefix = (f"data/raw/historical-revisions/{event['slug']}/"
                       f"result-{marker}.{kind}")
             sidecar = _forward_file(root, prefix + ".receipt.json",
-                                    proof.get(f"{kind}_sidecar_sha256"))
+                                    proof.get(f"{kind}_sidecar_sha256"), original_root)
             response = _forward_file(root, prefix + ".response.json",
-                                     proof.get(f"{kind}_sha256"))
+                                     proof.get(f"{kind}_sha256"), original_root)
             saved_sidecar = _forward_json(sidecar)
             if (saved_sidecar.get("page_id") != event["page_id"]
                     or saved_sidecar.get("cutoff_utc") != cutoff
                     or saved_sidecar.get("role") != "result"
                     or saved_sidecar.get("response_kind") != kind
                     or saved_sidecar.get("response_sha256") != proof.get(f"{kind}_sha256")
-                    or Path(str(saved_sidecar.get("response_path"))).resolve() != response
+                    or _forward_file(root, saved_sidecar.get("response_path"),
+                                     proof.get(f"{kind}_sha256"), original_root) != response
                     or saved_sidecar.get("fetched_at_utc") != proof.get(f"{kind}_fetched_at_utc")):
                 raise _ForwardEvidenceError("invalid_report", "Strict result proof metadata differs from its saved files.")
     seen_runs: set[int] = set()
@@ -1752,14 +1789,52 @@ def _forward_strict_proofs(root: Path, strict: dict, manifest: dict,
                 or _timestamp(item["fetched_at_utc"]) > _timestamp(cutoff)):
             raise _ForwardEvidenceError("invalid_report", "Strict identity lookup evidence is invalid.")
         seen_runs.add(item["run_id"])
-        _forward_file(root, item.get("payload_path"), item.get("payload_sha256"))
+        _forward_file(root, item.get("payload_path"), item.get("payload_sha256"),
+                      original_root)
+
+
+def _forward_relocated_integrity(database: Path, root: Path,
+                                 original_root: Path) -> dict[str, Any]:
+    """Check a moved database's rows and mapped payloads without altering bytes."""
+    try:
+        before = database_file_state(database)
+        if before["wal_size"] is not None:
+            raise ValueError("relocated research database has a live WAL")
+        count = 0
+        with sqlite3.connect(database.as_uri() + "?mode=ro", uri=True) as connection:
+            connection.execute("PRAGMA query_only = ON")
+            if ([row[0] for row in connection.execute("PRAGMA integrity_check")] != ["ok"]
+                    or connection.execute("PRAGMA foreign_key_check").fetchone() is not None):
+                raise ValueError("database structure is invalid")
+            applied = {row[0] for row in connection.execute(
+                "SELECT version FROM schema_migrations")}
+            expected = {entry.name for entry in package_files("ufc_odds_model").joinpath(
+                "sql/migrations").iterdir() if entry.name.endswith(".sql")}
+            if expected - applied:
+                raise ValueError("database migration is missing")
+            for source, payload, sha in connection.execute(
+                    "SELECT source, payload_path, sha256 FROM ingestion_runs ORDER BY run_id"):
+                if not isinstance(source, str) or not source:
+                    raise ValueError("receipt source is missing")
+                _forward_file(root, payload, sha, original_root)
+                count += 1
+        if count == 0 or database_file_state(database) != before:
+            raise ValueError("receipt catalog is empty or database changed")
+        return {"ok": True, "receipt_count": count, "verified_receipts": count}
+    except _ForwardEvidenceError:
+        raise
+    except (OSError, TypeError, ValueError, sqlite3.Error) as exc:
+        raise _ForwardEvidenceError(
+            "stale_evidence", "Relocated research database or source receipts do not verify."
+        ) from exc
 
 
 def _forward_full_history(root: Path, full: dict, files: dict[str, str],
-                          cutoff: str) -> None:
-    database = _forward_file(root, full.get("database_path"), full.get("database_sha256"))
+                          cutoff: str, original_root: Path | None = None) -> None:
+    database = _forward_file(root, full.get("database_path"), full.get("database_sha256"),
+                             original_root)
     holdout = _forward_file(root, full.get("holdout_report_path"),
-                            full.get("holdout_report_sha256"))
+                            full.get("holdout_report_sha256"), original_root)
     if (database != (root / files["research_db"]).resolve()
             or holdout != (root / files["holdout_report"]).resolve()):
         raise _ForwardEvidenceError("mismatched_reports", "Full-history report belongs to another local source.")
@@ -1769,7 +1844,9 @@ def _forward_full_history(root: Path, full: dict, files: dict[str, str],
             or saved_holdout.get("source_summary") != full.get("source_summary")):
         raise _ForwardEvidenceError("invalid_report", "Saved full-history holdout differs from its report.")
     catalog = full.get("receipt_catalog") or {}
-    integrity = verify_evidence(database)
+    integrity = (_forward_relocated_integrity(database, root, original_root)
+                 if original_root is not None and original_root != root
+                 else verify_evidence(database))
     if (not integrity.get("ok") or integrity.get("receipt_count") != catalog.get("ingestion_runs")
             or integrity.get("verified_receipts") != full.get("integrity_verified_receipts")):
         raise _ForwardEvidenceError("stale_evidence", "Full-history source receipts no longer verify.")
@@ -1795,7 +1872,7 @@ def _forward_full_history(root: Path, full: dict, files: dict[str, str],
             or dict(sorted(counts.items())) != catalog.get("by_source")
             or latest != catalog.get("latest_fetch_at_utc")):
         raise _ForwardEvidenceError("stale_evidence", "Full-history receipt catalog changed.")
-    _forward_file(root, full["database_path"], full["database_sha256"])
+    _forward_file(root, full["database_path"], full["database_sha256"], original_root)
 
 
 def load_ufc332_forward_research(
@@ -1804,15 +1881,42 @@ def load_ufc332_forward_research(
     *,
     evidence_root: str | Path,
     evidence_files: dict[str, str] | None = None,
+    original_evidence_root: str | Path | None = None,
 ) -> dict[str, Any]:
-    """Verify two saved UFC 332 research scenarios without fitting on page load."""
+    """Verify saved research; optionally map one original checkout to this root."""
     if strict_report is None or full_report is None:
         return {"status": "unavailable", "reason": "Both saved UFC 332 research reports are required."}
-    strict_path, full_path = Path(strict_report).expanduser(), Path(full_report).expanduser()
-    if not strict_path.is_file() or not full_path.is_file():
-        return {"status": "missing_report", "reason": "A saved UFC 332 forward report is missing."}
     try:
-        root = Path(evidence_root).expanduser().resolve(strict=True)
+        root_input = Path(evidence_root).expanduser()
+        if root_input.is_symlink():
+            raise _ForwardEvidenceError("stale_evidence", "The forward evidence root is linked.")
+        root = root_input.resolve(strict=True)
+        original_root = None
+        if original_evidence_root is not None:
+            original_root = Path(original_evidence_root).expanduser()
+            if (not original_root.is_absolute() or ".." in original_root.parts
+                    or original_root == Path("/")):
+                raise _ForwardEvidenceError("invalid_report", "Original evidence root must be a specific absolute path.")
+        if original_root is None:
+            strict_path, full_path = (Path(strict_report).expanduser(),
+                                      Path(full_report).expanduser())
+        else:
+            def report_location(location: str | Path) -> Path:
+                candidate = Path(location).expanduser()
+                # A caller may name this checkout through an alias above its root
+                # (for example macOS /tmp -> /private/tmp). Keep the relative
+                # suffix, then inspect every component below the physical root.
+                if (candidate.is_absolute() and root_input.is_absolute()
+                        and candidate.is_relative_to(root_input)):
+                    return root / candidate.relative_to(root_input)
+                return candidate
+
+            strict_path = _forward_local_path(root, report_location(strict_report),
+                                              original_root)
+            full_path = _forward_local_path(root, report_location(full_report),
+                                            original_root)
+        if not strict_path.is_file() or not full_path.is_file():
+            return {"status": "missing_report", "reason": "A saved UFC 332 forward report is missing."}
         strict, full = _forward_json(strict_path), _forward_json(full_path)
         files = dict(_FORWARD_EVIDENCE_FILES)
         if evidence_files is not None:
@@ -1885,10 +1989,13 @@ def load_ufc332_forward_research(
         if full.get("checked_input_sha256") != final_digest:
             raise _ForwardEvidenceError("invalid_report", "Full-history report input digest is invalid.")
         card, odds, selected, receipts_verified = _forward_source_inputs(
-            root, strict, full, files, cutoff)
-        manifest = _forward_json(root / files["historical_manifest"])
-        _forward_strict_proofs(root, strict, manifest, files, cutoff)
-        _forward_full_history(root, full, files, cutoff)
+            root, strict, full, files, cutoff, original_root)
+        manifest_path = _forward_file(
+            root, files["historical_manifest"], inputs.get("historical_manifest_sha256"),
+            original_root)
+        manifest = _forward_json(manifest_path)
+        _forward_strict_proofs(root, strict, manifest, files, cutoff, original_root)
+        _forward_full_history(root, full, files, cutoff, original_root)
         strict_rows = strict.get("bouts")
         if (not isinstance(strict_rows, list) or len(strict_rows) != 13
                 or [row.get("source_position") for row in strict_rows] != list(range(1, 14))
