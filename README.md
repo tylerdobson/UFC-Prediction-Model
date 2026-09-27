@@ -94,7 +94,7 @@ python -m pip install -e '.[dashboard]'
 python -m streamlit run app.py --server.address 127.0.0.1
 ```
 
-The dashboard reads SQLite and optional saved evaluation/integrity reports. Its Historical data tab shows imported research counts by year. It labels fictional, research-only, missing, stale, rejected, and superseded evidence and shows recent CLI job status. It cannot import data, retrain a model, send an alert, or place a wager. See the [dashboard runbook](docs/DASHBOARD_RUNBOOK.md) for the five views and optional paths.
+The dashboard reads SQLite and optional saved evaluation/integrity reports. Set `UFC_MODEL_DB` to the operating snapshot and optionally `UFC_MODEL_HISTORY_DB` to a separately verified research database; only historical charts and retrospective scores use the latter. It labels fictional, research-only, missing, stale, rejected, and superseded evidence and shows recent CLI job status. It cannot import data, retrain a model, send an alert, or place a wager. See the [dashboard runbook](docs/DASHBOARD_RUNBOOK.md) for the five views and optional paths.
 
 You can inspect the real SQL database directly:
 

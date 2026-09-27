@@ -41,7 +41,7 @@ The page is a snapshot, not a live market feed. Refresh it to see later stored r
 
 ## Local smoke check
 
-After installation, run the app and verify all five tabs. With an empty database, each view should show unavailable or no-entry states. With `data/demo.sqlite`, the dashboard must label demo data, and it must not show an executable wager. Set `UFC_MODEL_DB=data/ufc_research_2011_2025.sqlite` to inspect the real research history; the Historical data tab should show its counts while Upcoming card remains unavailable. In a second terminal, the Streamlit health endpoint should return `ok`:
+After installation, run the app and verify all five tabs. With an empty database, each view should show unavailable or no-entry states. With `data/demo.sqlite`, the dashboard must label demo data, and it must not show an executable wager. Set `UFC_MODEL_HISTORY_DB=data/ufc_research_2011_2025.sqlite` alongside the operating `UFC_MODEL_DB` to inspect the real research history; only Historical data and the retrospective holdout use that separate, receipt-verified database. In a second terminal, the Streamlit health endpoint should return `ok`:
 
 ```bash
 curl -fsS http://127.0.0.1:8501/_stcore/health
