@@ -167,6 +167,89 @@ class CapturePrefightCardTests(unittest.TestCase):
 
         return fetch, calls
 
+    def _event_spec(self, name: str = "first-event-spec.json") -> Path:
+        seed = json.loads(self.seed_path.read_text(encoding="utf-8"))
+        spec = {
+            "schema_version": 1,
+            "event": {"source_page_id": 123, "source_page_title": "UFC 9999",
+                      "event_date": "2099-01-02"},
+            "source": {"api_url": self.rest_url},
+            "official_start_review": seed["official_start_review"],
+            "reviewed_by": "Operator Fixture",
+            "reviewed_at_utc": "2099-01-01T01:30:00Z",
+        }
+        path = self.root / name
+        path.write_bytes(_body(spec))
+        return path
+
+    def test_first_capture_from_reviewed_event_spec_retains_exact_spec(self) -> None:
+        spec_path = self._event_spec()
+        original = spec_path.read_bytes()
+        fetch, calls = self._fetch()
+        output = self.root / "first-capture"
+        result = capture_prefight_card(
+            None, output, event_spec_path=spec_path, fetch=fetch, clock=self.clock,
+        )
+        self.assertEqual(calls, [self.rest_url, self.fresh_lookup_url])
+        self.assertEqual(result["fight_card_rows"], 2)
+        manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["event_spec_path"], "event-spec.json")
+        self.assertEqual(manifest["event_spec_sha256"], hashlib.sha256(original).hexdigest())
+        self.assertEqual((output / "event-spec.json").read_bytes(), original)
+        self.assertEqual(verify_manifest(output / "manifest.json")["card_count"], 2)
+
+    def test_first_capture_rejects_changed_copied_event_spec(self) -> None:
+        spec_path = self._event_spec()
+        fetch, _ = self._fetch()
+        output = self.root / "changed-spec-capture"
+        capture_prefight_card(None, output, event_spec_path=spec_path,
+                              fetch=fetch, clock=self.clock)
+        copied = output / "event-spec.json"
+        copied.write_bytes(copied.read_bytes() + b" ")
+        with self.assertRaisesRegex(ValueError, "Reviewed event spec SHA-256 mismatch"):
+            verify_manifest(output / "manifest.json")
+
+    def test_first_capture_rejects_unreviewed_or_mismatched_spec_before_fetch(self) -> None:
+        cases = (
+            ("no reviewer", lambda item: item.update(reviewed_by="")),
+            ("wrong page title", lambda item: item["event"].update(source_page_title="Other UFC")),
+            ("wrong start", lambda item: item["official_start_review"].update(
+                event_start_utc_for_conservative_cutoff="2099-01-02T19:00:00Z")),
+            ("future review", lambda item: item.update(reviewed_at_utc="2099-01-01T04:00:00Z")),
+        )
+        for label, change in cases:
+            with self.subTest(label=label):
+                spec_path = self._event_spec(f"{label.replace(' ', '-')}.json")
+                item = json.loads(spec_path.read_text(encoding="utf-8"))
+                change(item)
+                spec_path.write_bytes(_body(item))
+                fetch, calls = self._fetch()
+                output = self.root / f"bad-{label.replace(' ', '-')}"
+                with self.assertRaises(ValueError):
+                    capture_prefight_card(
+                        None, output, event_spec_path=spec_path,
+                        fetch=fetch, clock=self.clock,
+                    )
+                self.assertEqual(calls, [])
+                self.assertFalse(output.exists())
+
+    def test_first_capture_rejects_response_before_review_or_wrong_page(self) -> None:
+        spec_path = self._event_spec()
+        for name, kwargs in (
+            ("before-review", {"source_at": "2099-01-01T01:29:59Z"}),
+            ("wrong-page", {"page": _page("Epsilon Fighter", 201, page_id=999)}),
+        ):
+            with self.subTest(name=name):
+                fetch, calls = self._fetch(**kwargs)
+                output = self.root / name
+                with self.assertRaises(ValueError):
+                    capture_prefight_card(
+                        None, output, event_spec_path=spec_path,
+                        fetch=fetch, clock=self.clock,
+                    )
+                self.assertEqual(calls, [self.rest_url])
+                self.assertFalse(output.exists())
+
     def test_fresh_receipts_manifest_and_identity_holds(self) -> None:
         fetch, calls = self._fetch()
         output = self.root / "fresh-capture"

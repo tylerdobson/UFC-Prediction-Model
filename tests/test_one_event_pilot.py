@@ -9,12 +9,19 @@ import sqlite3
 import tempfile
 import unittest
 import urllib.parse
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
-from scripts.import_reviewed_prefight_card import run_import, verify_manifest, write_template
+from ufc_odds_model import db
+from scripts.import_reviewed_prefight_card import (
+    import_approved_card, run_import, verify_manifest, write_review_template, write_template,
+)
+from ufc_odds_model.alerts import record_prefight_checks
 from ufc_odds_model.card_history import latest_prefight_roster
+from ufc_odds_model.ingest import import_odds_payload
+from ufc_odds_model.paper import record_paper_candidates
+from ufc_odds_model.pipeline import score_event
 
 
 def _save_json(path: Path, payload: object) -> str:
@@ -187,6 +194,87 @@ class OneEventPilotTests(unittest.TestCase):
                          "receipt_sha256": receipt_sha,
                          "fetched_at_utc": fetched_at})
         _save_json(self.manifest_path, manifest)
+
+    def _fully_link_second_bout(self) -> None:
+        """Make the two-row source card fully identified for a positive gate fixture."""
+        manifest = json.loads(self.manifest_path.read_text())
+        source_path = Path(manifest["source"]["raw_path"])
+        page = json.loads(source_path.read_text())
+        page["source"] = page["source"].replace("|Gamma Plain\n", "|[[Gamma Plain]]\n")
+        manifest["source"]["raw_sha256"] = _save_json(source_path, page)
+        lookup_path = Path(manifest["fighter_lookup"]["raw_path"])
+        lookup = json.loads(lookup_path.read_text())
+        lookup["query"]["pages"].append({"title": "Gamma Plain", "pageid": 33, "ns": 0})
+        manifest["fighter_lookup"]["raw_sha256"] = _save_json(lookup_path, lookup)
+        titles = sorted(("Alpha Fighter", "Beta Fighter", "Delta Fighter", "Gamma Plain"))
+        query = urllib.parse.urlencode({
+            "action": "query", "format": "json", "formatversion": "2", "redirects": "1",
+            "titles": "|".join(titles), "maxlag": "5", "prop": "pageprops",
+            "ppprop": "disambiguation",
+        })
+        manifest["fighter_lookup"]["api_url"] = "https://en.wikipedia.org/w/api.php?" + query
+        manifest["fighter_lookup"]["linked_titles_requested"] = 4
+        manifest["fighter_lookup"]["linked_titles_resolved"] = 4
+        manifest["fight_card_rows"][1]["fighter_a"].update({
+            "linked_title": "Gamma Plain", "page_id": 33, "stable_id": "wikipedia:33",
+        })
+        manifest["fight_card_rows"][1]["status"] = "source_page_ids_resolved_manual_review_pending"
+        manifest["review_summary"].update({"fully_linked_identity_rows": 2,
+                                           "identity_hold_rows": 0})
+        _save_json(self.manifest_path, manifest)
+
+    def _replace_exact_odds_with_alias(self) -> None:
+        odds_manifest = json.loads(self.odds_path.read_text())
+        raw_path = Path(odds_manifest["raw_path"])
+        raw = json.loads(raw_path.read_text())
+        raw[0]["away_team"] = "Replacement Opponent"
+        raw[0]["bookmakers"][0]["markets"][0]["outcomes"][1]["name"] = "Replacement Opponent"
+        odds_manifest["sha256"] = _save_json(raw_path, raw)
+        _save_json(self.odds_path, odds_manifest)
+        manifest = json.loads(self.manifest_path.read_text())
+        manifest["odds_coverage_comparison"]["rows"][0] = {
+            "position": 1, "status": "alias_or_opponent_review_required",
+            "candidate_odds_event_ids": [raw[0]["id"]],
+        }
+        _save_json(self.manifest_path, manifest)
+
+    def _add_odds_receipt(self) -> None:
+        odds_manifest = json.loads(self.odds_path.read_text())
+        odds_manifest.update({"source": "the-odds-api", "region": "us"})
+        receipt_path = self.root / "odds-fetch-receipt.json"
+        receipt_sha = _save_json(receipt_path, {
+            "schema_version": 1, "provider": "the-odds-api",
+            "sport_key": "mma_mixed_martial_arts", "market": "h2h",
+            "region": "us", "fetched_at_utc": odds_manifest["captured_at_utc"],
+            "response_sha256": odds_manifest["sha256"],
+        })
+        odds_manifest.update({"receipt_path": str(receipt_path),
+                              "receipt_sha256": receipt_sha})
+        odds_sha = _save_json(self.odds_path, odds_manifest)
+        manifest = json.loads(self.manifest_path.read_text())
+        manifest["odds_coverage_comparison"]["source_manifest_sha256"] = odds_sha
+        _save_json(self.manifest_path, manifest)
+
+    def _completed_review(self, *, full: bool) -> Path:
+        if full:
+            self._fully_link_second_bout()
+        self._add_capture_receipts()
+        self._add_odds_receipt()
+        path = self.root / "operating-review.json"
+        write_review_template(self.manifest_path, path, self.odds_path)
+        review = json.loads(path.read_text())
+        review["reviewed_by"] = "Fixture Reviewer"
+        review["reviewed_at_utc"] = "2026-09-26T10:05:00Z"
+        review["rights"] = {
+            "decision": "approved", "use_scope": "private_betting_decision_support",
+            "basis_url": "https://example.test/fixture-permission",
+            "basis_note": "Fixture grant for isolated paper decision tests.",
+        }
+        review["rows"][0]["roster_disposition"] = "approve"
+        review["rows"][1]["roster_disposition"] = "approve" if full else "hold"
+        review["rows"][1]["review_note"] = "" if full else "Unresolved source fighter ID"
+        _save_json(path, review)
+        return path
 
     def test_timestamped_capture_receipts_survive_provisional_import(self) -> None:
         self._add_capture_receipts()
@@ -362,6 +450,256 @@ class OneEventPilotTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Odds API response SHA-256 mismatch"):
             run_import(self.manifest_path, csv_path, self.root / "bad-odds", self.odds_path)
         self.assertFalse((self.root / "bad-odds").exists())
+
+    def test_partial_review_keeps_event_wide_gate_closed(self) -> None:
+        review_path = self._completed_review(full=False)
+        output = self.root / "partial-operating"
+        fixed = datetime(2026, 9, 26, 11, tzinfo=timezone.utc)
+        with patch("scripts.import_reviewed_prefight_card.utc_now", return_value=fixed), patch(
+            "ufc_odds_model.importers.utc_now", return_value=fixed
+        ):
+            report = import_approved_card(self.manifest_path, review_path, output, self.odds_path)
+        self.assertEqual(report["approved_bouts"], 1)
+        self.assertEqual(report["held_positions"], [2])
+        self.assertEqual(report["event_provider_status"], "review_pending")
+        self.assertFalse(report["roster_gate_eligible"])
+        self.assertEqual(report["paper_decisions_created"], 0)
+        with db.connect(output / "operating-card.sqlite") as connection:
+            roster = latest_prefight_roster(
+                connection, report["event_id"], f"{report['event_id']}:1", fixed,
+            )
+            self.assertEqual(roster["reason"], "roster_provider_status_not_prefight")
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM paper_bets").fetchone()[0], 0)
+            with self.assertRaisesRegex(sqlite3.DatabaseError, "immutable"):
+                connection.execute("UPDATE card_event_snapshots SET reviewed_by = 'changed'")
+
+    def test_operating_review_requires_timestamped_card_and_odds_receipts(self) -> None:
+        review_path = self.root / "review-template.json"
+        with self.assertRaisesRegex(ValueError, "source and fighter lookup fetch receipts"):
+            write_review_template(self.manifest_path, review_path, self.odds_path)
+        self.assertFalse(review_path.exists())
+        self._add_capture_receipts()
+        with self.assertRaisesRegex(ValueError, "timestamped odds fetch receipt"):
+            write_review_template(self.manifest_path, review_path, self.odds_path)
+        self.assertFalse(review_path.exists())
+
+    def test_full_review_makes_roster_eligible_but_history_blocks_paper(self) -> None:
+        review_path = self._completed_review(full=True)
+        fixed = datetime(2026, 9, 26, 11, tzinfo=timezone.utc)
+        with patch("scripts.import_reviewed_prefight_card.utc_now", return_value=fixed), patch(
+            "ufc_odds_model.importers.utc_now", return_value=fixed
+        ):
+            report = import_approved_card(self.manifest_path, review_path,
+                                          self.root / "full-operating", self.odds_path)
+        self.assertTrue(report["full_card_reconciled"])
+        self.assertTrue(report["roster_gate_eligible"])
+        self.assertEqual(report["event_provider_status"], "scheduled")
+        database = self.root / "full-operating" / "operating-card.sqlite"
+        with db.connect(database) as connection:
+            roster = latest_prefight_roster(
+                connection, report["event_id"], f"{report['event_id']}:1", fixed,
+            )
+            self.assertTrue(roster["accepted"])
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM results").fetchone()[0], 0)
+            payload = json.loads((self.root / "odds.json").read_text())
+            payload[0]["bookmakers"][0]["markets"][0]["last_update"] = "2026-09-26T10:59:55Z"
+            payload[0]["bookmakers"][0]["markets"][0]["outcomes"][0]["price"] = 2.3
+            payload[0]["bookmakers"][0]["markets"][0]["outcomes"][1]["price"] = 1.6
+            with patch("ufc_odds_model.ingest.utc_now", return_value=fixed):
+                odds = import_odds_payload(connection, payload, "2026-09-26T11:00:00Z",
+                                           self.root / "fresh-odds")
+            with patch("ufc_odds_model.pipeline.utc_now", return_value=fixed + timedelta(seconds=2)):
+                _, rows = score_event(
+                    connection, report["event_id"], fixed + timedelta(seconds=1),
+                    self.root / "reports", required_snapshot_at_utc=odds["snapshot_at_utc"],
+                )
+            self.assertEqual(rows[0]["decision"], "candidate")
+
+            class FixedGateDatetime(datetime):
+                @classmethod
+                def now(cls, tz=None):
+                    return cls(2026, 9, 26, 11, 0, 2,
+                               tzinfo=timezone.utc).astimezone(tz or timezone.utc)
+
+            with patch("ufc_odds_model.alerts.datetime", FixedGateDatetime):
+                checked = record_prefight_checks(
+                    connection, rows, ingestion_run_id=int(odds["ingestion_run_id"]),
+                )
+            self.assertEqual(checked[0]["alert_reason"], "model_not_validated")
+            self.assertFalse(checked[0]["alert_eligible"])
+            self.assertEqual(record_paper_candidates(connection, checked, 1000), [])
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM paper_bets").fetchone()[0], 0)
+
+    def test_review_hash_rights_and_full_card_decisions_fail_before_new_db(self) -> None:
+        review_path = self._completed_review(full=False)
+        original = json.loads(review_path.read_text())
+        fixed = datetime(2026, 9, 26, 11, tzinfo=timezone.utc)
+        changes = [
+            ({"source_manifest_sha256": "0" * 64}, "source hash"),
+            ({"source_revision_id": "wrong"}, "revision"),
+            ({"event_start_utc": "2026-09-27T21:00:00Z"}, "start"),
+            ({"rows": original["rows"][:1]}, "every captured card row"),
+            ({"rights": {**original["rights"], "decision": "pending"}}, "Source rights"),
+        ]
+        for index, (changed, message) in enumerate(changes):
+            review = {**original, **changed}
+            _save_json(review_path, review)
+            output = self.root / f"invalid-{index}"
+            with patch("scripts.import_reviewed_prefight_card.utc_now", return_value=fixed):
+                with self.assertRaisesRegex(ValueError, message):
+                    import_approved_card(self.manifest_path, review_path, output, self.odds_path)
+            self.assertFalse(output.exists())
+        _save_json(review_path, original)
+        manifest = json.loads(self.manifest_path.read_text())
+        Path(manifest["source"]["raw_path"]).write_bytes(b"changed capture evidence")
+        with self.assertRaisesRegex(ValueError, "SHA-256 mismatch"):
+            import_approved_card(self.manifest_path, review_path,
+                                 self.root / "changed-source", self.odds_path)
+        self.assertFalse((self.root / "changed-source").exists())
+
+    def test_alias_odds_hold_blocks_event_wide_schedule(self) -> None:
+        self._fully_link_second_bout()
+        self._replace_exact_odds_with_alias()
+        self._add_capture_receipts()
+        self._add_odds_receipt()
+        review_path = self.root / "operating-review.json"
+        write_review_template(self.manifest_path, review_path, self.odds_path)
+        review = json.loads(review_path.read_text())
+        review["reviewed_by"] = "Fixture Reviewer"
+        review["reviewed_at_utc"] = "2026-09-26T10:05:00Z"
+        review["rights"] = {
+            "decision": "approved", "use_scope": "private_betting_decision_support",
+            "basis_url": "https://example.test/fixture-permission",
+            "basis_note": "Fixture grant for isolated paper decision tests.",
+        }
+        for row in review["rows"]:
+            row["roster_disposition"] = "approve"
+        _save_json(review_path, review)
+        fixed = datetime(2026, 9, 26, 11, tzinfo=timezone.utc)
+        with patch("scripts.import_reviewed_prefight_card.utc_now", return_value=fixed), patch(
+            "ufc_odds_model.importers.utc_now", return_value=fixed
+        ):
+            report = import_approved_card(self.manifest_path, review_path,
+                                          self.root / "alias-held", self.odds_path)
+        self.assertEqual(report["odds_alias_or_opponent_hold_positions"], [1])
+        self.assertEqual(report["event_provider_status"], "review_pending")
+        self.assertFalse(report["roster_gate_eligible"])
+
+    def test_operating_review_rejects_relabelled_negative_odds_coverage(self) -> None:
+        self._fully_link_second_bout()
+        self._replace_exact_odds_with_alias()
+        self._add_capture_receipts()
+        self._add_odds_receipt()
+        manifest = json.loads(self.manifest_path.read_text())
+        actual_rows = manifest["odds_coverage_comparison"]["rows"]
+        alias_row = dict(actual_rows[0])
+        actual_rows[0] = {"position": 1, "status": "no_odds_event_in_saved_snapshot"}
+        _save_json(self.manifest_path, manifest)
+        review_path = self.root / "relabelled-review.json"
+        with self.assertRaisesRegex(ValueError, "differs from saved response"):
+            write_review_template(self.manifest_path, review_path, self.odds_path)
+        self.assertFalse(review_path.exists())
+
+        actual_rows[0] = alias_row
+        actual_rows[1] = {"position": 2, "status": "alias_or_opponent_review_required",
+                          "candidate_odds_event_ids": [alias_row["candidate_odds_event_ids"][0]]}
+        _save_json(self.manifest_path, manifest)
+        with self.assertRaisesRegex(ValueError, "differs from saved response"):
+            write_review_template(self.manifest_path, review_path, self.odds_path)
+        self.assertFalse(review_path.exists())
+
+    def test_no_usable_price_is_a_quote_gap_not_a_roster_hold(self) -> None:
+        self._fully_link_second_bout()
+        self._add_capture_receipts()
+        self._add_odds_receipt()
+        manifest = json.loads(self.manifest_path.read_text())
+        manifest["odds_coverage_comparison"]["rows"][0]["status"] = "no_usable_two_sided_price"
+        _save_json(self.manifest_path, manifest)
+        review_path = self.root / "operating-review.json"
+        with self.assertRaisesRegex(ValueError, "hides a usable two-sided bookmaker"):
+            write_review_template(self.manifest_path, review_path, self.odds_path)
+
+        odds_manifest = json.loads(self.odds_path.read_text())
+        raw_path = Path(odds_manifest["raw_path"])
+        raw = json.loads(raw_path.read_text())
+        raw[0]["bookmakers"] = []
+        odds_manifest["sha256"] = _save_json(raw_path, raw)
+        receipt_path = Path(odds_manifest["receipt_path"])
+        receipt = json.loads(receipt_path.read_text())
+        receipt["response_sha256"] = odds_manifest["sha256"]
+        odds_manifest["receipt_sha256"] = _save_json(receipt_path, receipt)
+        manifest["odds_coverage_comparison"]["source_manifest_sha256"] = _save_json(
+            self.odds_path, odds_manifest
+        )
+        _save_json(self.manifest_path, manifest)
+        write_review_template(self.manifest_path, review_path, self.odds_path)
+        review = json.loads(review_path.read_text())
+        review["reviewed_by"] = "Fixture Reviewer"
+        review["reviewed_at_utc"] = "2026-09-26T10:05:00Z"
+        review["rights"] = {
+            "decision": "approved", "use_scope": "private_betting_decision_support",
+            "basis_url": "https://example.test/fixture-permission",
+            "basis_note": "Fixture grant for isolated paper decision tests.",
+        }
+        for row in review["rows"]:
+            row["roster_disposition"] = "approve"
+        _save_json(review_path, review)
+        fixed = datetime(2026, 9, 26, 11, tzinfo=timezone.utc)
+        with patch("scripts.import_reviewed_prefight_card.utc_now", return_value=fixed), patch(
+            "ufc_odds_model.importers.utc_now", return_value=fixed
+        ):
+            report = import_approved_card(self.manifest_path, review_path,
+                                          self.root / "no-price", self.odds_path)
+        self.assertEqual(report["event_provider_status"], "scheduled")
+        self.assertEqual(report["odds_alias_or_opponent_hold_positions"], [])
+        with db.connect(self.root / "no-price" / "operating-card.sqlite") as connection:
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM odds_quotes").fetchone()[0], 0)
+
+    def test_operating_import_rejects_stale_capture_and_unreviewed_substitution(self) -> None:
+        review_path = self._completed_review(full=False)
+        review = json.loads(review_path.read_text())
+        review["rows"][1]["roster_disposition"] = "substituted"
+        review["rows"][1]["review_note"] = "Opponent replacement requires a new card capture"
+        _save_json(review_path, review)
+        fixed = datetime(2026, 9, 26, 11, tzinfo=timezone.utc)
+        with patch("scripts.import_reviewed_prefight_card.utc_now", return_value=fixed), patch(
+            "ufc_odds_model.importers.utc_now", return_value=fixed
+        ):
+            report = import_approved_card(self.manifest_path, review_path,
+                                          self.root / "substitution-held", self.odds_path)
+        self.assertEqual(report["held_positions"], [2])
+        self.assertEqual(report["event_provider_status"], "review_pending")
+        output = self.root / "stale-card"
+        with patch("scripts.import_reviewed_prefight_card.utc_now",
+                   return_value=datetime(2026, 9, 27, 11, tzinfo=timezone.utc)):
+            with self.assertRaisesRegex(ValueError, "capture is stale"):
+                import_approved_card(self.manifest_path, review_path, output, self.odds_path)
+        self.assertFalse(output.exists())
+
+    def test_captured_event_spec_is_bound_and_tamper_evident(self) -> None:
+        manifest = json.loads(self.manifest_path.read_text())
+        spec_path = self.root / "event-spec.json"
+        spec = {
+            "schema_version": 1,
+            "event": {"source_page_id": 12345, "source_page_title": "UFC Pilot",
+                      "event_date": "2026-09-27"},
+            "source": {"api_url": manifest["source"]["api_url"]},
+            "official_start_review": manifest["official_start_review"],
+            "reviewed_by": "Fixture Reviewer", "reviewed_at_utc": "2026-09-26T09:00:00Z",
+        }
+        manifest["event_spec_path"] = "event-spec.json"
+        manifest["event_spec_sha256"] = _save_json(spec_path, spec)
+        _save_json(self.manifest_path, manifest)
+        verified = verify_manifest(self.manifest_path)
+        self.assertEqual(verified["event_spec_bytes"], spec_path.read_bytes())
+        spec["event"]["source_page_id"] = 999
+        _save_json(spec_path, spec)
+        with self.assertRaisesRegex(ValueError, "SHA-256 mismatch"):
+            verify_manifest(self.manifest_path)
+        manifest["event_spec_sha256"] = hashlib.sha256(spec_path.read_bytes()).hexdigest()
+        _save_json(self.manifest_path, manifest)
+        with self.assertRaisesRegex(ValueError, "differs from captured event"):
+            verify_manifest(self.manifest_path)
 
 
 if __name__ == "__main__":

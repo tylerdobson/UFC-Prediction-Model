@@ -205,6 +205,33 @@ class CapturePrefightOddsTests(unittest.TestCase):
         with self.assertRaises(FileExistsError):
             self._capture("captured")
 
+    def test_reviewed_event_spec_survives_card_copy(self) -> None:
+        card = json.loads(self.card_path.read_bytes())
+        spec_path = self.root / "event-spec.json"
+        spec = {
+            "schema_version": 1,
+            "event": {"source_page_id": card["event"]["source_page_id"],
+                      "source_page_title": card["event"]["source_page_title"],
+                      "event_date": card["event"]["event_date"]},
+            "source": {"api_url": card["source"]["api_url"]},
+            "official_start_review": card["official_start_review"],
+            "reviewed_by": "Fixture reviewer",
+            "reviewed_at_utc": "2099-01-02T09:00:00Z",
+        }
+        card["event_spec_path"] = spec_path.name
+        card["event_spec_sha256"] = _save(spec_path, spec)
+        _save(self.card_path, card)
+        self.assertEqual(verify_manifest(self.card_path)["card_count"], 4)
+
+        _, output = self._capture("spec-copied")
+        copied_path = output / "card-with-odds-manifest.json"
+        copied = json.loads(copied_path.read_bytes())
+        self.assertEqual(copied["event_spec_path"], str(spec_path.resolve()))
+        verified = verify_manifest(copied_path)
+        self.assertEqual(verified["event_spec_bytes"], spec_path.read_bytes())
+        self.assertEqual(_odds_input(output / "odds-intake-manifest.json", verified)[
+            "raw_bytes"], _body(self.payload))
+
     def test_duplicate_pair_is_held_as_ambiguous(self) -> None:
         duplicate = _odds_event("exact-duplicate", "Beta Fighter", "Alpha Fighter")
         _, output = self._capture("ambiguous", self.payload + [duplicate])

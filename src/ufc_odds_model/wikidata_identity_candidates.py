@@ -34,8 +34,8 @@ SELECT ?item ?ufcId ?itemLabel WHERE {
 ORDER BY ?item ?ufcId
 """
 DEFAULT_USER_AGENT = (
-    "UFC-Prediction-Model/0.2 "
-    "(https://github.com/tylerdobson/UFC-Prediction-Model; identity research)"
+    "UFCPredictionModel/0.3 "
+    "(https://tylerjamesdobson.com; identity research)"
 )
 _QID_URL = re.compile(r"^https?://www\.wikidata\.org/entity/(Q[1-9]\d*)$")
 

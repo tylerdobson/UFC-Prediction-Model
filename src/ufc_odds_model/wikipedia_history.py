@@ -30,8 +30,8 @@ from .raw_snapshots import retain_snapshot
 REST_ROOT = "https://en.wikipedia.org/w/rest.php/v1/page"
 ACTION_API = "https://en.wikipedia.org/w/api.php"
 USER_AGENT = (
-    "UFCPredictionModelResearch/0.1 "
-    "(https://github.com/tylerdobson/UFC-Prediction-Model; research-only)"
+    "UFCPredictionModel/0.3 "
+    "(https://tylerjamesdobson.com; private UFC data research)"
 )
 LICENSE_URL = "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
 

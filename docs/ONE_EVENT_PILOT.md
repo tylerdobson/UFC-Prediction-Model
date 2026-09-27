@@ -108,6 +108,26 @@ Both research replays were rebuilt at the **exact** odds cutoff `2026-09-27T16:0
   --output reports/NEW-FULL-REPORT.json
 ```
 
+## Separate reviewed operating handoff
+
+The later September 27 first capture is anchored by a Codex source-check event spec at `data/raw/ufc332-first-capture-20260927T163956Z/`; human source approval is still pending. Its exact spec, card response, fighter lookup, and fetch receipts are hash-bound. The separate `data/raw/ufc332-odds-first-capture-20260927T1643Z/` snapshot was fetched at `2026-09-27T16:43:11Z`: 29 MMA events, 10 eligible on the card's local date, four exact pairings, three alias/opponent holds, three identity holds, and three without an odds event. These are fresh **review-pending evidence**, not event-day executable quotes. The generated `data/raw/ufc332-operating-review-template-20260927T1643Z.json` leaves all 13 card rows pending.
+
+For another verified capture, create an explicit full-card review artifact, then have a human review every row, current substitutions, stable IDs, and the documented rights basis before attempting a separate import:
+
+```bash
+.venv/bin/python scripts/import_reviewed_prefight_card.py review-template \
+  --manifest data/raw/ufc332-odds-first-capture-20260927T1643Z/card-with-odds-manifest.json \
+  --odds-manifest data/raw/ufc332-odds-first-capture-20260927T1643Z/odds-intake-manifest.json \
+  --output data/raw/NEW-operating-review.json
+.venv/bin/python scripts/import_reviewed_prefight_card.py import-approved \
+  --manifest data/raw/ufc332-odds-first-capture-20260927T1643Z/card-with-odds-manifest.json \
+  --odds-manifest data/raw/ufc332-odds-first-capture-20260927T1643Z/odds-intake-manifest.json \
+  --review data/raw/NEW-operating-review.json \
+  --output-dir data/raw/NEW-operating-card
+```
+
+`import-approved` creates a **new** database and immutable approved card snapshot; it never upgrades the provisional pilot. Every captured row needs an explicit `approve`, `hold`, `cancelled`, or `substituted` disposition. Any unresolved card row or saved odds alias/opponent hold keeps the **whole event** `review_pending`, including approved bouts imported for display. A matched fight with no usable two-sided price is a quote gap; the later fresh quote gate handles it. The import requires timestamped capture receipts and a card observation no more than 24 hours old. A human-entered HTTPS rights basis is an auditable attestation, not independent proof of permission. Even a fully reconciled card has no operating point-in-time history here, so the model gate must still reject real paper decisions. Refresh the card and quotes near the actual decision time.
+
 ## Earlier September 26 forward research replays
 
 The saved card was captured at `2026-09-26T22:47:45Z`, and its odds response at

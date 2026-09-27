@@ -343,6 +343,10 @@ def capture_prefight_odds(
         info = card_copy[section]
         for field in ("raw_path", "receipt_path"):
             info[field] = str(_resolve_file(card_path, info[field]).resolve())
+    if card_copy.get("event_spec_path") is not None:
+        card_copy["event_spec_path"] = str(
+            _resolve_file(card_path, card_copy["event_spec_path"]).resolve()
+        )
     card_copy["odds_coverage_comparison"] = _comparison(
         card_copy, events, captured, odds_manifest_path,
         hashlib.sha256(odds_manifest_bytes).hexdigest(),

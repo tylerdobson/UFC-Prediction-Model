@@ -1,10 +1,12 @@
-"""Replay one saved, reviewed pre-fight card into a new paper-only database.
+"""Verify a saved pre-fight card for provisional display or explicit review.
 
 This command is deliberately offline. It verifies an immutable MediaWiki page
 response and fighter-title lookup, then passes a human-reviewed selection CSV
-through the project's ordinary CSV importer. No scoring or betting command is
-called. The resulting event is marked ``review_pending`` so the alert gate
-cannot treat this intake as an operating roster.
+through the project's ordinary CSV importer. The legacy import remains
+``review_pending``. A separate full-card review artifact can create a new
+operating candidate database: any held card or odds alias row keeps the whole
+event ``review_pending``. A rights basis URL is a human attestation recorded
+for audit, not programmatic proof of a license. Neither path scores or bets.
 """
 
 from __future__ import annotations
@@ -19,7 +21,7 @@ import shutil
 import sqlite3
 import sys
 import unicodedata
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote, urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -252,6 +254,36 @@ def verify_manifest(manifest_path: str | Path) -> dict:
     start = _verified_start(manifest)
     if not revised <= captured < start:
         raise ValueError("Source revision/capture must precede the advertised card start")
+    spec_path, spec_sha = manifest.get("event_spec_path"), manifest.get("event_spec_sha256")
+    event_spec_bytes = None
+    event_spec_reviewed_at_utc = None
+    if spec_path is not None or spec_sha is not None:
+        if spec_path is None or spec_sha is None:
+            raise ValueError("Event spec path and SHA-256 must appear together")
+        event_spec_bytes = _checked_bytes(
+            _resolve_file(path, spec_path), spec_sha, "Reviewed event spec"
+        )
+        try:
+            spec = json.loads(event_spec_bytes)
+        except (UnicodeError, json.JSONDecodeError) as exc:
+            raise ValueError("Reviewed event spec is invalid JSON") from exc
+        if not isinstance(spec, dict) or spec.get("schema_version") != 1:
+            raise ValueError("Reviewed event spec has an invalid schema")
+        expected_event = {
+            "source_page_id": event.get("source_page_id"),
+            "source_page_title": event.get("source_page_title"),
+            "event_date": event.get("event_date"),
+        }
+        if (spec.get("event") != expected_event
+                or spec.get("source") != {"api_url": api_url}
+                or spec.get("official_start_review") != manifest.get("official_start_review")):
+            raise ValueError("Reviewed event spec differs from captured event or start")
+        if not isinstance(spec.get("reviewed_by"), str) or not spec["reviewed_by"].strip():
+            raise ValueError("Reviewed event spec needs a reviewer")
+        event_spec_reviewed_at = _timestamp(spec.get("reviewed_at_utc"), "Event spec review")
+        if event_spec_reviewed_at > captured:
+            raise ValueError("Event spec review follows the source capture")
+        event_spec_reviewed_at_utc = utc_string(event_spec_reviewed_at)
     source_receipt_bytes, source_fetched = _capture_receipt(
         path, source_info, raw_bytes, api_url, "MediaWiki REST source")
     if source_fetched is not None and source_fetched != captured:
@@ -322,6 +354,8 @@ def verify_manifest(manifest_path: str | Path) -> dict:
             "raw_bytes": raw_bytes, "lookup_bytes": lookup_bytes,
             "source_receipt_bytes": source_receipt_bytes,
             "lookup_receipt_bytes": lookup_receipt_bytes,
+            "event_spec_bytes": event_spec_bytes,
+            "event_spec_reviewed_at_utc": event_spec_reviewed_at_utc,
             "lookup_fetched_at_utc": utc_string(lookup_fetched) if lookup_fetched else None,
             "eligible": eligible, "card_count": len(parsed_rows),
             "event_start_utc": utc_string(start)}
@@ -480,7 +514,7 @@ def _odds_input(odds_manifest_path: Path, verified: dict) -> dict:
         if event_id and event_id not in indexed:
             raise ValueError("Odds comparison refers to an absent odds event")
         status = item.get("status")
-        if status in {"exact", "accent_normalization"}:
+        if status in {"exact", "accent_normalization", "no_usable_two_sided_price"}:
             if not event_id:
                 raise ValueError("Safe odds comparison has no event ID")
             if event_id in safe_event_ids:
@@ -501,6 +535,16 @@ def _odds_input(odds_manifest_path: Path, verified: dict) -> dict:
                 or set(map(accent_key, source_names)) != set(map(accent_key, odds_names))
             ):
                 raise ValueError("Accent odds comparison differs from source fighters")
+            if status == "no_usable_two_sided_price":
+                if (set(map(accent_key, source_names)) != set(map(accent_key, odds_names))
+                        or not all(source_rows[item["position"]][side].get("stable_id")
+                                   for side in ("fighter_a", "fighter_b"))):
+                    raise ValueError("No-price odds comparison differs from identified source fighters")
+                from ufc_odds_model.odds_api import normalize_h2h
+
+                if any(parse_utc(quote["bookmaker_updated_at"]) <= captured for quote in
+                       normalize_h2h([event], utc_string(captured))):
+                    raise ValueError("No-price odds comparison hides a usable two-sided bookmaker")
             _timestamp(event.get("commence_time"), "Odds event commence time")
     return {"manifest_bytes": odds_manifest_bytes, "raw_bytes": raw_bytes,
             "receipt_bytes": receipt_bytes,
@@ -646,6 +690,297 @@ def run_import(manifest_path: str | Path, csv_path: str | Path, output_dir: str 
         raise
 
 
+_ODDS_CLEAR_STATUSES = {
+    "exact", "accent_normalization", "no_usable_two_sided_price",
+    "no_odds_event_in_saved_snapshot", "not_captured",
+}
+_REVIEW_DISPOSITIONS = {"approve", "hold", "cancelled", "substituted"}
+_REVIEW_SCOPE = "private_betting_decision_support"
+
+
+def _review_template(verified: dict, odds: dict | None) -> dict:
+    manifest = verified["manifest"]
+    event = manifest["event"]
+    comparison = odds["comparison"] if odds is not None else {}
+    rows = []
+    for source_row in manifest["fight_card_rows"]:
+        position = source_row["position"]
+        odds_status = (comparison[position].get("status") if odds is not None
+                       else "not_captured")
+        rows.append({
+            "position": position,
+            "fighter_a_name": source_row["fighter_a"]["name"],
+            "fighter_a_id": source_row["fighter_a"]["stable_id"],
+            "fighter_b_name": source_row["fighter_b"]["name"],
+            "fighter_b_id": source_row["fighter_b"]["stable_id"],
+            "weight_class": source_row["weight_class"],
+            "odds_status": odds_status,
+            "roster_disposition": "pending",
+            "review_note": "",
+        })
+    return {
+        "schema_version": 1,
+        "source_manifest_sha256": hashlib.sha256(verified["manifest_bytes"]).hexdigest(),
+        "odds_manifest_sha256": (hashlib.sha256(odds["manifest_bytes"]).hexdigest()
+                                 if odds is not None else None),
+        "event_id": f"wikipedia_pilot:{event['source_page_id']}",
+        "source_revision_id": str(event["source_revision_id"]),
+        "event_start_utc": verified["event_start_utc"],
+        "source_observed_at_utc": manifest["captured_at_utc"],
+        "reviewed_by": "",
+        "reviewed_at_utc": "",
+        "rights": {
+            "decision": "pending",
+            "use_scope": _REVIEW_SCOPE,
+            "basis_url": "",
+            "basis_note": "",
+        },
+        "rows": rows,
+    }
+
+
+def _review_inputs(manifest_path: str | Path,
+                   odds_manifest_path: str | Path | None) -> tuple[dict, dict | None]:
+    verified = verify_manifest(manifest_path)
+    if verified["source_receipt_bytes"] is None or verified["lookup_receipt_bytes"] is None:
+        raise ValueError("Operating review needs timestamped source and fighter lookup fetch receipts")
+    for label, value in (
+        ("card source", verified["manifest"]["source"].get("api_url")),
+        ("fighter lookup", verified["manifest"]["fighter_lookup"].get("api_url")),
+    ):
+        parsed = urlparse(value) if isinstance(value, str) else None
+        if (parsed is None or parsed.scheme != "https" or parsed.hostname != "en.wikipedia.org"
+                or parsed.port is not None or parsed.username or parsed.password):
+            raise ValueError(f"Operating {label} needs an HTTPS MediaWiki source URL")
+    has_comparison = bool(verified["manifest"].get("odds_coverage_comparison"))
+    if has_comparison != (odds_manifest_path is not None):
+        raise ValueError("Operating review needs the exact saved odds manifest when card comparison exists")
+    odds = (_odds_input(Path(odds_manifest_path).expanduser(), verified)
+            if odds_manifest_path is not None else None)
+    if odds is not None and odds["receipt_bytes"] is None:
+        raise ValueError("Operating review needs a timestamped odds fetch receipt")
+    if odds is not None:
+        # The saved comparison is editable JSON. Rebuild the eligibility set and
+        # conservative match decisions from the exact saved response before any
+        # row can be treated as clear for the operating roster.
+        from scripts.capture_prefight_odds import _comparison, _eligible_events
+
+        manifest = verified["manifest"]
+        captured = _timestamp(odds["captured_at_utc"], "Odds capture")
+        eligible_events = _eligible_events(
+            odds["payload"], captured,
+            _timestamp(verified["event_start_utc"], "Card start"),
+            date.fromisoformat(manifest["event"]["event_date"]),
+            ZoneInfo(manifest["official_start_review"]["local_timezone"]),
+        )
+        rebuilt = _comparison(
+            manifest, eligible_events, captured, Path(odds_manifest_path).expanduser(),
+            hashlib.sha256(odds["manifest_bytes"]).hexdigest(),
+        )
+        for expected in rebuilt["rows"]:
+            actual = odds["comparison"][expected["position"]]
+            if any(actual.get(field) != expected.get(field) for field in (
+                "status", "odds_event_id", "candidate_odds_event_ids",
+            )):
+                raise ValueError(
+                    f"Odds comparison at card row {expected['position']} differs from saved response"
+                )
+    return verified, odds
+
+
+def write_review_template(manifest_path: str | Path, output_path: str | Path,
+                          odds_manifest_path: str | Path | None = None) -> dict:
+    """Create an explicit full-card review artifact with no default approvals."""
+    verified, odds = _review_inputs(manifest_path, odds_manifest_path)
+    target = Path(output_path).expanduser()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    artifact = _review_template(verified, odds)
+    with target.open("x", encoding="utf-8") as stream:
+        json.dump(artifact, stream, ensure_ascii=False, indent=2, sort_keys=True)
+        stream.write("\n")
+    return {"review_path": str(target.resolve()), "card_rows": verified["card_count"],
+            "review_required": True, "rights_review_required": True}
+
+
+def _approved_review(review_path: str | Path, verified: dict, odds: dict | None) -> dict:
+    body, review = _read_json(Path(review_path).expanduser(), "Operating card review")
+    expected = _review_template(verified, odds)
+    fixed = (
+        "schema_version", "source_manifest_sha256", "odds_manifest_sha256", "event_id",
+        "source_revision_id", "event_start_utc", "source_observed_at_utc",
+    )
+    if set(review) != set(expected) or any(review.get(key) != expected[key] for key in fixed):
+        raise ValueError("Operating review differs from verified source hash, revision, start, or schema")
+    reviewer = review.get("reviewed_by")
+    if not isinstance(reviewer, str) or not reviewer.strip():
+        raise ValueError("Operating review needs a named human reviewer")
+    reviewed_at = _timestamp(review.get("reviewed_at_utc"), "Operating review time")
+    capture_at = _timestamp(verified["manifest"]["captured_at_utc"], "Source capture")
+    lookup_at = _timestamp(verified["lookup_fetched_at_utc"], "Fighter lookup fetch")
+    now = utc_now()
+    start = _timestamp(verified["event_start_utc"], "Card start")
+    if not max(capture_at, lookup_at) <= reviewed_at <= now or reviewed_at >= start:
+        raise ValueError("Operating review must follow evidence and precede current time and card start")
+    if now >= start or now - capture_at > timedelta(hours=24):
+        raise ValueError("Operating card capture is stale or the card has started; capture a fresh card")
+    if odds is not None and reviewed_at < _timestamp(odds["captured_at_utc"], "Odds capture"):
+        raise ValueError("Operating review predates the saved odds comparison")
+    rights = review.get("rights")
+    if not isinstance(rights, dict) or set(rights) != set(expected["rights"]):
+        raise ValueError("Operating review needs a complete source-rights decision")
+    basis_url = rights.get("basis_url")
+    parsed_basis = urlparse(basis_url) if isinstance(basis_url, str) else None
+    if (rights.get("decision") != "approved"
+            or rights.get("use_scope") != _REVIEW_SCOPE
+            or parsed_basis is None or parsed_basis.scheme != "https"
+            or not parsed_basis.hostname or parsed_basis.username or parsed_basis.password
+            or not isinstance(rights.get("basis_note"), str)
+            or not rights["basis_note"].strip()):
+        raise ValueError("Source rights require an explicit reviewed use scope and HTTPS basis")
+    actual_rows = review.get("rows")
+    expected_rows = expected["rows"]
+    if not isinstance(actual_rows, list) or len(actual_rows) != len(expected_rows):
+        raise ValueError("Operating review must cover every captured card row")
+    approved: list[dict] = []
+    dispositions: dict[int, str] = {}
+    seen_fighters: set[str] = set()
+    for actual, expected_row in zip(actual_rows, expected_rows):
+        if not isinstance(actual, dict) or set(actual) != set(expected_row):
+            raise ValueError("Operating review card row has an invalid schema")
+        if any(actual[key] != expected_row[key] for key in expected_row
+               if key not in {"roster_disposition", "review_note"}):
+            raise ValueError("Operating review card row differs from captured fighter IDs, odds, or position")
+        position = expected_row["position"]
+        decision = actual.get("roster_disposition")
+        note = actual.get("review_note")
+        if decision not in _REVIEW_DISPOSITIONS or not isinstance(note, str):
+            raise ValueError(f"Card row {position} needs an explicit review disposition")
+        if decision != "approve" and not note.strip():
+            raise ValueError(f"Card row {position} needs a hold, cancellation, or substitution reason")
+        if decision == "approve":
+            fighter_ids = (expected_row["fighter_a_id"], expected_row["fighter_b_id"])
+            if (not all(isinstance(item, str) and re.fullmatch(r"wikipedia:[1-9][0-9]*", item)
+                        for item in fighter_ids)
+                    or fighter_ids[0] == fighter_ids[1]
+                    or any(item in seen_fighters for item in fighter_ids)):
+                raise ValueError(f"Card row {position} has unresolved or reused stable fighter IDs")
+            seen_fighters.update(fighter_ids)
+            approved.append(expected_row)
+        dispositions[position] = decision
+    if not approved:
+        raise ValueError("Operating review has no approved bout")
+    odds_holds = sorted(row["position"] for row in expected_rows
+                        if row["odds_status"] not in _ODDS_CLEAR_STATUSES)
+    full_card = len(approved) == len(expected_rows) and not odds_holds
+    return {"bytes": body, "review": review, "approved": approved,
+            "dispositions": dispositions, "odds_hold_positions": odds_holds,
+            "full_card_reconciled": full_card}
+
+
+def import_approved_card(manifest_path: str | Path, review_path: str | Path,
+                         output_dir: str | Path,
+                         odds_manifest_path: str | Path | None = None) -> dict:
+    """Create a new operating candidate DB; partial reviews stay event-wide held."""
+    verified, odds = _review_inputs(manifest_path, odds_manifest_path)
+    approval = _approved_review(review_path, verified, odds)
+    target = Path(output_dir).expanduser()
+    if target.exists() or target.is_symlink():
+        raise ValueError(f"Output directory already exists: {target}")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.mkdir()
+    database = target / "operating-card.sqlite"
+    raw_dir = target / "raw"
+    event_status = "scheduled" if approval["full_card_reconciled"] else "review_pending"
+    try:
+        with database.open("xb"):
+            pass
+        connection = db.connect(database)
+        try:
+            db.init_db(connection)
+            snapshot_at = verified["manifest"]["captured_at_utc"]
+            for source, payload, at in (
+                ("one-event-intake-manifest", verified["manifest_bytes"], snapshot_at),
+                ("wikipedia-prefight-rest", verified["raw_bytes"], snapshot_at),
+                ("wikipedia-prefight-rest-fetch-receipt", verified["source_receipt_bytes"], snapshot_at),
+                ("wikipedia-prefight-fighter-lookup", verified["lookup_bytes"],
+                 verified["lookup_fetched_at_utc"]),
+                ("wikipedia-prefight-lookup-fetch-receipt", verified["lookup_receipt_bytes"],
+                 verified["lookup_fetched_at_utc"]),
+                ("operating-card-review", approval["bytes"],
+                 approval["review"]["reviewed_at_utc"]),
+            ):
+                _source_receipt(connection, source=source, payload=payload,
+                                raw_dir=raw_dir / "review-evidence", snapshot_at_utc=at)
+            if verified["event_spec_bytes"] is not None:
+                _source_receipt(connection, source="reviewed-event-spec",
+                                payload=verified["event_spec_bytes"],
+                                raw_dir=raw_dir / "review-evidence",
+                                snapshot_at_utc=verified["event_spec_reviewed_at_utc"])
+            if odds is not None:
+                for source, payload in (
+                    ("odds-intake-manifest", odds["manifest_bytes"]),
+                    ("the-odds-api-exact-response", odds["raw_bytes"]),
+                    ("the-odds-api-fetch-receipt", odds["receipt_bytes"]),
+                ):
+                    if payload is not None:
+                        _source_receipt(connection, source=source, payload=payload,
+                                        raw_dir=raw_dir / "review-evidence",
+                                        snapshot_at_utc=odds["captured_at_utc"])
+            source_rows = {row["source_position"]: row for row in _template_rows(verified)}
+            csv_rows = []
+            for row in approval["approved"]:
+                selected = dict(source_rows[str(row["position"])])
+                selected["event_provider_status"] = event_status
+                selected["bout_provider_status"] = event_status
+                selected["reviewed_by"] = approval["review"]["reviewed_by"].strip()
+                csv_rows.append(selected)
+            csv_path = target / "approved-card.csv"
+            with csv_path.open("x", encoding="utf-8", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=CSV_COLUMNS)
+                writer.writeheader()
+                writer.writerows(csv_rows)
+            imported = import_bouts_csv(connection, csv_path, raw_dir / "approved-csv")
+            connection.commit()
+        finally:
+            connection.close()
+        evidence = verify_evidence(database)
+        if not evidence["ok"]:
+            raise ValueError("Approved operating database failed source integrity verification")
+        report = {
+            "purpose": "reviewed single-event operating candidate",
+            "database_path": str(database.resolve()),
+            "review_path": str(Path(review_path).expanduser().resolve()),
+            "event_id": approval["review"]["event_id"],
+            "event_provider_status": event_status,
+            "full_card_bouts": verified["card_count"],
+            "approved_bouts": imported,
+            "held_positions": sorted(position for position, decision in approval["dispositions"].items()
+                                     if decision != "approve"),
+            "odds_alias_or_opponent_hold_positions": approval["odds_hold_positions"],
+            "full_card_reconciled": approval["full_card_reconciled"],
+            "roster_gate_eligible": approval["full_card_reconciled"],
+            "operating_history_results": 0,
+            "model_ready": False,
+            "decision_ready": False,
+            "alerts_created": 0,
+            "paper_decisions_created": 0,
+            "source_rights_attested": True,
+            "source_rights_independently_verified": False,
+            "rights_basis_url": approval["review"]["rights"]["basis_url"],
+            "integrity_ok": True,
+            "receipt_count": evidence["receipt_count"],
+            "verified_receipts": evidence["verified_receipts"],
+            "next_step": "Import rights-cleared point-in-time results; refresh card and odds near event time before any gate run.",
+        }
+        (target / "operating-card-report.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        return report
+    except Exception:
+        shutil.rmtree(target, ignore_errors=True)
+        raise
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -659,11 +994,27 @@ def main(argv: list[str] | None = None) -> int:
     imported.add_argument("--odds-manifest", help="Optional already-saved Odds API intake manifest")
     imported.add_argument("--provisional", action="store_true",
                           help="Allow blank reviewer cells; keep this isolated intake unavailable for decisions")
+    review_template = commands.add_parser("review-template", help="Create an unapproved full-card review JSON")
+    review_template.add_argument("--manifest", required=True)
+    review_template.add_argument("--odds-manifest")
+    review_template.add_argument("--output", required=True)
+    approved = commands.add_parser("import-approved", help="Import an explicit review into a new operating candidate DB")
+    approved.add_argument("--manifest", required=True)
+    approved.add_argument("--odds-manifest")
+    approved.add_argument("--review", required=True)
+    approved.add_argument("--output-dir", required=True)
     args = parser.parse_args(argv)
     try:
-        result = (write_template(args.manifest, args.output) if args.command == "template"
-                  else run_import(args.manifest, args.csv, args.output_dir,
-                                  args.odds_manifest, provisional=args.provisional))
+        if args.command == "template":
+            result = write_template(args.manifest, args.output)
+        elif args.command == "import":
+            result = run_import(args.manifest, args.csv, args.output_dir,
+                                args.odds_manifest, provisional=args.provisional)
+        elif args.command == "review-template":
+            result = write_review_template(args.manifest, args.output, args.odds_manifest)
+        else:
+            result = import_approved_card(args.manifest, args.review, args.output_dir,
+                                          args.odds_manifest)
     except (OSError, ValueError, sqlite3.Error) as exc:
         print(f"one-event intake failed: {exc}", file=sys.stderr)
         return 1
