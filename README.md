@@ -2,6 +2,12 @@
 
 A Python and SQLite project for importing UFC cards and timestamped bookmaker prices, evaluating fight-winner probabilities, paper-trading under stake caps, and recording bets you place manually. It includes Elo and a point-in-time logistic model. **Its demo data and demo betting candidates are fictional and have no betting value.**
 
+## Dashboard screenshot
+
+Captured from the running Streamlit dashboard with the project's fictional demo database. The upcoming-card view labels the records as demo data and shows the read-only decision requirements.
+
+![UFC Forecast dashboard showing a fictional upcoming card, observed demo quotes, and decision requirements.](docs/images/ufc-demo-dashboard.png)
+
 ## Where everything lives
 
 ```text
