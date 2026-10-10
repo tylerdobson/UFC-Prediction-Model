@@ -2101,6 +2101,176 @@ def load_ufc332_forward_research(
         return {"status": "invalid_report", "reason": "Saved UFC 332 research evidence could not be verified."}
 
 
+_REVIEW_MAX_ROWS = 32
+_REVIEW_MAX_BYTES = 256 * 1024
+_REVIEW_MANIFEST_MAX_BYTES = 2 * 1024 * 1024
+_REVIEW_MAX_SIBLING_DIRS = 64
+_REVIEW_MAX_MANIFESTS = 128
+_REVIEW_ODDS_HOLDS = {"alias_or_opponent_review_required", "ambiguous_pair_review_required"}
+_REVIEW_QUOTE_GAPS = {"no_usable_two_sided_price", "no_odds_event_in_saved_snapshot", "not_captured"}
+_REVIEW_DISPOSITIONS = {"pending", "approve", "hold", "cancelled", "substituted"}
+
+
+def _review_manifest_matches(
+    review_path: Path, expected_sha: str, explicit_path: str | Path | None,
+) -> list[Path]:
+    """Find a few exact manifests beside a review without crawling a tree."""
+    if explicit_path is not None:
+        candidates = [Path(explicit_path).expanduser()]
+    else:
+        directories = [review_path.parent]
+        for entry in review_path.parent.iterdir():
+            if entry.is_dir() and not entry.is_symlink():
+                directories.append(entry)
+                if len(directories) > _REVIEW_MAX_SIBLING_DIRS + 1:
+                    raise ValueError("Too many nearby review evidence directories")
+        candidates = []
+        for directory in directories:
+            for entry in directory.iterdir():
+                if (entry.suffix.lower() == ".json" and "manifest" in entry.name.lower()
+                        and not entry.is_symlink() and entry.is_file()):
+                    candidates.append(entry)
+                    if len(candidates) > _REVIEW_MAX_MANIFESTS:
+                        raise ValueError("Too many nearby review manifests")
+    matches = []
+    for candidate in candidates:
+        if (candidate.is_symlink() or not candidate.is_file()
+                or candidate.stat().st_size > _REVIEW_MANIFEST_MAX_BYTES):
+            continue
+        if hashlib.sha256(candidate.read_bytes()).hexdigest() == expected_sha:
+            matches.append(candidate)
+            if len(matches) > 4:
+                raise ValueError("Too many matching review manifests")
+    return matches
+
+
+def load_card_review_queue(
+    review_path: str | Path | None, *,
+    card_manifest_path: str | Path | None = None,
+    odds_manifest_path: str | Path | None = None,
+    as_of: datetime | None = None,
+) -> dict[str, Any]:
+    """Display an evidence-bound worksheet without promoting its decisions."""
+    if review_path is None or not str(review_path).strip():
+        return {"status": "unavailable", "reason": "No operating card review is configured.", "rows": []}
+    current = as_of or datetime.now(timezone.utc)
+    if current.tzinfo is None or current.utcoffset() is None:
+        raise ValueError("as_of must include a timezone")
+    current = current.astimezone(timezone.utc)
+    unavailable = {"status": "unavailable", "reason": "Review template or exact saved evidence did not verify.", "rows": []}
+    try:
+        path = Path(review_path).expanduser()
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > _REVIEW_MAX_BYTES:
+            return unavailable
+        review = json.loads(path.read_bytes())
+        if (not isinstance(review, dict) or not isinstance(review.get("rows"), list)
+                or not 0 < len(review["rows"]) <= _REVIEW_MAX_ROWS):
+            return unavailable
+        card_sha = review.get("source_manifest_sha256")
+        odds_sha = review.get("odds_manifest_sha256")
+        if (not isinstance(card_sha, str) or len(card_sha) != 64
+                or any(char not in "0123456789abcdef" for char in card_sha)
+                or (odds_sha is not None and
+                    (not isinstance(odds_sha, str) or len(odds_sha) != 64
+                     or any(char not in "0123456789abcdef" for char in odds_sha)))):
+            return unavailable
+        if odds_sha is None and odds_manifest_path is not None:
+            return unavailable
+        card_matches = _review_manifest_matches(path, card_sha, card_manifest_path)
+        odds_matches = (_review_manifest_matches(path, odds_sha, odds_manifest_path)
+                        if odds_sha is not None else [None])
+        if not card_matches or not odds_matches:
+            return unavailable
+        # Existing offline functions verify response bytes and fetch receipts,
+        # rebuild fighter IDs, and recompute odds matches from the exact files.
+        from scripts.import_reviewed_prefight_card import _review_inputs, _review_template
+
+        checked = None
+        for card_path in card_matches:
+            for odds_path in odds_matches:
+                try:
+                    verified, odds = _review_inputs(card_path, odds_path)
+                    expected = _review_template(verified, odds)
+                except (OSError, ValueError, KeyError, TypeError):
+                    continue
+                if (expected["source_manifest_sha256"] == card_sha
+                        and expected["odds_manifest_sha256"] == odds_sha):
+                    checked = (verified, odds, expected)
+                    break
+            if checked is not None:
+                break
+        if checked is None:
+            return unavailable
+        verified, odds, expected = checked
+        fixed = (
+            "schema_version", "source_manifest_sha256", "odds_manifest_sha256",
+            "event_id", "source_revision_id", "event_start_utc", "source_observed_at_utc",
+        )
+        if (set(review) != set(expected)
+                or any(review.get(key) != expected[key] for key in fixed)
+                or not isinstance(review.get("reviewed_by"), str)
+                or not isinstance(review.get("reviewed_at_utc"), str)):
+            return unavailable
+        rights = review.get("rights")
+        if (not isinstance(rights, dict) or set(rights) != set(expected["rights"])
+                or rights.get("use_scope") != expected["rights"]["use_scope"]
+                or rights.get("decision") not in {"pending", "approved", "hold", "rejected"}
+                or not all(isinstance(rights.get(key), str) for key in ("basis_url", "basis_note"))):
+            return unavailable
+        if len(review["rows"]) != len(expected["rows"]):
+            return unavailable
+        rows = []
+        for actual, template in zip(review["rows"], expected["rows"]):
+            if (not isinstance(actual, dict) or set(actual) != set(template)
+                    or any(actual[key] != template[key] for key in template
+                           if key not in {"roster_disposition", "review_note"})
+                    or actual.get("roster_disposition") not in _REVIEW_DISPOSITIONS
+                    or not isinstance(actual.get("review_note"), str)):
+                return unavailable
+            position = template["position"]
+            odds_status = template["odds_status"]
+            rows.append({
+                "position": position,
+                "fighter_a_name": template["fighter_a_name"],
+                "fighter_b_name": template["fighter_b_name"],
+                "weight_class": template["weight_class"],
+                "identity_hold": position not in verified["eligible"],
+                "odds_hold": odds_status in _REVIEW_ODDS_HOLDS,
+                "quote_gap": odds_status in _REVIEW_QUOTE_GAPS,
+                "odds_status": odds_status,
+                "roster_disposition_entered": actual["roster_disposition"],
+                "review_note_entered": bool(actual["review_note"].strip()),
+            })
+        observed = _timestamp(expected["source_observed_at_utc"])
+        start = _timestamp(expected["event_start_utc"])
+        if observed is None or start is None:
+            return unavailable
+        temporal_status = ("event_started" if current >= start else
+                           "card_over_24h" if current - observed > timedelta(hours=24) else
+                           "capture_after_view_time" if observed > current else "captured_before_start")
+        return {
+            "status": "available",
+            "reason": "Exact saved card and odds evidence verified for review display only.",
+            "event_id": expected["event_id"],
+            "event_name": verified["manifest"]["event"]["name"],
+            "event_start_utc": expected["event_start_utc"],
+            "source_observed_at_utc": expected["source_observed_at_utc"],
+            "odds_captured_at_utc": odds["captured_at_utc"] if odds is not None else None,
+            "temporal_status": temporal_status,
+            "rights_decision_entered": rights["decision"] != "pending",
+            "reviewer_entered": bool(review["reviewed_by"].strip()),
+            "rows": rows,
+            "total_rows": len(rows),
+            "pending_rows": sum(row["roster_disposition_entered"] == "pending" for row in rows),
+            "identity_holds": sum(row["identity_hold"] for row in rows),
+            "odds_holds": sum(row["odds_hold"] for row in rows),
+            "quote_gaps": sum(row["quote_gap"] for row in rows),
+            "decision_ready": False,
+        }
+    except (OSError, UnicodeError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+        return unavailable
+
+
 def load_dashboard(
     db_path: str | Path,
     *,
