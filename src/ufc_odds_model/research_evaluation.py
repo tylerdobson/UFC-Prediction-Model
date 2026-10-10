@@ -59,7 +59,7 @@ def _source_results(connection: sqlite3.Connection, *, include_restored: bool = 
 
 def research_feature_rows(
     connection: sqlite3.Connection,
-    *, include_restored: bool = False,
+    *, include_restored: bool = False, profiles=None, elo_k: float = 32.0,
 ) -> tuple[list[FeatureRow], dict[str, object]]:
     """Replay accepted research results with all same-date outcomes withheld.
 
@@ -69,7 +69,7 @@ def research_feature_rows(
     no contests are excluded from binary targets.
     """
     source = _source_results(connection, include_restored=include_restored)
-    builder = FeatureBuilder()
+    builder = FeatureBuilder(elo_k=elo_k)
     examples: list[FeatureRow] = []
     outcome_counts = {"win": 0, "draw": 0, "no_contest": 0}
     event_ids: set[str] = set()
@@ -104,7 +104,7 @@ def research_feature_rows(
             first, second = sorted((
                 str(result["fighter_a_id"]), str(result["fighter_b_id"]),
             ))
-            features, coverage = builder.values_with_coverage(first, second, event_date)
+            features, coverage = builder.values_with_coverage(first, second, event_date, profiles)
             examples.append(FeatureRow(
                 bout_id=str(result["bout_id"]),
                 event_id=str(result["event_id"]),
@@ -123,7 +123,7 @@ def research_feature_rows(
 
     if len(examples) != outcome_counts["win"]:
         raise AssertionError("Binary research rows do not match accepted wins")
-    if any(any(row.coverage) or any(row.features[6:]) for row in examples):
+    if profiles is None and any(any(row.coverage) or any(row.features[6:]) for row in examples):
         raise AssertionError("Research replay unexpectedly used profile or statistic features")
     return examples, {
         "accepted_events_with_results": len(event_ids),

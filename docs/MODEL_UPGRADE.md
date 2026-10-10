@@ -76,3 +76,49 @@ The count and both loss targets are met. No held rows remain. These scores
 measure the complete result history and provisional identities; restored data
 alone does not make the model strong. The originally kept subset is evaluated
 using this same fitted model, with restored earlier fights in its history.
+
+## Phase 2: CC0 static attributes and coverage-safe v3
+
+```sh
+ufc-model import-wikidata-profiles --db data/ufc_research_complete.sqlite \
+  --out-db data/ufc_research_complete_profiles.sqlite
+ufc-model research-compare --db data/ufc_research_2011_2025.sqlite \
+  --complete-db data/ufc_research_complete_profiles.sqlite \
+  --identity-review reports/wikipedia_1993_2026_identity_review.json \
+  --features age --out reports/model_lab_phase2_age_only.json
+ufc-model research-compare --db data/ufc_research_2011_2025.sqlite \
+  --complete-db data/ufc_research_complete_profiles.sqlite \
+  --identity-review reports/wikipedia_1993_2026_identity_review.json \
+  --features age-hinge --out reports/model_lab_phase2.json --phase 2
+```
+
+Migration 014 appends immutable static values and query receipts. The importer
+uses saved page-title lookups, falls back to pageprops batches of 50, queries
+at most 250 titles/items per SPARQL POST, waits at least 1.5 seconds between
+requests, and honors numeric or HTTP-date Retry-After. Requests and the exact
+response bytes are retained for cached/offline reproduction. Day precision is
+required for birth dates; distinct day-precision dates cause the fighter to be
+skipped and reported. Normalized SI heights become cm; height is not reach and
+does not fill the reach feature. UFC athlete IDs remain external review IDs.
+Provisional names are not mapped to Wikidata automatically.
+
+Wikidata structured data uses [CC0](https://www.wikidata.org/wiki/Wikidata:Data_access).
+The API contracts are described by [Wikidata's SPARQL service](https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service)
+and [MediaWiki pageprops](https://www.mediawiki.org/wiki/API:Pageprops).
+Usable birth dates cover 1,809 of the original 1,878 fighters. The complete DB
+adds 21 linked fighters: 1,828 of 1,899 real identities now have birth dates,
+1,898 match an item, and 615 have unambiguous usable height. The report lists
+birth, height and external-ID conflicts rather than selecting convenient values.
+
+V2 remains reproducible with result-only features. V3 excludes all three
+profile-coverage difference flags from its vector. Coverage is metadata only;
+missing paired ages produce neutral age/hinge values. Static research facts
+can apply retrospectively. Operating scoring requires an intact receipt
+fetched strictly before the cutoff; dated observations retain both of their
+existing timestamp checks. Conflicting static and dated birth dates fail closed.
+
+Age-only: 1,447 test fights, 56.32% accuracy, log loss 0.6803. Age plus the
+decline-above-32 hinge: 56.12%, log loss 0.6792, Brier 0.2432. Both loss targets
+are met. On 763 test fights with both birth dates, hinge v3 scores 58.06%,
+log loss 0.6672; the younger-fighter classifier is 61.99% accurate. The paired
+v3-minus-v2 log-loss 95% interval is [-0.01809, +0.00054], which includes zero.

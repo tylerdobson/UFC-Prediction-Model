@@ -1,0 +1,1217 @@
+{
+  "calibration": {
+    "fit_on": "validation_only",
+    "scale": 1.6679115763619294
+  },
+  "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+  "feature_names": [
+    "elo_difference_400",
+    "log_prior_bouts_difference",
+    "smoothed_win_rate_difference",
+    "rest_years_difference",
+    "known_rest_difference",
+    "recent_form_5_difference",
+    "age_years_difference_10",
+    "reach_cm_difference_20",
+    "opponent_adjusted_sig_strike_accuracy_difference",
+    "log_stat_bouts_difference",
+    "age_decline_32_difference"
+  ],
+  "identity_coverage": {
+    "by_split": {
+      "test": {
+        "binary_bouts": 1447,
+        "held_bout_rows": 0,
+        "note": "Held includes nonbinary outcomes; binary accepted count shown separately"
+      },
+      "train": {
+        "binary_bouts": 5920,
+        "held_bout_rows": 0,
+        "note": "Held includes nonbinary outcomes; binary accepted count shown separately"
+      },
+      "validation": {
+        "binary_bouts": 1381,
+        "held_bout_rows": 0,
+        "note": "Held includes nonbinary outcomes; binary accepted count shown separately"
+      }
+    },
+    "held_bout_rows": 0,
+    "restored_bouts": 1647
+  },
+  "model": {
+    "elo_k": 32,
+    "feature_set": "age",
+    "l2": 0.02,
+    "training_start_year": 1993,
+    "version": "logistic-prior-v3",
+    "weights": [
+      0.15933033510547856,
+      0.16278504111117278,
+      0.28789589771576507,
+      -0.13603144553108396,
+      0.22115680673870372,
+      0.2584185372773168,
+      -0.4958308352474666,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "weights_sha256": "631301b0ec1d173509d35c2125263a6b9db58fcb6d55d803a9642e8f598c1a70"
+  },
+  "original_database_sha256": "e9a24dc1e69599deedb083c60fab47b3fd11bbb044d4e89b46313ca53bda07a4",
+  "paired_uncertainty": {
+    "logistic_minus_elo_brier_score_95pct_interval": [
+      -0.007463039132647831,
+      0.00366391700495145
+    ],
+    "logistic_minus_elo_log_loss_95pct_interval": [
+      -0.015913743372293725,
+      0.007801766165923471
+    ],
+    "method": "paired_event_date_block_bootstrap",
+    "note": "Intervals describe resampling variation within the accepted test subset; they do not account for held fighter identities or retrospective timing gaps.",
+    "repeats": 2000,
+    "seed": 20260926,
+    "test_event_date_blocks": 118
+  },
+  "paired_v3_minus_v2": {
+    "logistic_minus_elo_brier_score_95pct_interval": [
+      -0.007667721314794862,
+      -1.0278189335230273e-07
+    ],
+    "logistic_minus_elo_log_loss_95pct_interval": [
+      -0.015858313677114527,
+      0.0003968892923620833
+    ],
+    "method": "paired_event_date_block_bootstrap",
+    "note": "Intervals describe resampling variation within the accepted test subset; they do not account for held fighter identities or retrospective timing gaps.",
+    "repeats": 2000,
+    "seed": 20260926,
+    "test_event_date_blocks": 118
+  },
+  "promotion_eligible": false,
+  "protocol_version": "research-fixed-dates-v1",
+  "published_holdout_reproduction": {
+    "elo": {
+      "accuracy": 0.5535590877677954,
+      "bouts": 1447,
+      "brier_score": 0.24563479962218882,
+      "log_loss": 0.6843285841310949
+    },
+    "logistic_calibrated": {
+      "accuracy": 0.5604699378023497,
+      "bouts": 1447,
+      "brier_score": 0.2436384057007153,
+      "log_loss": 0.6802586473008585
+    },
+    "orientation": "legacy_sorted_ids_for_exact_reproduction_only",
+    "temperature_scale": 1.6679115763619294
+  },
+  "research_only": true,
+  "schema_version": 1,
+  "source_summary": {
+    "accepted_bouts_with_results": 8905,
+    "accepted_events_with_results": 790,
+    "accepted_source_rows_sha256": "a40619dbcb18350c72887a5486fed316f4d2601efa9f1430519de0620ccb7fad",
+    "outcomes": {
+      "draw": 65,
+      "no_contest": 92,
+      "win": 8748
+    },
+    "retrospective_feature_rows_sha256": "24972d49ca31a6da65688c9c030a6ee26b5297f528476d434bfbcf57e2c6e08c"
+  },
+  "split": {
+    "test": {
+      "binary_bouts": 1447,
+      "event_dates": 118,
+      "events": 118,
+      "first_date": "2023-12-09",
+      "last_date": "2026-09-19"
+    },
+    "train": {
+      "binary_bouts": 5920,
+      "event_dates": 548,
+      "events": 555,
+      "first_date": "1993-11-12",
+      "last_date": "2021-03-13"
+    },
+    "validation": {
+      "binary_bouts": 1381,
+      "event_dates": 117,
+      "events": 117,
+      "first_date": "2021-03-20",
+      "last_date": "2023-12-02"
+    }
+  },
+  "split_boundaries": {
+    "test_start": "2023-12-09",
+    "train_end": "2021-03-13",
+    "validation_end": "2023-12-02",
+    "validation_start": "2021-03-20"
+  },
+  "test": {
+    "all": {
+      "coin_flip": {
+        "calibration_bins": [
+          {
+            "bouts": 0,
+            "lower": 0.0,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.2
+          },
+          {
+            "bouts": 0,
+            "lower": 0.2,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.4
+          },
+          {
+            "bouts": 1447,
+            "lower": 0.4,
+            "mean_probability": 0.5,
+            "observed_win_rate": 0.5044920525224602,
+            "upper": 0.6
+          },
+          {
+            "bouts": 0,
+            "lower": 0.6,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "exact_probability_ties": 1447,
+        "favorite_reliability": [
+          {
+            "bouts": 1447,
+            "lower": 0.5,
+            "mean_probability": 0.5,
+            "observed_win_rate": 0.5044920525224602,
+            "upper": 0.6
+          },
+          {
+            "bouts": 0,
+            "lower": 0.6,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.7
+          },
+          {
+            "bouts": 0,
+            "lower": 0.7,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.9
+          },
+          {
+            "bouts": 0,
+            "lower": 0.9,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "metrics": {
+          "accuracy": 0.5044920525224602,
+          "bouts": 1447,
+          "brier_score": 0.25,
+          "log_loss": 0.6931471805599453
+        },
+        "orientation": "sha256(bout_id)_low_bit",
+        "status": "evaluated",
+        "tie_rule": "hash_oriented_fighter_a"
+      },
+      "elo": {
+        "calibration_bins": [
+          {
+            "bouts": 0,
+            "lower": 0.0,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.2
+          },
+          {
+            "bouts": 49,
+            "lower": 0.2,
+            "mean_probability": 0.37698797809446016,
+            "observed_win_rate": 0.3469387755102041,
+            "upper": 0.4
+          },
+          {
+            "bouts": 1350,
+            "lower": 0.4,
+            "mean_probability": 0.4982015632236919,
+            "observed_win_rate": 0.5059259259259259,
+            "upper": 0.6
+          },
+          {
+            "bouts": 48,
+            "lower": 0.6,
+            "mean_probability": 0.6279384941383236,
+            "observed_win_rate": 0.625,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "exact_probability_ties": 51,
+        "favorite_reliability": [
+          {
+            "bouts": 1350,
+            "lower": 0.5,
+            "mean_probability": 0.5332289645077795,
+            "observed_win_rate": 0.5496296296296296,
+            "upper": 0.6
+          },
+          {
+            "bouts": 96,
+            "lower": 0.6,
+            "mean_probability": 0.6244679482987151,
+            "observed_win_rate": 0.6354166666666666,
+            "upper": 0.7
+          },
+          {
+            "bouts": 1,
+            "lower": 0.7,
+            "mean_probability": 0.7197137553343265,
+            "observed_win_rate": 1.0,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.9
+          },
+          {
+            "bouts": 0,
+            "lower": 0.9,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "metrics": {
+          "accuracy": 0.5556323427781618,
+          "bouts": 1447,
+          "brier_score": 0.24563479962218882,
+          "log_loss": 0.6843285841310949
+        },
+        "orientation": "sha256(bout_id)_low_bit",
+        "status": "evaluated",
+        "tie_rule": "hash_oriented_fighter_a"
+      },
+      "logistic_calibrated": {
+        "calibration_bins": [
+          {
+            "bouts": 3,
+            "lower": 0.0,
+            "mean_probability": 0.19136733283204457,
+            "observed_win_rate": 0.0,
+            "upper": 0.2
+          },
+          {
+            "bouts": 312,
+            "lower": 0.2,
+            "mean_probability": 0.33814351244813007,
+            "observed_win_rate": 0.3974358974358974,
+            "upper": 0.4
+          },
+          {
+            "bouts": 890,
+            "lower": 0.4,
+            "mean_probability": 0.49872141957807475,
+            "observed_win_rate": 0.5056179775280899,
+            "upper": 0.6
+          },
+          {
+            "bouts": 239,
+            "lower": 0.6,
+            "mean_probability": 0.6649540752549582,
+            "observed_win_rate": 0.6443514644351465,
+            "upper": 0.8
+          },
+          {
+            "bouts": 3,
+            "lower": 0.8,
+            "mean_probability": 0.8187563018601175,
+            "observed_win_rate": 0.6666666666666666,
+            "upper": 1.0
+          }
+        ],
+        "exact_probability_ties": 46,
+        "favorite_reliability": [
+          {
+            "bouts": 890,
+            "lower": 0.5,
+            "mean_probability": 0.5441551753142384,
+            "observed_win_rate": 0.5258426966292135,
+            "upper": 0.6
+          },
+          {
+            "bouts": 428,
+            "lower": 0.6,
+            "mean_probability": 0.6430581364609368,
+            "observed_win_rate": 0.5981308411214953,
+            "upper": 0.7
+          },
+          {
+            "bouts": 123,
+            "lower": 0.7,
+            "mean_probability": 0.7332875259905487,
+            "observed_win_rate": 0.6991869918699187,
+            "upper": 0.8
+          },
+          {
+            "bouts": 6,
+            "lower": 0.8,
+            "mean_probability": 0.8136944845140365,
+            "observed_win_rate": 0.8333333333333334,
+            "upper": 0.9
+          },
+          {
+            "bouts": 0,
+            "lower": 0.9,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "metrics": {
+          "accuracy": 0.5632342778161714,
+          "bouts": 1447,
+          "brier_score": 0.2436384057007153,
+          "log_loss": 0.6802586473008585
+        },
+        "orientation": "sha256(bout_id)_low_bit",
+        "status": "evaluated",
+        "tie_rule": "hash_oriented_fighter_a"
+      },
+      "logistic_on_both_birth_dates": {
+        "calibration_bins": [
+          {
+            "bouts": 3,
+            "lower": 0.0,
+            "mean_probability": 0.19136733283204457,
+            "observed_win_rate": 0.0,
+            "upper": 0.2
+          },
+          {
+            "bouts": 173,
+            "lower": 0.2,
+            "mean_probability": 0.3356117046798289,
+            "observed_win_rate": 0.34104046242774566,
+            "upper": 0.4
+          },
+          {
+            "bouts": 445,
+            "lower": 0.4,
+            "mean_probability": 0.4983289924121634,
+            "observed_win_rate": 0.5078651685393258,
+            "upper": 0.6
+          },
+          {
+            "bouts": 139,
+            "lower": 0.6,
+            "mean_probability": 0.6657230903056495,
+            "observed_win_rate": 0.6402877697841727,
+            "upper": 0.8
+          },
+          {
+            "bouts": 3,
+            "lower": 0.8,
+            "mean_probability": 0.8187563018601175,
+            "observed_win_rate": 0.6666666666666666,
+            "upper": 1.0
+          }
+        ],
+        "exact_probability_ties": 0,
+        "favorite_reliability": [
+          {
+            "bouts": 445,
+            "lower": 0.5,
+            "mean_probability": 0.5460423386837874,
+            "observed_win_rate": 0.5235955056179775,
+            "upper": 0.6
+          },
+          {
+            "bouts": 237,
+            "lower": 0.6,
+            "mean_probability": 0.6424405343482037,
+            "observed_win_rate": 0.6286919831223629,
+            "upper": 0.7
+          },
+          {
+            "bouts": 75,
+            "lower": 0.7,
+            "mean_probability": 0.7362170400313415,
+            "observed_win_rate": 0.72,
+            "upper": 0.8
+          },
+          {
+            "bouts": 6,
+            "lower": 0.8,
+            "mean_probability": 0.8136944845140365,
+            "observed_win_rate": 0.8333333333333334,
+            "upper": 0.9
+          },
+          {
+            "bouts": 0,
+            "lower": 0.9,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "metrics": {
+          "accuracy": 0.5779816513761468,
+          "bouts": 763,
+          "brier_score": 0.23822571817458474,
+          "log_loss": 0.6688464421815283
+        },
+        "orientation": "sha256(bout_id)_low_bit",
+        "status": "evaluated",
+        "tie_rule": "hash_oriented_fighter_a"
+      },
+      "logistic_uncalibrated": {
+        "calibration_bins": [
+          {
+            "bouts": 0,
+            "lower": 0.0,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.2
+          },
+          {
+            "bouts": 134,
+            "lower": 0.2,
+            "mean_probability": 0.36924440875044345,
+            "observed_win_rate": 0.3656716417910448,
+            "upper": 0.4
+          },
+          {
+            "bouts": 1202,
+            "lower": 0.4,
+            "mean_probability": 0.496121331421828,
+            "observed_win_rate": 0.5041597337770383,
+            "upper": 0.6
+          },
+          {
+            "bouts": 111,
+            "lower": 0.6,
+            "mean_probability": 0.6325889918685527,
+            "observed_win_rate": 0.6756756756756757,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "exact_probability_ties": 46,
+        "favorite_reliability": [
+          {
+            "bouts": 1202,
+            "lower": 0.5,
+            "mean_probability": 0.5401482684739615,
+            "observed_win_rate": 0.5449251247920133,
+            "upper": 0.6
+          },
+          {
+            "bouts": 240,
+            "lower": 0.6,
+            "mean_probability": 0.6299619669099173,
+            "observed_win_rate": 0.65,
+            "upper": 0.7
+          },
+          {
+            "bouts": 5,
+            "lower": 0.7,
+            "mean_probability": 0.7095510532939545,
+            "observed_win_rate": 0.8,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.9
+          },
+          {
+            "bouts": 0,
+            "lower": 0.9,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "metrics": {
+          "accuracy": 0.5632342778161714,
+          "bouts": 1447,
+          "brier_score": 0.24293435480728484,
+          "log_loss": 0.6787860595673695
+        },
+        "orientation": "sha256(bout_id)_low_bit",
+        "status": "evaluated",
+        "tie_rule": "hash_oriented_fighter_a"
+      },
+      "logistic_v2": {
+        "calibration_bins": [
+          {
+            "bouts": 0,
+            "lower": 0.0,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.2
+          },
+          {
+            "bouts": 125,
+            "lower": 0.2,
+            "mean_probability": 0.3595561904875152,
+            "observed_win_rate": 0.424,
+            "upper": 0.4
+          },
+          {
+            "bouts": 1226,
+            "lower": 0.4,
+            "mean_probability": 0.4982256634162392,
+            "observed_win_rate": 0.5,
+            "upper": 0.6
+          },
+          {
+            "bouts": 96,
+            "lower": 0.6,
+            "mean_probability": 0.6434888123410665,
+            "observed_win_rate": 0.6666666666666666,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "exact_probability_ties": 49,
+        "favorite_reliability": [
+          {
+            "bouts": 1226,
+            "lower": 0.5,
+            "mean_probability": 0.536418750246174,
+            "observed_win_rate": 0.5220228384991843,
+            "upper": 0.6
+          },
+          {
+            "bouts": 209,
+            "lower": 0.6,
+            "mean_probability": 0.6378196512356409,
+            "observed_win_rate": 0.6076555023923444,
+            "upper": 0.7
+          },
+          {
+            "bouts": 12,
+            "lower": 0.7,
+            "mean_probability": 0.7105079221295038,
+            "observed_win_rate": 0.75,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.9
+          },
+          {
+            "bouts": 0,
+            "lower": 0.9,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "metrics": {
+          "accuracy": 0.5362819626814098,
+          "bouts": 1447,
+          "brier_score": 0.24734394836773405,
+          "log_loss": 0.6877886994217705
+        },
+        "orientation": "sha256(bout_id)_low_bit",
+        "status": "evaluated",
+        "tie_rule": "hash_oriented_fighter_a"
+      },
+      "market_no_vig": {
+        "bouts": 0,
+        "metrics": null,
+        "status": "unavailable"
+      },
+      "younger_fighter_wins": {
+        "accuracy": 0.6199213630406291,
+        "bouts": 763,
+        "brier_score": null,
+        "log_loss": null,
+        "note": "Classifier baseline; no claimed probability calibration",
+        "status": "evaluated"
+      }
+    },
+    "originally_kept": {
+      "coin_flip": {
+        "calibration_bins": [
+          {
+            "bouts": 0,
+            "lower": 0.0,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.2
+          },
+          {
+            "bouts": 0,
+            "lower": 0.2,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.4
+          },
+          {
+            "bouts": 800,
+            "lower": 0.4,
+            "mean_probability": 0.5,
+            "observed_win_rate": 0.49625,
+            "upper": 0.6
+          },
+          {
+            "bouts": 0,
+            "lower": 0.6,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "exact_probability_ties": 800,
+        "favorite_reliability": [
+          {
+            "bouts": 800,
+            "lower": 0.5,
+            "mean_probability": 0.5,
+            "observed_win_rate": 0.49625,
+            "upper": 0.6
+          },
+          {
+            "bouts": 0,
+            "lower": 0.6,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.7
+          },
+          {
+            "bouts": 0,
+            "lower": 0.7,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.9
+          },
+          {
+            "bouts": 0,
+            "lower": 0.9,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "metrics": {
+          "accuracy": 0.49625,
+          "bouts": 800,
+          "brier_score": 0.25,
+          "log_loss": 0.6931471805599453
+        },
+        "orientation": "sha256(bout_id)_low_bit",
+        "status": "evaluated",
+        "tie_rule": "hash_oriented_fighter_a"
+      },
+      "elo": {
+        "calibration_bins": [
+          {
+            "bouts": 0,
+            "lower": 0.0,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.2
+          },
+          {
+            "bouts": 41,
+            "lower": 0.2,
+            "mean_probability": 0.3755187579662507,
+            "observed_win_rate": 0.34146341463414637,
+            "upper": 0.4
+          },
+          {
+            "bouts": 718,
+            "lower": 0.4,
+            "mean_probability": 0.4976990473228327,
+            "observed_win_rate": 0.4986072423398329,
+            "upper": 0.6
+          },
+          {
+            "bouts": 41,
+            "lower": 0.6,
+            "mean_probability": 0.6285166887727475,
+            "observed_win_rate": 0.6097560975609756,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "exact_probability_ties": 3,
+        "favorite_reliability": [
+          {
+            "bouts": 718,
+            "lower": 0.5,
+            "mean_probability": 0.5368840212463314,
+            "observed_win_rate": 0.5097493036211699,
+            "upper": 0.6
+          },
+          {
+            "bouts": 81,
+            "lower": 0.6,
+            "mean_probability": 0.625348165527556,
+            "observed_win_rate": 0.6296296296296297,
+            "upper": 0.7
+          },
+          {
+            "bouts": 1,
+            "lower": 0.7,
+            "mean_probability": 0.7197137553343265,
+            "observed_win_rate": 1.0,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.9
+          },
+          {
+            "bouts": 0,
+            "lower": 0.9,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "metrics": {
+          "accuracy": 0.5225,
+          "bouts": 800,
+          "brier_score": 0.2480846677019782,
+          "log_loss": 0.6892059040625078
+        },
+        "orientation": "sha256(bout_id)_low_bit",
+        "status": "evaluated",
+        "tie_rule": "hash_oriented_fighter_a"
+      },
+      "logistic_calibrated": {
+        "calibration_bins": [
+          {
+            "bouts": 3,
+            "lower": 0.0,
+            "mean_probability": 0.19136733283204457,
+            "observed_win_rate": 0.0,
+            "upper": 0.2
+          },
+          {
+            "bouts": 178,
+            "lower": 0.2,
+            "mean_probability": 0.3362673982492577,
+            "observed_win_rate": 0.34831460674157305,
+            "upper": 0.4
+          },
+          {
+            "bouts": 474,
+            "lower": 0.4,
+            "mean_probability": 0.4975598282013525,
+            "observed_win_rate": 0.5084388185654009,
+            "upper": 0.6
+          },
+          {
+            "bouts": 142,
+            "lower": 0.6,
+            "mean_probability": 0.6651790746611025,
+            "observed_win_rate": 0.647887323943662,
+            "upper": 0.8
+          },
+          {
+            "bouts": 3,
+            "lower": 0.8,
+            "mean_probability": 0.8187563018601175,
+            "observed_win_rate": 0.6666666666666666,
+            "upper": 1.0
+          }
+        ],
+        "exact_probability_ties": 0,
+        "favorite_reliability": [
+          {
+            "bouts": 474,
+            "lower": 0.5,
+            "mean_probability": 0.5457714422409438,
+            "observed_win_rate": 0.5274261603375527,
+            "upper": 0.6
+          },
+          {
+            "bouts": 244,
+            "lower": 0.6,
+            "mean_probability": 0.642046838990931,
+            "observed_win_rate": 0.6311475409836066,
+            "upper": 0.7
+          },
+          {
+            "bouts": 76,
+            "lower": 0.7,
+            "mean_probability": 0.7360579342068619,
+            "observed_win_rate": 0.7105263157894737,
+            "upper": 0.8
+          },
+          {
+            "bouts": 6,
+            "lower": 0.8,
+            "mean_probability": 0.8136944845140365,
+            "observed_win_rate": 0.8333333333333334,
+            "upper": 0.9
+          },
+          {
+            "bouts": 0,
+            "lower": 0.9,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "metrics": {
+          "accuracy": 0.57875,
+          "bouts": 800,
+          "brier_score": 0.23850395145434328,
+          "log_loss": 0.6694724408329031
+        },
+        "orientation": "sha256(bout_id)_low_bit",
+        "status": "evaluated",
+        "tie_rule": "hash_oriented_fighter_a"
+      },
+      "logistic_on_both_birth_dates": {
+        "calibration_bins": [
+          {
+            "bouts": 3,
+            "lower": 0.0,
+            "mean_probability": 0.19136733283204457,
+            "observed_win_rate": 0.0,
+            "upper": 0.2
+          },
+          {
+            "bouts": 173,
+            "lower": 0.2,
+            "mean_probability": 0.3356117046798289,
+            "observed_win_rate": 0.34104046242774566,
+            "upper": 0.4
+          },
+          {
+            "bouts": 445,
+            "lower": 0.4,
+            "mean_probability": 0.4983289924121634,
+            "observed_win_rate": 0.5078651685393258,
+            "upper": 0.6
+          },
+          {
+            "bouts": 139,
+            "lower": 0.6,
+            "mean_probability": 0.6657230903056495,
+            "observed_win_rate": 0.6402877697841727,
+            "upper": 0.8
+          },
+          {
+            "bouts": 3,
+            "lower": 0.8,
+            "mean_probability": 0.8187563018601175,
+            "observed_win_rate": 0.6666666666666666,
+            "upper": 1.0
+          }
+        ],
+        "exact_probability_ties": 0,
+        "favorite_reliability": [
+          {
+            "bouts": 445,
+            "lower": 0.5,
+            "mean_probability": 0.5460423386837874,
+            "observed_win_rate": 0.5235955056179775,
+            "upper": 0.6
+          },
+          {
+            "bouts": 237,
+            "lower": 0.6,
+            "mean_probability": 0.6424405343482037,
+            "observed_win_rate": 0.6286919831223629,
+            "upper": 0.7
+          },
+          {
+            "bouts": 75,
+            "lower": 0.7,
+            "mean_probability": 0.7362170400313415,
+            "observed_win_rate": 0.72,
+            "upper": 0.8
+          },
+          {
+            "bouts": 6,
+            "lower": 0.8,
+            "mean_probability": 0.8136944845140365,
+            "observed_win_rate": 0.8333333333333334,
+            "upper": 0.9
+          },
+          {
+            "bouts": 0,
+            "lower": 0.9,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "metrics": {
+          "accuracy": 0.5779816513761468,
+          "bouts": 763,
+          "brier_score": 0.23822571817458474,
+          "log_loss": 0.6688464421815283
+        },
+        "orientation": "sha256(bout_id)_low_bit",
+        "status": "evaluated",
+        "tie_rule": "hash_oriented_fighter_a"
+      },
+      "logistic_uncalibrated": {
+        "calibration_bins": [
+          {
+            "bouts": 0,
+            "lower": 0.0,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.2
+          },
+          {
+            "bouts": 80,
+            "lower": 0.2,
+            "mean_probability": 0.36602697932090467,
+            "observed_win_rate": 0.3,
+            "upper": 0.4
+          },
+          {
+            "bouts": 654,
+            "lower": 0.4,
+            "mean_probability": 0.4963218336865588,
+            "observed_win_rate": 0.5015290519877675,
+            "upper": 0.6
+          },
+          {
+            "bouts": 66,
+            "lower": 0.6,
+            "mean_probability": 0.6356386527327407,
+            "observed_win_rate": 0.6818181818181818,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "exact_probability_ties": 0,
+        "favorite_reliability": [
+          {
+            "bouts": 654,
+            "lower": 0.5,
+            "mean_probability": 0.5415749314667343,
+            "observed_win_rate": 0.5535168195718655,
+            "upper": 0.6
+          },
+          {
+            "bouts": 141,
+            "lower": 0.6,
+            "mean_probability": 0.6320726061575798,
+            "observed_win_rate": 0.6879432624113475,
+            "upper": 0.7
+          },
+          {
+            "bouts": 5,
+            "lower": 0.7,
+            "mean_probability": 0.7095510532939545,
+            "observed_win_rate": 0.8,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.9
+          },
+          {
+            "bouts": 0,
+            "lower": 0.9,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "metrics": {
+          "accuracy": 0.57875,
+          "bouts": 800,
+          "brier_score": 0.23948627841361408,
+          "log_loss": 0.6717343063059402
+        },
+        "orientation": "sha256(bout_id)_low_bit",
+        "status": "evaluated",
+        "tie_rule": "hash_oriented_fighter_a"
+      },
+      "logistic_v2": {
+        "calibration_bins": [
+          {
+            "bouts": 0,
+            "lower": 0.0,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.2
+          },
+          {
+            "bouts": 37,
+            "lower": 0.2,
+            "mean_probability": 0.352700271795533,
+            "observed_win_rate": 0.4594594594594595,
+            "upper": 0.4
+          },
+          {
+            "bouts": 727,
+            "lower": 0.4,
+            "mean_probability": 0.4988104577336764,
+            "observed_win_rate": 0.4938101788170564,
+            "upper": 0.6
+          },
+          {
+            "bouts": 36,
+            "lower": 0.6,
+            "mean_probability": 0.6431357874290228,
+            "observed_win_rate": 0.5833333333333334,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "exact_probability_ties": 3,
+        "favorite_reliability": [
+          {
+            "bouts": 727,
+            "lower": 0.5,
+            "mean_probability": 0.5348069195939756,
+            "observed_win_rate": 0.517193947730399,
+            "upper": 0.6
+          },
+          {
+            "bouts": 65,
+            "lower": 0.6,
+            "mean_probability": 0.6369729177761166,
+            "observed_win_rate": 0.5230769230769231,
+            "upper": 0.7
+          },
+          {
+            "bouts": 8,
+            "lower": 0.7,
+            "mean_probability": 0.7124673294453143,
+            "observed_win_rate": 0.875,
+            "upper": 0.8
+          },
+          {
+            "bouts": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 0.9
+          },
+          {
+            "bouts": 0,
+            "lower": 0.9,
+            "mean_probability": null,
+            "observed_win_rate": null,
+            "upper": 1.0
+          }
+        ],
+        "metrics": {
+          "accuracy": 0.52125,
+          "bouts": 800,
+          "brier_score": 0.25001970505254867,
+          "log_loss": 0.6933034563625234
+        },
+        "orientation": "sha256(bout_id)_low_bit",
+        "status": "evaluated",
+        "tie_rule": "hash_oriented_fighter_a"
+      },
+      "market_no_vig": {
+        "bouts": 0,
+        "metrics": null,
+        "status": "unavailable"
+      },
+      "younger_fighter_wins": {
+        "accuracy": 0.6199213630406291,
+        "bouts": 763,
+        "brier_score": null,
+        "log_loss": null,
+        "note": "Classifier baseline; no claimed probability calibration",
+        "status": "evaluated"
+      }
+    }
+  }
+}

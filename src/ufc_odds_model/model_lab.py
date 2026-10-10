@@ -5,13 +5,15 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+from dataclasses import replace
+from datetime import date
 from contextlib import closing, contextmanager
 from pathlib import Path
 from urllib.parse import quote
 
 from .evaluation import _bookmaker_probability
 from .features import FEATURE_NAMES, FeatureRow
-from .logistic import binary_metrics, fit_logistic, fit_temperature
+from .logistic import V3_FEATURE_NAMES, binary_metrics, fit_logistic, fit_temperature, v3_features
 from .pipeline import parse_utc, utc_now, utc_string
 from .research_evaluation import (
     _calibration_bins, _digest_json, _held_bouts_by_event,
@@ -117,12 +119,35 @@ def market_pairs(connection: sqlite3.Connection, rows: list[FeatureRow]):
     return selected, probabilities
 
 
+def lab_rows(connection, *, feature_set="result", elo_k=32):
+    profiles = None
+    if feature_set != "result":
+        from .wikidata_profiles import static_profiles
+        profiles = static_profiles(connection, research=True)
+    rows, source = research_feature_rows(connection, include_restored=True, profiles=profiles, elo_k=elo_k)
+    if feature_set == "result":
+        return rows, source, FEATURE_NAMES
+    converted = []
+    for row in rows:
+        hinge = 0.0
+        if feature_set == "age-hinge" and row.coverage[0] and row.coverage[1]:
+            event_date = date.fromisoformat(row.event_date)
+            a = (event_date - profiles[row.fighter_a_id].birth_date).days / 365.2425
+            b = (event_date - profiles[row.fighter_b_id].birth_date).days / 365.2425
+            hinge = (max(a - 32, 0) - max(b - 32, 0)) / 5
+        converted.append(replace(row, features=v3_features(row.features, hinge)))
+    source["retrospective_feature_rows_sha256"] = _digest_json([
+        [r.bout_id, r.event_date, r.fighter_a_id, r.fighter_b_id, r.features, r.target] for r in converted])
+    return converted, source, V3_FEATURE_NAMES
+
+
 def compare(connection: sqlite3.Connection, *, originally_kept: set[str] | None = None,
-            identity_review: dict | None = None) -> dict:
-    rows, source = research_feature_rows(connection, include_restored=True)
+            identity_review: dict | None = None, feature_set="result", elo_k=32, start_year=1993) -> dict:
+    rows, source, names = lab_rows(connection, feature_set=feature_set, elo_k=elo_k)
     train, validation, test = fixed_split(rows)
     originally_kept = originally_kept if originally_kept is not None else {r.bout_id for r in rows}
-    model = fit_logistic(train)
+    train = [r for r in train if int(r.event_date[:4]) >= start_year]
+    model = fit_logistic(train, feature_names=names)
     calibrator = fit_temperature([model.predict_probability(r.features) for r in validation],
                                  [int(r.target) for r in validation])
     probabilities = {
@@ -132,6 +157,14 @@ def compare(connection: sqlite3.Connection, *, originally_kept: set[str] | None 
         "logistic_calibrated": [calibrator.predict_probability(model.predict_probability(r.features))
                                 for r in test],
     }
+    if feature_set != "result":
+        v2_rows, _ = research_feature_rows(connection, include_restored=True)
+        v2_train, v2_validation, v2_test = fixed_split(v2_rows)
+        v2 = fit_logistic(v2_train)
+        v2_temperature = fit_temperature([v2.predict_probability(r.features) for r in v2_validation],
+                                        [int(r.target) for r in v2_validation])
+        by_id = {r.bout_id: v2_temperature.predict_probability(v2.predict_probability(r.features)) for r in v2_test}
+        probabilities["logistic_v2"] = [by_id[r.bout_id] for r in test]
     subsets = {"all": list(range(len(test))), "originally_kept": [
         i for i, row in enumerate(test) if row.bout_id in originally_kept]}
     metrics = {}
@@ -167,8 +200,9 @@ def compare(connection: sqlite3.Connection, *, originally_kept: set[str] | None 
                              "validation_end": VALIDATION_END, "test_start": TEST_START},
         "split": {name: _summary(group) for name, group in
                   (("train", train), ("validation", validation), ("test", test))},
-        "source_summary": source, "feature_names": FEATURE_NAMES,
-        "model": {"version": "logistic-prior-v2", "elo_k": 32, "l2": .02,
+        "source_summary": source, "feature_names": names,
+        "model": {"version": "logistic-prior-v2" if feature_set == "result" else "logistic-prior-v3",
+                  "elo_k": elo_k, "l2": .02, "feature_set": feature_set, "training_start_year": start_year,
                   "weights": model.weights, "weights_sha256": _digest_json(model.weights)},
         "calibration": {"scale": calibrator.scale, "fit_on": "validation_only"},
         "test": metrics,
@@ -181,6 +215,9 @@ def compare(connection: sqlite3.Connection, *, originally_kept: set[str] | None 
             "temperature_scale": calibrator.scale,
         },
     }
+    if "logistic_v2" in probabilities:
+        report["paired_v3_minus_v2"] = _paired_event_bootstrap(
+            test, probabilities["logistic_v2"], probabilities["logistic_calibrated"])
     if identity_review is not None:
         held = _held_bouts_by_event(connection, identity_review)
         restored = {str(r[0]): int(r[1]) for r in connection.execute(
@@ -221,14 +258,16 @@ def append_phase_metrics(path: str | Path, phase: int, report: dict, command: st
     path.write_text(json.dumps(previous, indent=2, sort_keys=True) + "\n")
 
 
-def run_comparison(path, complete_path=None, out=None, identity_review=None, phase=None):
+def run_comparison(path, complete_path=None, out=None, identity_review=None, phase=None,
+                   *, feature_set="result", elo_k=32, start_year=1993):
     before = file_sha256(path)
     with read_only(path) as original:
         kept = {str(r[0]) for r in original.execute(
             "SELECT bout_id FROM bouts WHERE source = 'wikipedia_research'")}
     review = json.loads(Path(identity_review).read_text()) if identity_review else None
     with read_only(complete_path or path) as connection:
-        report = compare(connection, originally_kept=kept, identity_review=review)
+        report = compare(connection, originally_kept=kept, identity_review=review,
+                         feature_set=feature_set, elo_k=elo_k, start_year=start_year)
     report["database_sha256"] = file_sha256(complete_path or path)
     report["original_database_sha256"] = before
     if file_sha256(path) != before:
@@ -245,5 +284,6 @@ def run_comparison(path, complete_path=None, out=None, identity_review=None, pha
                              f"ufc-model research-compare --db {path}" +
                              (f" --complete-db {complete_path}" if complete_path else "") +
                              (f" --identity-review {identity_review}" if identity_review else "") +
+                             f" --features {feature_set} --elo-k {elo_k} --start-year {start_year}" +
                              (f" --out {out}" if out else "") + f" --phase {phase}")
     return report

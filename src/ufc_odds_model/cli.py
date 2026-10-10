@@ -44,12 +44,21 @@ def make_parser() -> argparse.ArgumentParser:
     lab.add_argument("--identity-review")
     lab.add_argument("--out")
     lab.add_argument("--phase", type=int)
+    lab.add_argument("--features", choices=["result", "age", "age-hinge"], default="result")
+    lab.add_argument("--elo-k", type=float, default=32)
+    lab.add_argument("--start-year", type=int, default=1993)
     complete = subcommands.add_parser("research-complete-history", help="Restore held bouts into a NEW research database")
     complete.add_argument("--db", default=argparse.SUPPRESS)
     complete.add_argument("--out-db", required=True)
     complete.add_argument("--identity-review", default="reports/wikipedia_1993_2026_identity_review.json")
     complete.add_argument("--identity-report", default="reports/research_complete_identity_report.json")
     complete.add_argument("--raw-dir", default="data/raw/research_complete")
+    wikidata = subcommands.add_parser("import-wikidata-profiles", help="Import CC0 static attributes with immutable receipts")
+    wikidata.add_argument("--db", default=argparse.SUPPRESS)
+    wikidata.add_argument("--out-db", help="Copy to a new DB before migrating/importing; preserves the input")
+    wikidata.add_argument("--raw-dir", default="data/raw/wikidata_profiles")
+    wikidata.add_argument("--report-out", default="reports/wikidata_profiles_report.json")
+    wikidata.add_argument("--offline", action="store_true")
     subcommands.add_parser("init-db", help="Initialize a new or empty SQLite database")
     migration = subcommands.add_parser(
         "migrate", help="Verify a new backup, then apply pending SQL migrations"
@@ -305,7 +314,28 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "research-compare":
             from .model_lab import run_comparison
-            run_comparison(args.db, args.complete_db, args.out, args.identity_review, args.phase)
+            run_comparison(args.db, args.complete_db, args.out, args.identity_review, args.phase,
+                           feature_set=args.features, elo_k=args.elo_k, start_year=args.start_year)
+            return 0
+        if args.command == "import-wikidata-profiles":
+            from .model_lab import read_only
+            from .wikidata_profiles import import_profiles
+            target = args.out_db or args.db
+            if args.out_db:
+                if Path(target).resolve() == Path(args.db).resolve():
+                    raise ValueError("Profile output database must be separate")
+                Path(target).parent.mkdir(parents=True, exist_ok=True)
+                with Path(target).open("xb"):
+                    pass
+                with read_only(args.db) as original, closing(db.connect(target)) as destination:
+                    original.backup(destination)
+                    db.init_db(destination)
+            elif Path(args.db).name == "ufc_research_2011_2025.sqlite":
+                raise ValueError("Preserve the original research database; use --out-db NEW_PATH")
+            with closing(db.connect(target)) as connection:
+                result = import_profiles(connection, raw_dir=args.raw_dir, report_path=args.report_out,
+                                         offline=args.offline)
+            print(json.dumps({k:v for k,v in result.items() if k not in ('conflicts','unmatched_fighters')}, indent=2))
             return 0
         if args.command == "research-complete-history":
             from .research_complete import complete_history

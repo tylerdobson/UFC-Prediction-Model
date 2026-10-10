@@ -15,6 +15,17 @@ from .features import FEATURE_NAMES, FeatureRow
 
 
 MODEL_VERSION = "logistic-prior-v2"
+V3_MODEL_VERSION = "logistic-prior-v3"
+_LEAKY_COVERAGE = {"known_age_difference", "known_reach_difference", "known_sig_strike_stat_difference"}
+V3_FEATURE_NAMES = tuple(name for name in FEATURE_NAMES if name not in _LEAKY_COVERAGE) + ("age_decline_32_difference",)
+
+
+def v3_features(features: Sequence[float], age_decline: float = 0.0) -> tuple[float, ...]:
+    """Coverage remains metadata and cannot enter any v3 feature vector."""
+    if len(features) != len(FEATURE_NAMES):
+        raise ValueError("v3 conversion requires the original feature vector")
+    return tuple(value for name, value in zip(FEATURE_NAMES, features)
+                 if name not in _LEAKY_COVERAGE) + (age_decline,)
 
 
 def _sigmoid(score: float) -> float:
@@ -62,6 +73,7 @@ def fit_logistic(
     l2: float = 0.02,
     max_iterations: int = 100,
     tolerance: float = 1e-9,
+    *, feature_names: Sequence[str] = FEATURE_NAMES,
 ) -> LogisticModel:
     """Minimize mean log loss plus L2 penalty with damped Newton steps."""
     if not math.isfinite(l2) or l2 <= 0:
@@ -71,7 +83,7 @@ def fit_logistic(
     examples = list(rows)
     if not examples:
         raise ValueError("At least one completed binary bout is required")
-    dimension = len(FEATURE_NAMES)
+    dimension = len(feature_names)
     for row in examples:
         if row.target not in (0, 1):
             raise ValueError("Every training row needs a binary target")

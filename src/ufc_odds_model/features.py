@@ -83,8 +83,8 @@ class _Profile:
 class FeatureBuilder:
     """Replay past results and paired stats in whole UTC-date batches."""
 
-    def __init__(self) -> None:
-        self.elo = EloModel()
+    def __init__(self, *, elo_k: float = 32.0) -> None:
+        self.elo = EloModel(k_factor=elo_k)
         self.history: dict[str, _FighterHistory] = {}
         self.prior_result_rows_available = 0
         self.prior_result_rows_observed: int | None = None
@@ -275,13 +275,21 @@ def _profiles_as_of(
                 raise ValueError(f"Conflicting profile sources for {fighter_id} at {observed}")
             times[key] = (observed, value)
             snapshots.setdefault(fighter_id, {})[field_name] = value
-    return {
+    dated = {
         fighter_id: _Profile(
             date.fromisoformat(str(values["birth_date"])) if "birth_date" in values else None,
             float(values["reach_cm"]) if "reach_cm" in values else None,
         )
         for fighter_id, values in snapshots.items()
     }
+    from .wikidata_profiles import static_profiles
+    static = static_profiles(connection, cutoff_at_utc=cutoff_at_utc, receipt_cache=receipt_cache)
+    for fighter_id, profile in static.items():
+        existing = dated.get(fighter_id, _Profile())
+        if existing.birth_date is not None and existing.birth_date != profile.birth_date:
+            raise ValueError(f"Conflicting static and dated birth dates for {fighter_id}")
+        dated[fighter_id] = _Profile(profile.birth_date, existing.reach_cm)
+    return dated
 
 
 def _stats_as_of(

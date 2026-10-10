@@ -1,0 +1,2230 @@
+{
+  "conflicts": [
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1982-03-22T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.73"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q2060100"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Mark Hominick",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "mark-hominick"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1982-07-22T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.73"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q2060100"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Mark Hominick",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "mark-hominick"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:11622314"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1968-07-14T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.83"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q1154771"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Kazushi Sakuraba",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "kazushi-sakuraba"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1969-07-14T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.83"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q1154771"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Kazushi Sakuraba",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "kazushi-sakuraba"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:1330308"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1978-02-06T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q7339742"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Roan Carneiro",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "roan-carneiro"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1978-06-02T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q7339742"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Roan Carneiro",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "roan-carneiro"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:16907538"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1971-11-27T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q5890158"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Homer Moore",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "homer-moore"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1971-11-12T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q5890158"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Homer Moore",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "homer-moore"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:17017769"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1966-03-09T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.78"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q2703880"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Pat Miletich",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "pat-miletich"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1968-03-09T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.78"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q2703880"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Pat Miletich",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "pat-miletich"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:1724395"
+    },
+    {
+      "attributes": [
+        "height_cm"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1975-01-04T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.88"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q116896"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Shane Carwin",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "shane-carwin"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1975-01-04T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.8796"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q116896"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Shane Carwin",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "shane-carwin"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:17440322"
+    },
+    {
+      "attributes": [
+        "ufc_athlete_id"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1985-03-28T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.8"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q2056536"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Jake Ellenberger",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "jake-ellenberger"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1985-03-28T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.8"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q2056536"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Jake Ellenberger",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "joe-ellenberger"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:18281308"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1968-01-04T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q3196916"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Kimo Leopoldo",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "kimo-leopoldo"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1964-01-04T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q3196916"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Kimo Leopoldo",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "kimo-leopoldo"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:1883040"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1983-11-30T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q7488197"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Shane Nelson (fighter)",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "shane-nelson"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1984-11-29T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q7488197"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Shane Nelson (fighter)",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "shane-nelson"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:20696322"
+    },
+    {
+      "attributes": [
+        "height_cm"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1986-08-18T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.68"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q1138101"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Miesha Tate",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "miesha-tate"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1986-08-18T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.69"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q1138101"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Miesha Tate",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "miesha-tate"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:22359670"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1977-06-25T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.88"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q4333491"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Aleksei Oleinik",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "aleksei-oleinik"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1977-06-20T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.88"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q4333491"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Aleksei Oleinik",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "aleksei-oleinik"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:22902629"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1980-09-01T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.73"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q10329953"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Mike Pierce",
+            "xml:lang": "en"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1980-10-01T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.73"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q10329953"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Mike Pierce",
+            "xml:lang": "en"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:24045241"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1978-03-02T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.93"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q2157426"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Heath Herring",
+            "xml:lang": "en"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1978-03-28T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.93"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q2157426"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Heath Herring",
+            "xml:lang": "en"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:2407846"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1987-02-27T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.68"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q947890"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Renan Bar\u00e3o",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "renan-barao"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1988-01-31T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.68"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q947890"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Renan Bar\u00e3o",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "renan-barao"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:27227946"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1982-06-15T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q943729"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Joe Stevenson",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "joe-stevenson"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1982-06-16T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q943729"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Joe Stevenson",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "joe-stevenson"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:3107779"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1983-08-03T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.85"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q919177"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Nick Diaz",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "nick-diaz"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1983-08-02T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.85"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q919177"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Nick Diaz",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "nick-diaz"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:3848862"
+    },
+    {
+      "attributes": [
+        "height_cm"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1985-06-10T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.62"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q15196731"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Ali Bagautinov",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "ali-bagautinov"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1985-06-10T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.63"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q15196731"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Ali Bagautinov",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "ali-bagautinov"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:39754435"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1983-07-25T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q16222394"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Michel Prazeres",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "michel-prazeres"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1981-07-25T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q16222394"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Michel Prazeres",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "michel-prazeres"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:42398451"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1985-01-29T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q18022554"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Carlos Diego Ferreira",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "diego-ferreira"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1985-01-18T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q18022554"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Carlos Diego Ferreira",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "diego-ferreira"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:43769573"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1986-06-10T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.96"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q18589156"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Walt Harris (fighter)",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "walt-harris"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1983-06-10T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.96"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q18589156"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Walt Harris (fighter)",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "walt-harris"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:44457367"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1985-06-25T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.85"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q18685656"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Marcos Rog\u00e9rio de Lima",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "marcos-rogerio-de-lima"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1985-05-25T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.85"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q18685656"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Marcos Rog\u00e9rio de Lima",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "marcos-rogerio-de-lima"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:44778408"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1991-03-18T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q30639697"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Shane Burgos",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "shane-burgos"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1991-03-19T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q30639697"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Shane Burgos",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "shane-burgos"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:54050449"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1988-12-18T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q66107122"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Darko Sto\u0161i\u0107",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "darko-stosic"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1992-02-09T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q66107122"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Darko Sto\u0161i\u0107",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "darko-stosic"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:61880119"
+    },
+    {
+      "attributes": [
+        "ufc_athlete_id"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1992-10-09T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.68"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q29358590"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Askar Askarov",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "askar-askar"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1992-10-09T00:00:00Z"
+          },
+          "height": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "1.68"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q29358590"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Askar Askarov",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "askar-askarov"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:63675824"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1960-09-20T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q105081353"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Carlos Felipe",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "carlos-felipe"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1995-01-12T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q105081353"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Carlos Felipe",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "carlos-felipe"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:65671678"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1969-06-28T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q3296061"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Marvin Eastman",
+            "xml:lang": "en"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1971-06-08T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q3296061"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Marvin Eastman",
+            "xml:lang": "en"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:6695876"
+    },
+    {
+      "attributes": [
+        "ufc_athlete_id"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1992-06-28T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q109667869"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Sam Hughes (fighter)",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "samu-hiyusu"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1992-06-28T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q109667869"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Sam Hughes (fighter)",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "sam-hughes"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:68442515"
+    },
+    {
+      "attributes": [
+        "ufc_athlete_id"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "2000-03-07T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q111801935"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Rong Zhu",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "rongzhu"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "2000-03-07T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q111801935"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Rong Zhu",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "rong-zhu"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:69151230"
+    },
+    {
+      "attributes": [
+        "ufc_athlete_id"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1986-10-30T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q112628298"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Jeremiah Wells",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "jermiah-wells"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1986-10-30T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q112628298"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Jeremiah Wells",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "jeremiah-wells"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:70586948"
+    },
+    {
+      "attributes": [
+        "ufc_athlete_id"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1992-12-05T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q112110677"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Elise Reed",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "karlos-olberg-3"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1992-12-05T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q112110677"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Elise Reed",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "elise-reed"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:70699428"
+    },
+    {
+      "attributes": [
+        "ufc_athlete_id"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1991-06-28T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q116258683"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Jailton Almeida",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "kori-makkenna-10"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1991-06-28T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q116258683"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Jailton Almeida",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "jailton-almeida"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:71036531"
+    },
+    {
+      "attributes": [
+        "ufc_athlete_id"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1993-01-16T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q120264548"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Caio Borralho",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "mario-souza-3"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1993-01-16T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q120264548"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Caio Borralho",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "caio-borralho"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:72075601"
+    },
+    {
+      "attributes": [
+        "ufc_athlete_id"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1994-05-16T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q116686341"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Cody Brundage",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "dzhonatan-pirs-1"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1994-05-16T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q116686341"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Cody Brundage",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "cody-brundage"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:72947009"
+    },
+    {
+      "attributes": [
+        "ufc_athlete_id"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1999-07-07T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q124527720"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Daniel Zellhuber",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "daniel-zellhuber"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1999-07-07T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q124527720"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Daniel Zellhuber",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "daniel-zellhuber-0"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:76187926"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1992-01-08T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q100508866"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Guram Kutateladze (fighter)",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "guram-kutateladze"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1992-01-01T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q100508866"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Guram Kutateladze (fighter)",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "guram-kutateladze"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:80338526"
+    },
+    {
+      "attributes": [
+        "birth_date"
+      ],
+      "bindings": [
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1999-06-09T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q138011225"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Lone'er Kavanagh",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "loneer-kavanagh"
+          }
+        },
+        {
+          "dob": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+            "type": "literal",
+            "value": "1999-09-06T00:00:00Z"
+          },
+          "item": {
+            "type": "uri",
+            "value": "http://www.wikidata.org/entity/Q138011225"
+          },
+          "prec": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+            "type": "literal",
+            "value": "11"
+          },
+          "title": {
+            "type": "literal",
+            "value": "Lone'er Kavanagh",
+            "xml:lang": "en"
+          },
+          "ufc": {
+            "type": "literal",
+            "value": "loneer-kavanagh"
+          }
+        }
+      ],
+      "fighter_id": "wikipedia:82332159"
+    }
+  ],
+  "eligible_real_fighters": 1899,
+  "fighters_with_birth_date": 1828,
+  "fighters_with_height": 615,
+  "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "matched_fighters": 1898,
+  "new_attribute_rows": 5993,
+  "provisional_fighters_excluded": true,
+  "schema_version": 1,
+  "source": "wikidata",
+  "unmatched_fighters": [
+    "wikipedia:69002071"
+  ]
+}
