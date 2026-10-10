@@ -1,0 +1,526 @@
+{
+  "complete_profile_database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+  "implementation_commit": "00a41fdf8e1b91ffaf4a6688083874fde1761285",
+  "limitations": [
+    "No enabled browser for screenshots; runtime and health verified",
+    "No historical market prices or UFC332 closing proxy",
+    "Optional Phase7 and Elo modifiers skipped"
+  ],
+  "metrics_sha256": "47b1e1f57bc557e8be60f596a51e504839cd46f2b3b167696c09ed949fed24ef",
+  "no_actual_wagers": true,
+  "no_push": true,
+  "original_database_sha256": "e9a24dc1e69599deedb083c60fab47b3fd11bbb044d4e89b46313ca53bda07a4",
+  "required_passed": 35,
+  "requirements": [
+    {
+      "evidence": [
+        "git log 34b4ee1..HEAD",
+        "git branch --show-current"
+      ],
+      "observed": "model-accuracy-upgrade; local commits only",
+      "required": true,
+      "requirement": "ground_rules.branch_commits_no_push",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "34b4ee1",
+        "docs/DATA_SOURCE_DECISION.md",
+        "src/ufc_odds_model/dashboard_data.py"
+      ],
+      "observed": [
+        "_review_manifest_matches",
+        "load_card_review_queue"
+      ],
+      "required": true,
+      "requirement": "ground_rules.preexisting_work_preserved",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "pyproject.toml",
+        "installed wheel metadata and -S CLI smoke",
+        "git diff file inventory"
+      ],
+      "observed": [],
+      "required": true,
+      "requirement": "ground_rules.stdlib_core_no_credentials",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "src/ufc_odds_model/wikidata_profiles.py:WikidataClient",
+        "src/ufc_odds_model/wikipedia_history.py:USER_AGENT",
+        "scripts/capture_completed_event.py"
+      ],
+      "observed": "Wikipedia/Wikidata; existing Odds API only; POST <=250; >=1.5s; Retry-After; no header email",
+      "required": true,
+      "requirement": "ground_rules.allowed_sources_user_agent_throttle_retry",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "protected-file checkpoint",
+        "original hash comparison",
+        "tests/test_model_lab.py",
+        "tests/test_research_complete.py"
+      ],
+      "observed": {
+        "checkpoint_files": 5934,
+        "new_data_copies": 15,
+        "old_data_copies_identical": 2948,
+        "original_database_sha256": "e9a24dc1e69599deedb083c60fab47b3fd11bbb044d4e89b46313ca53bda07a4"
+      },
+      "required": true,
+      "requirement": "ground_rules.protected_paths_and_readonly_original",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "tests/",
+        "docs/MODEL_UPGRADE.md",
+        "reports/model_upgrade_metrics.json"
+      ],
+      "observed": {
+        "current_offline_tests": 428,
+        "phases": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "required": true,
+      "requirement": "ground_rules.tests_docs_unique_metrics_each_phase",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "src/ufc_odds_model/model_lab.py",
+        "reports/model_lab_phase3_selection.json",
+        "tests/test_model_lab.py"
+      ],
+      "observed": "Selection ends 2023-12-02; Phase 6 equals frozen Phase 3",
+      "required": true,
+      "requirement": "protocol.fixed_dates_and_no_test_tuning",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "reports/model_lab_phase6.json",
+        "tests/test_model_lab.py"
+      ],
+      "observed": "Log loss/Brier/accuracy; SHA orientation; favorites; paired whole-date bootstrap",
+      "required": true,
+      "requirement": "protocol.metrics_bootstrap_orientation_favorite",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "reports/model_lab_phase0.json",
+        "reports/model_lab_phase1.json",
+        "reports/model_lab_phase2.json",
+        "reports/model_lab_phase6.json"
+      ],
+      "observed": "Fixed and yearly/pooled comparisons; market/age explicitly unavailable where missing",
+      "required": true,
+      "requirement": "protocol.baselines_all_original_subsets",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "src/ufc_odds_model/model_lab.py",
+        "src/ufc_odds_model/cli.py",
+        "reports/model_lab_phase0.json"
+      ],
+      "observed": {
+        "elo": {
+          "accuracy": 0.5225,
+          "bouts": 800,
+          "brier_score": 0.24940590145417738,
+          "log_loss": 0.6918962688968335
+        },
+        "logistic_calibrated": {
+          "accuracy": 0.5575,
+          "bouts": 800,
+          "brier_score": 0.24624793007030277,
+          "log_loss": 0.6855588167512423
+        },
+        "orientation": "legacy_sorted_ids_for_exact_reproduction_only",
+        "temperature_scale": 1.3955675460262114
+      },
+      "required": true,
+      "requirement": "phase0.module_cli_exact_published_holdout",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "src/ufc_odds_model/research_complete.py",
+        "reports/research_complete_identity_report.json"
+      ],
+      "observed": {
+        "fallbacks": 0,
+        "methods": 1647,
+        "recovered": 30,
+        "remaining_held": 0,
+        "restored": 1647
+      },
+      "required": true,
+      "requirement": "phase1.backup_api_complete_held_set_methods",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "tests/test_research_complete.py",
+        "reports/research_complete_identity_report.json"
+      ],
+      "observed": {
+        "flags": 297,
+        "provisional": 911
+      },
+      "required": true,
+      "requirement": "phase1.identities_redirects_no_merges_collision_report",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "reports/model_lab_phase1.json"
+      ],
+      "observed": {
+        "accuracy": 0.5362819626814098,
+        "bouts": 1447,
+        "brier_score": 0.24734394836773405,
+        "log_loss": 0.6877886994217705
+      },
+      "required": true,
+      "requirement": "phase1.fixed_split_targets_original_hash",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "src/ufc_odds_model/wikidata_profiles.py",
+        "reports/wikidata_profiles_report.json",
+        "tests/test_wikidata_profiles.py"
+      ],
+      "observed": {
+        "complete_births": 1828,
+        "complete_real": 1899,
+        "height": 615,
+        "original_births": 1809
+      },
+      "required": true,
+      "requirement": "phase2.mapping_precision_conflicts_height_ids_receipts_cc0",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "src/ufc_odds_model/sql/migrations/014_static_fighter_attributes.sql",
+        "tests/test_wikidata_profiles.py",
+        "tests/test_research_training.py"
+      ],
+      "required": true,
+      "requirement": "phase2.schema014_immutable_static_and_dated_cutoffs",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "src/ufc_odds_model/logistic.py",
+        "tests/test_wikidata_profiles.py",
+        "reports/model_lab_phase2_age_only.json",
+        "reports/model_lab_phase2.json"
+      ],
+      "observed": {
+        "age_loss": 0.6802586473008585,
+        "hinge_loss": 0.6792192847440172
+      },
+      "required": true,
+      "requirement": "phase2.v3_excludes_flags_age_hinge_keeps_v2",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "reports/model_lab_phase6.json"
+      ],
+      "observed": {
+        "accuracy": 0.6199213630406291,
+        "bouts": 763,
+        "brier_score": null,
+        "log_loss": null,
+        "note": "Classifier baseline; no claimed probability calibration",
+        "status": "evaluated"
+      },
+      "required": true,
+      "requirement": "phase2.both_birthdates_younger_baseline",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "reports/model_lab_phase3_selection.json",
+        "src/ufc_odds_model/model_lab.py"
+      ],
+      "observed": {
+        "elo_k": 64,
+        "training_start_year": 2010
+      },
+      "required": true,
+      "requirement": "phase3.recorded_k_window_version_hash_pretest_selection",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "reports/model_lab_phase6.json",
+        "tests/test_model_lab.py"
+      ],
+      "observed": {
+        "fixed": {
+          "accuracy": 0.5742916378714582,
+          "bouts": 1447,
+          "brier_score": 0.23945851589279868,
+          "log_loss": 0.6712275033466752
+        },
+        "includes_zero": false,
+        "paired_loss_interval": [
+          -0.025348525335226038,
+          -0.014870229250740493
+        ],
+        "pooled": {
+          "accuracy": 0.5920803334596438,
+          "bouts": 5278,
+          "brier_score": 0.2367646772052521,
+          "log_loss": 0.6659108908903089
+        }
+      },
+      "required": true,
+      "requirement": "phase3.yearly_folds_pooled_baselines_cis_targets",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "docs/MODEL_UPGRADE.md",
+        "docs/MODEL_CARD.md",
+        "README.md"
+      ],
+      "required": true,
+      "requirement": "phase3.honest_market_gap_paragraph",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "data/raw/ufc332-completed-20261009/manifest.json",
+        "scripts/capture_completed_event.py",
+        "tests/test_capture_completed_event.py"
+      ],
+      "observed": "Revision 1379225905; original fetch and pre-fight anchor hashes",
+      "required": true,
+      "requirement": "phase4.completed_capture_used_and_verified",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "reports/forecast_ledger.jsonl",
+        "src/ufc_odds_model/forecast_ledger.py",
+        "tests/test_forecast_ledger.py",
+        "installed CLI smoke"
+      ],
+      "observed": {
+        "bouts": 8,
+        "market": {
+          "accuracy": 0.75,
+          "bouts": 4,
+          "brier_score": 0.18342967271871266,
+          "log_loss": 0.5411055785946897
+        },
+        "model": {
+          "accuracy": 0.625,
+          "bouts": 8,
+          "brier_score": 0.22463864933902133,
+          "log_loss": 0.6412345354676264
+        },
+        "model_on_market_subset": {
+          "accuracy": 0.25,
+          "bouts": 4,
+          "brier_score": 0.25984941645659865,
+          "log_loss": 0.712853964443419
+        }
+      },
+      "required": true,
+      "requirement": "phase4.forecast_freeze_settle_summary_append_only",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "reports/forecast_ledger.jsonl",
+        "reports/ufc332-forward-research-full-20260927T1643Z.json"
+      ],
+      "observed": {
+        "bouts": 8,
+        "correct": 5,
+        "priced_bouts": 4,
+        "recovered_after_event": true
+      },
+      "required": true,
+      "requirement": "phase4.saved_ufc332_probabilities_settled",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "src/ufc_odds_model/odds_schedule.py",
+        "tests/test_odds_schedule.py",
+        "offline CLI execution of t7d/t24h/t2h"
+      ],
+      "observed": "All slots captured; repeats do not fetch; below50 refuses",
+      "required": true,
+      "requirement": "phase4.odds_schedule_quota50_existing_receipts",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "src/ufc_odds_model/pipeline.py",
+        "src/ufc_odds_model/alerts.py",
+        "tests/test_market_guard.py"
+      ],
+      "observed": "Default .10; Figueiredo/Green shapes; one-sided selected quote fallback",
+      "required": true,
+      "requirement": "phase4.market_guard_default_explicit_override_shapes",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "tests/test_odds_schedule.py",
+        "src/ufc_odds_model/odds_schedule.py"
+      ],
+      "observed": "Verified entry plus later observed same-book two-sided pre-start pair; UFC332 unavailable",
+      "required": true,
+      "requirement": "phase4.paper_actual_clv_later_observed_receipts",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "src/ufc_odds_model/cli.py",
+        "src/ufc_odds_model/research_training.py",
+        "tests/test_research_training.py",
+        "reports/research_training_phase5.json"
+      ],
+      "observed": {
+        "calibration": 1504,
+        "operating_results": 0,
+        "readiness": false,
+        "training": 5985
+      },
+      "required": true,
+      "requirement": "phase5.all_three_optin_flags_strict_earlier_features_label",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "tests/test_research_training.py",
+        "tests/test_prefight_cli.py",
+        "src/ufc_odds_model/alerts.py"
+      ],
+      "observed": "Research history does not satisfy operating model readiness",
+      "required": true,
+      "requirement": "phase5.defaults_and_all_gates_preserved",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "docs/MODEL_CARD.md"
+      ],
+      "observed": {
+        "coverage_metrics_baselines_cis_reliability_forward_limits": true,
+        "words": 557
+      },
+      "required": true,
+      "requirement": "phase6_one_page_model_card_required_content",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "app.py",
+        "src/ufc_odds_model/dashboard_data.py",
+        "tests/test_upgrade_dashboard.py"
+      ],
+      "observed": "Saved contributions explain p in logit units; invalid arithmetic is suppressed",
+      "required": true,
+      "requirement": "phase6_upcoming_card_market_gap_top3_contributions_coverage",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "app.py",
+        "tests/test_upgrade_dashboard.py",
+        "real-repository AppTest and protected-file hashes"
+      ],
+      "observed": {
+        "chart": true,
+        "exceptions": 0,
+        "protected_files_unchanged": 5935,
+        "tabs": 6
+      },
+      "required": true,
+      "requirement": "phase6_forward_and_model_tabs_readonly",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "README.md",
+        "docs/LEGACY_WORKFLOW_REFERENCE.md"
+      ],
+      "observed": {
+        "lines": 70
+      },
+      "required": true,
+      "requirement": "phase6_readme_quickstart_how_docs_under150",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "docs/EVENT_WORKFLOW.md",
+        "reports/model_upgrade_summary.md",
+        "capture/import command help checks"
+      ],
+      "required": true,
+      "requirement": "phase6_exact_event_workflow_and_hygiene_report_only",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "reports/model_upgrade_summary.md"
+      ],
+      "observed": "Per-phase all/original metrics and targets; rolling CIs; forward; skips; four decisions; file inventory and commands",
+      "required": true,
+      "requirement": "final_report_five_required_sections_exact_reproduction_files",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "installed wheel smoke with site packages disabled",
+        "real-repository AppTest with former paths absent"
+      ],
+      "observed": "Migrations/scripts shipped; source verification outside repo; local raw files sufficient",
+      "required": true,
+      "requirement": "local_delivery_package_and_receipt_portability",
+      "status": "passed"
+    },
+    {
+      "reason": "Not evaluated/adopted; required constant-K/window selection completed",
+      "required": false,
+      "requirement": "phase3_optional_experience_mov_k",
+      "status": "skipped_optional"
+    },
+    {
+      "reason": "Required phases took priority; no article-table features claimed",
+      "required": false,
+      "requirement": "phase7_optional_preufc_records",
+      "status": "skipped_optional"
+    }
+  ],
+  "schema_version": 1,
+  "specification": "docs/codex/MODEL_UPGRADE_PROMPT.md",
+  "status": "required_scope_verified",
+  "summary_sha256": "bfd2b474dd0a7704e55a15fab5e4b77b4fb7cfae88e753616cccdc69ca2a5643",
+  "wheel_sha256": "ff0a04aefa8b314238bce7751ae8ad5c0fbb660989ac8c37681814df2a499092"
+}
