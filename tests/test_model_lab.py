@@ -4,12 +4,14 @@ import json
 import sqlite3
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 from ufc_odds_model import db
 from ufc_odds_model.features import FEATURE_NAMES, FeatureRow
 from ufc_odds_model.model_lab import (
     compare, fixed_split, hash_oriented_pairs, metric_report, read_only, write_new_json,
+    rolling_origin, absolute_bootstrap,
 )
 
 
@@ -74,3 +76,24 @@ class ModelLabTests(unittest.TestCase):
             self.assertEqual(report["test"]["originally_kept"]["elo"]["metrics"]["bouts"], 1)
             self.assertFalse(report["promotion_eligible"])
             self.assertEqual(report["test"]["all"]["market_no_vig"]["status"], "unavailable")
+
+    def test_rolling_origin_never_fits_on_current_or_later_year(self):
+        examples = []
+        for year in range(2010,2019):
+            for month in range(1,13):
+                day = f"{year}-{month:02d}-01"
+                examples.append(FeatureRow(day,day,day,"a","b",(.3 if month%2 else -.2,),month%2))
+        first, _, _ = rolling_origin(examples,("x",),years=[2016,2017],intervals=False)
+        changed = [replace(r,target=1-int(r.target)) if r.event_date >= "2017-01-01" else r for r in examples]
+        second, _, _ = rolling_origin(changed,("x",),years=[2016,2017],intervals=False)
+        self.assertEqual(first["folds"][0],second["folds"][0])
+        for fold in first["folds"]:
+            self.assertLess(fold["train"]["last_date"],fold["validation"]["first_date"])
+            self.assertLess(fold["validation"]["last_date"],f"{fold['year']}-01-01")
+
+    def test_bootstrap_is_deterministic_and_resamples_whole_dates(self):
+        rows = [row(str(i),"2024-01-01",i%2) for i in range(10)]
+        result = absolute_bootstrap(rows,[.7]*10,repeats=50)
+        self.assertEqual(result["event_date_blocks"],1)
+        low,high = result["log_loss_95pct_interval"]
+        self.assertEqual(low,high)

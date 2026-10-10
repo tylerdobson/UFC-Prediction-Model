@@ -47,6 +47,11 @@ def make_parser() -> argparse.ArgumentParser:
     lab.add_argument("--features", choices=["result", "age", "age-hinge"], default="result")
     lab.add_argument("--elo-k", type=float, default=32)
     lab.add_argument("--start-year", type=int, default=1993)
+    lab.add_argument("--selection")
+    lab.add_argument("--rolling-origin", action="store_true")
+    selection = subcommands.add_parser("research-select", help="Select K/window using validation and pretest yearly folds")
+    selection.add_argument("--db", default=argparse.SUPPRESS)
+    selection.add_argument("--out", default="reports/model_lab_phase3_selection.json")
     complete = subcommands.add_parser("research-complete-history", help="Restore held bouts into a NEW research database")
     complete.add_argument("--db", default=argparse.SUPPRESS)
     complete.add_argument("--out-db", required=True)
@@ -315,7 +320,19 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "research-compare":
             from .model_lab import run_comparison
             run_comparison(args.db, args.complete_db, args.out, args.identity_review, args.phase,
-                           feature_set=args.features, elo_k=args.elo_k, start_year=args.start_year)
+                           feature_set=args.features, elo_k=args.elo_k, start_year=args.start_year,
+                           selection_path=args.selection, rolling=args.rolling_origin)
+            return 0
+        if args.command == "research-select":
+            from .model_lab import read_only, select_parameters, file_sha256, write_new_json
+            before = file_sha256(args.db)
+            with read_only(args.db) as connection:
+                result = select_parameters(connection)
+            if file_sha256(args.db) != before:
+                raise ValueError("Database changed during parameter selection")
+            result["database_sha256"] = before
+            write_new_json(args.out, result)
+            print(f"Selected Elo K={result['elo_k']}; training start={result['training_start_year']}; no fixed-test labels used")
             return 0
         if args.command == "import-wikidata-profiles":
             from .model_lab import read_only

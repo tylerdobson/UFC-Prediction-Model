@@ -122,3 +122,44 @@ decline-above-32 hinge: 56.12%, log loss 0.6792, Brier 0.2432. Both loss targets
 are met. On 763 test fights with both birth dates, hinge v3 scores 58.06%,
 log loss 0.6672; the younger-fighter classifier is 61.99% accurate. The paired
 v3-minus-v2 log-loss 95% interval is [-0.01809, +0.00054], which includes zero.
+
+## Phase 3: validation selection and rolling-origin evaluation
+
+```sh
+ufc-model research-select --db data/ufc_research_complete_profiles.sqlite \
+  --out reports/model_lab_phase3_selection.json
+ufc-model research-compare --db data/ufc_research_2011_2025.sqlite \
+  --complete-db data/ufc_research_complete_profiles.sqlite \
+  --identity-review reports/wikipedia_1993_2026_identity_review.json \
+  --selection reports/model_lab_phase3_selection.json --rolling-origin \
+  --out reports/model_lab_phase3.json --phase 3
+```
+
+Selection never loads labels later than 2023-12-02. K=64 minimizes validation
+Elo loss (0.68132 versus K=32's 0.68422). Training start 2010 minimizes pooled
+2016–2023 pre-test fold loss (0.66453 versus 2005's 0.66616). The 2023 selection
+fold ends on 2023-12-02; it excludes the fixed-test dates. The selection
+manifest is frozen, bound to the database hash, then consumed by evaluation.
+K, training start, features, weights and temperature are recorded; the model
+version hash includes K and the training window. Experience/method K modifiers
+are optional and were not adopted.
+
+Each yearly fold fits on earlier dates, holding out the last 15% of eligible
+pre-year dates for temperature. Earlier results still inform Elo/history;
+the training-start window selects fitting rows, not an artificial rating reset.
+Year Y is never used for its weights or temperature. Both all-test and retained
+test subsets are shown. The full 2016–2026 evaluation is run only after selection.
+
+Fixed test: 1,447 fights, 57.43% accuracy, log loss 0.67123, Brier 0.23946.
+The accuracy >=56% and loss <=0.676 targets are met. The original 800 retained
+test fights score 59.13%, log loss 0.66002, Brier 0.23420.
+Rolling pooled: 5,278 fights, 59.21% accuracy, log loss 0.66591 (95% date-block
+interval [0.65969, 0.67221]); v2 loss 0.68616. The paired v3-minus-v2 interval
+[-0.02535, -0.01487] excludes zero. Yearly metrics and intervals are in the
+report. The 2026 fold is weaker: 54.02%, loss 0.68924 through September 19.
+
+The review uses typically ~65%+ accuracy as a no-vig market reference. This
+repository has no captured historical prices to verify that benchmark on the
+holdout. The model does not establish market parity; richer fight statistics
+or market inputs would be needed to close that gap. Retrospective improvement
+also does not prove prospective wagering value.

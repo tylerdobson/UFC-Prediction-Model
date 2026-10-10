@@ -43,7 +43,8 @@ def _digest_json(value: object) -> str:
     ).hexdigest()
 
 
-def _source_results(connection: sqlite3.Connection, *, include_restored: bool = False) -> list[sqlite3.Row]:
+def _source_results(connection: sqlite3.Connection, *, include_restored: bool = False,
+                    through_date: str | None = None) -> list[sqlite3.Row]:
     return connection.execute(
         """SELECT e.event_id, e.event_date, b.bout_id, b.fighter_a_id,
                   b.fighter_b_id, r.outcome, r.winner_fighter_id
@@ -52,14 +53,16 @@ def _source_results(connection: sqlite3.Connection, *, include_restored: bool = 
            JOIN results r ON r.bout_id = b.bout_id
            WHERE e.source = ? AND b.source IN (?, ?)
              AND e.status = 'completed' AND b.status = 'completed'
+             AND (? IS NULL OR e.event_date <= ?)
            ORDER BY e.event_date, e.event_id, b.bout_id""",
-        (SOURCE, SOURCE, "wikipedia_research_restored" if include_restored else SOURCE),
+        (SOURCE, SOURCE, "wikipedia_research_restored" if include_restored else SOURCE,
+         through_date, through_date),
     ).fetchall()
 
 
 def research_feature_rows(
     connection: sqlite3.Connection,
-    *, include_restored: bool = False, profiles=None, elo_k: float = 32.0,
+    *, include_restored: bool = False, profiles=None, elo_k: float = 32.0, through_date: str | None = None,
 ) -> tuple[list[FeatureRow], dict[str, object]]:
     """Replay accepted research results with all same-date outcomes withheld.
 
@@ -68,7 +71,7 @@ def research_feature_rows(
     outcomes are never consulted. Draws update later history, while draws and
     no contests are excluded from binary targets.
     """
-    source = _source_results(connection, include_restored=include_restored)
+    source = _source_results(connection, include_restored=include_restored, through_date=through_date)
     builder = FeatureBuilder(elo_k=elo_k)
     examples: list[FeatureRow] = []
     outcome_counts = {"win": 0, "draw": 0, "no_contest": 0}

@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Mapping
+import math
 
 MODEL_VERSION = "elo-k32-v1"
 
 
 class EloModel:
     def __init__(self, k_factor: float = 32.0, initial_rating: float = 1500.0):
+        if not math.isfinite(k_factor) or k_factor <= 0 or not math.isfinite(initial_rating):
+            raise ValueError("Elo K must be finite and positive; initial rating must be finite")
         self.k_factor = k_factor
         self.initial_rating = initial_rating
         self.ratings: defaultdict[str, float] = defaultdict(lambda: initial_rating)
