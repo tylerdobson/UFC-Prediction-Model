@@ -108,7 +108,8 @@ def retained_query(connection, request, fetch, raw_dir, *, offline=False):
     if prior:
         if prior["request_json"] != serialized or not _intact_payload(prior["payload_path"], prior["sha256"]):
             raise ValueError("Changed Wikidata request/response receipt")
-        return json.loads(Path(prior["payload_path"]).read_bytes()), int(prior["ingestion_run_id"])
+        from .retained_paths import retained_path
+        return json.loads(retained_path(prior["payload_path"]).read_bytes()), int(prior["ingestion_run_id"])
     if offline:
         raise ValueError(f"No retained query for {digest}; offline import cannot fetch")
     raw = fetch(request)

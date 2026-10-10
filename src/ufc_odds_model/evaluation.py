@@ -254,6 +254,7 @@ def _bookmaker_probability(
     decision_time: datetime,
     max_quote_age_hours: float,
     receipt_cache: dict,
+    *, required_snapshot_at_utc: str | None = None, bookmaker: str | None = None,
 ) -> float | None:
     """Return a no-vig probability for the first, canonically ordered fighter.
 
@@ -266,6 +267,10 @@ def _bookmaker_probability(
     markets: dict[tuple[str, int, datetime, datetime], dict[str, set[float]]] = {}
     quotes = linked_quote_rows(connection, row.bout_id)
     for quote in quotes:
+        if required_snapshot_at_utc is not None and quote["captured_at_utc"] != required_snapshot_at_utc:
+            continue
+        if bookmaker is not None and quote["bookmaker"] != bookmaker:
+            continue
         if not quote_receipt_matches(quote, decision_time, receipt_cache):
             continue
         fighter_id = quote["selection_fighter_id"]

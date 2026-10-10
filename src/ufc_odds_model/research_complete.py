@@ -13,6 +13,7 @@ from urllib.parse import unquote, urlsplit
 
 from . import db
 from .model_lab import file_sha256, read_only, write_new_json
+from .retained_paths import retained_path
 from .raw_snapshots import retain_snapshot
 from .pipeline import utc_now, utc_string
 from .research_evaluation import (
@@ -36,7 +37,7 @@ def saved_title_map(connection: sqlite3.Connection) -> tuple[dict[str, int], dic
     ):
         if not _intact_payload(receipt["payload_path"], receipt["sha256"]):
             raise ValueError(f"Changed Action API receipt: {receipt['payload_path']}")
-        payload = json.loads(Path(receipt["payload_path"]).read_bytes())
+        payload = json.loads(retained_path(receipt["payload_path"]).read_bytes())
         response = payload.get("response", payload).get("query", {})
         pages = response.get("pages", [])
         if isinstance(pages, dict):
@@ -156,7 +157,7 @@ def restore_bouts(connection, positions, title_map, fallback_map):
             # A changed receipt is corruption, never permission to use a weaker fallback.
             raise ValueError(f"Changed event receipt for {event_id}")
         if event_id not in parsed:
-            payload = json.loads(Path(receipt["payload_path"]).read_bytes())
+            payload = json.loads(retained_path(receipt["payload_path"]).read_bytes())
             try:
                 section = unquote(urlsplit(receipt["page_url"]).fragment).replace("_", " ")
                 if section:

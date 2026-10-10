@@ -23,6 +23,7 @@ from scripts.capture_prefight_card import (
 from scripts.fetch_historical_revisions import fetch_once
 from scripts.import_reviewed_prefight_card import verify_manifest
 from ufc_odds_model.wikipedia_history import ParsedEvent, parse_event_page_title
+from ufc_odds_model.retained_paths import retained_path
 
 
 Fetch = Callable[[str], tuple[bytes, str]]
@@ -207,7 +208,8 @@ def verify_completed_capture(manifest_path: str | Path) -> dict:
     source = manifest.get("source")
     if not isinstance(anchor, dict) or not isinstance(source, dict):
         raise ValueError("Completed capture lacks anchor or source evidence")
-    anchor_path = Path(str(anchor.get("manifest_path", "")))
+    recorded_anchor = Path(str(anchor.get("manifest_path", "")))
+    anchor_path = retained_path(recorded_anchor, reference=path)
     if anchor_path.is_symlink() or not anchor_path.is_file():
         raise ValueError("Pre-fight anchor is unavailable")
     verified = verify_manifest(anchor_path)
@@ -224,7 +226,7 @@ def verify_completed_capture(manifest_path: str | Path) -> dict:
     if (hashlib.sha256(raw).hexdigest() != source.get("raw_sha256")
             or hashlib.sha256(receipt_bytes).hexdigest() != source.get("receipt_sha256")):
         raise ValueError("Completed source or receipt hash changed")
-    expected = _derive_manifest(anchor_path.resolve(), verified, raw, source.get("fetched_at_utc"))
+    expected = _derive_manifest(recorded_anchor, verified, raw, source.get("fetched_at_utc"))
     if receipt_bytes != _encoded(_receipt(expected["source"]["api_url"], raw,
                                          source["fetched_at_utc"])):
         raise ValueError("Completed source fetch receipt differs from response")

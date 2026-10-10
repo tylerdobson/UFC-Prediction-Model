@@ -16,6 +16,39 @@ from urllib.request import Request, urlopen
 
 _ODDS_URL = "https://api.the-odds-api.com/v4/sports/mma_mixed_martial_arts/odds"
 _HISTORICAL_URL = "https://api.the-odds-api.com/v4/historical/sports/mma_mixed_martial_arts/odds"
+_SPORTS_URL = "https://api.the-odds-api.com/v4/sports/"
+QUOTA_FLOOR = 50
+
+
+def _remaining(response, *, required=False):
+    headers=getattr(response,"headers",{})
+    value=headers.get("x-requests-remaining")
+    if value is None:
+        if required:
+            raise RuntimeError("The Odds API response lacks a remaining-requests header")
+        return None
+    try:
+        remaining=int(value)
+    except (TypeError,ValueError):
+        raise RuntimeError("The Odds API returned an invalid remaining-requests header")
+    if remaining < QUOTA_FLOOR:
+        raise RuntimeError(f"The Odds API quota is below the {QUOTA_FLOOR}-request floor ({remaining} remaining)")
+    return remaining
+
+
+def quota_status(api_key):
+    """Check the zero-credit sports endpoint before a scheduled capture."""
+    if not isinstance(api_key,str) or not api_key.strip():
+        raise ValueError("The Odds API key is required")
+    request=Request(_SPORTS_URL+"?"+urlencode({"apiKey":api_key.strip()}),headers={"Accept":"application/json"})
+    try:
+        with urlopen(request,timeout=15) as response:
+            remaining=_remaining(response,required=True)
+            return {"remaining_requests":remaining,"fetched_at_utc":datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00','Z')}
+    except HTTPError as exc:
+        raise RuntimeError(f"The Odds API quota check returned HTTP {exc.code}") from exc
+    except URLError as exc:
+        raise RuntimeError("Could not reach The Odds API quota endpoint") from exc
 
 
 def fetch_mma_h2h(api_key: str, regions: str = "us") -> list[dict]:
@@ -41,6 +74,7 @@ def fetch_mma_h2h(api_key: str, regions: str = "us") -> list[dict]:
     request = Request(f"{_ODDS_URL}?{query}", headers={"Accept": "application/json"})
     try:
         with urlopen(request, timeout=15) as response:
+            _remaining(response)
             payload = json.load(response)
     except HTTPError as exc:
         detail = _api_error_detail(exc, api_key.strip())
@@ -81,6 +115,7 @@ def fetch_historical_mma_h2h(
     request = Request(f"{_HISTORICAL_URL}?{query}", headers={"Accept": "application/json"})
     try:
         with urlopen(request, timeout=15) as response:
+            _remaining(response)
             payload = json.load(response)
     except HTTPError as exc:
         detail = _api_error_detail(exc, api_key.strip())

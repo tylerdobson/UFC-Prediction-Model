@@ -52,6 +52,27 @@ def make_parser() -> argparse.ArgumentParser:
     selection = subcommands.add_parser("research-select", help="Select K/window using validation and pretest yearly folds")
     selection.add_argument("--db", default=argparse.SUPPRESS)
     selection.add_argument("--out", default="reports/model_lab_phase3_selection.json")
+    forecast=subcommands.add_parser("forecast",help="Freeze, settle and summarize the append-only forecast ledger")
+    forecast_commands=forecast.add_subparsers(dest="forecast_action",required=True)
+    freeze=forecast_commands.add_parser("freeze")
+    freeze.add_argument("event_id")
+    freeze.add_argument("--source",help="Recover an already-saved research forecast with its original cutoff")
+    freeze.add_argument("--model-version")
+    settle=forecast_commands.add_parser("settle")
+    settle.add_argument("event_id")
+    settle.add_argument("--completed-manifest")
+    summary=forecast_commands.add_parser("summary")
+    summary.add_argument("--out")
+    for command in (freeze,settle,summary):
+        command.add_argument("--ledger",default="reports/forecast_ledger.jsonl")
+    odds_plan=subcommands.add_parser("odds-schedule",help="Plan or capture a T-7d/T-24h/T-2h slot")
+    odds_plan.add_argument("event_id")
+    odds_plan.add_argument("--capture",action="store_true")
+    odds_plan.add_argument("--slot",choices=['t7d','t24h','t2h'])
+    odds_plan.add_argument("--raw-dir",default="data/raw/odds")
+    odds_plan.add_argument("--regions",default="us")
+    odds_plan.add_argument("--tolerance-minutes",type=float,default=60)
+    subcommands.add_parser("clv",help="Report observed paper/actual closing-line values")
     complete = subcommands.add_parser("research-complete-history", help="Restore held bouts into a NEW research database")
     complete.add_argument("--db", default=argparse.SUPPRESS)
     complete.add_argument("--out-db", required=True)
@@ -133,6 +154,7 @@ def make_parser() -> argparse.ArgumentParser:
     scoring.add_argument("--report-dir", default="reports")
     scoring.add_argument("--model", choices=["elo", "logistic"], default="elo")
     scoring.add_argument("--model-dir", default="models")
+    scoring.add_argument("--max-market-disagreement",type=float,default=.10)
 
     backtest = subcommands.add_parser("backtest", help="Walk forward through past events")
     backtest.add_argument("--min-prior-results", type=int, default=0)
@@ -190,6 +212,7 @@ def make_parser() -> argparse.ArgumentParser:
     paper.add_argument("--report-dir", default="reports")
     paper.add_argument("--model", choices=["elo", "logistic"], default="elo")
     paper.add_argument("--model-dir", default="models")
+    paper.add_argument("--max-market-disagreement",type=float,default=.10)
 
     paper_settlement = subcommands.add_parser("settle-paper", help="Settle binary paper bets for an event")
     paper_settlement.add_argument("event_id")
@@ -206,6 +229,7 @@ def make_parser() -> argparse.ArgumentParser:
     alerts.add_argument("--max-age-seconds", type=float, default=60.0)
     alerts.add_argument("--decimal-odds-drift", type=float, default=0.05)
     alerts.add_argument("--min-ev", type=float, default=0.03)
+    alerts.add_argument("--max-market-disagreement",type=float,default=.10)
 
     bet = subcommands.add_parser("record-bet", help="Record an actual manually placed wager")
     bet.add_argument("--prediction-id", type=int, required=True)
@@ -255,12 +279,14 @@ def _check_prefight_event(connection, args) -> tuple[object, dict, list[dict]]:
         args.min_ev, args.max_age_seconds / 3600.0,
         model_kind=args.model, model_dir=args.model_dir,
         required_snapshot_at_utc=odds_result["snapshot_at_utc"],
+        max_market_disagreement=args.max_market_disagreement,
     )
     checked = record_prefight_checks(
         connection, rows, ingestion_run_id=int(odds_result["ingestion_run_id"]),
         max_age_seconds=args.max_age_seconds,
         decimal_odds_drift=args.decimal_odds_drift,
         min_edge=args.min_ev,
+        max_market_disagreement=args.max_market_disagreement,
     )
     return report, odds_result, checked
 
@@ -317,6 +343,36 @@ def main(argv: list[str] | None = None) -> int:
     args = make_parser().parse_args(argv)
     job_run_id: int | None = None
     try:
+        if args.command == "forecast":
+            from . import forecast_ledger
+            from .model_lab import read_only,write_new_json
+            if args.forecast_action == "summary":
+                result=forecast_ledger.summary(args.ledger)
+                if args.out:
+                    write_new_json(args.out,result)
+            elif args.forecast_action == "freeze" and args.source:
+                result=forecast_ledger.freeze_saved_research(args.event_id,args.source,ledger=args.ledger)
+            elif args.forecast_action == "settle" and args.completed_manifest:
+                result=forecast_ledger.settle_event(args.event_id,ledger=args.ledger,completed_manifest=args.completed_manifest)
+            else:
+                with read_only(args.db) as connection:
+                    if args.forecast_action == "freeze":
+                        result=forecast_ledger.freeze_event(connection,args.event_id,ledger=args.ledger,model_version=args.model_version)
+                    else:
+                        result=forecast_ledger.settle_event(args.event_id,ledger=args.ledger,connection=connection)
+            if isinstance(result,dict) and "cumulative" in result:
+                print(json.dumps({"events":[{k:v for k,v in event.items() if k!='rows'} for event in result['events']],
+                                  "cumulative":result['cumulative'],"hash_chain_verified":result['hash_chain_verified']},indent=2))
+            else:
+                print("Forecast ledger entry recorded")
+            return 0
+        if args.command=='clv' or args.command=='odds-schedule' and not args.capture:
+            from .model_lab import read_only
+            from .odds_schedule import closing_line_value,schedule
+            with read_only(args.db) as connection:
+                result=closing_line_value(connection) if args.command=='clv' else schedule(connection,args.event_id)
+            print(json.dumps(result,indent=2))
+            return 0
         if args.command == "research-compare":
             from .model_lab import run_comparison
             run_comparison(args.db, args.complete_db, args.out, args.identity_review, args.phase,
@@ -375,6 +431,13 @@ def main(argv: list[str] | None = None) -> int:
             if args.command == "seed-demo":
                 event_id = seed_demo(connection)
                 print(f"Loaded fictional demo data. Next: ufc-model score-event {event_id}")
+            elif args.command=='odds-schedule':
+                from .odds_schedule import capture_slot
+                if not args.slot:
+                    raise ValueError('A capture requires --slot t7d/t24h/t2h')
+                result=capture_slot(connection,args.event_id,args.slot,provider_key('ODDS_API_KEY'),
+                                    raw_dir=args.raw_dir,regions=args.regions,tolerance_minutes=args.tolerance_minutes)
+                print(json.dumps(result,indent=2))
             elif args.command == "list-events":
                 rows = connection.execute(
                     "SELECT event_id, event_date, status, name FROM events ORDER BY event_date"
@@ -435,6 +498,7 @@ def main(argv: list[str] | None = None) -> int:
                     connection, args.event_id, as_of, args.report_dir,
                     args.min_ev, args.max_quote_age_hours,
                     model_kind=args.model, model_dir=args.model_dir,
+                    max_market_disagreement=args.max_market_disagreement,
                 )
                 print(f"Wrote {len(rows)} bout predictions to {report}")
                 for row in rows:

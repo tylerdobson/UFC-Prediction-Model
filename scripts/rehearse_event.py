@@ -107,7 +107,7 @@ def _mock_odds(event_start: datetime, updated: datetime) -> list[dict]:
                 "last_update": utc_string(updated),
                 "outcomes": [
                     {"name": FIGHTERS[a], "price": 2.4},
-                    {"name": FIGHTERS[b], "price": 1.55},
+                    {"name": FIGHTERS[b], "price": 2.3},
                 ],
             }],
         }],

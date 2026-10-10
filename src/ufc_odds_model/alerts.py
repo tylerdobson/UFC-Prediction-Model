@@ -158,6 +158,7 @@ def gate_prefight_alerts(
     max_age_seconds: float = 60,
     decimal_odds_drift: float = 0.05,
     min_edge: float = 0.03,
+    max_market_disagreement: float = 0.10,
 ) -> list[dict[str, object]]:
     """Check every scored row against one freshly imported odds snapshot.
 
@@ -172,6 +173,8 @@ def gate_prefight_alerts(
     The caller must pass the snapshot time returned by the immediately
     preceding successful odds import, not a time chosen from an old report.
     """
+    from .market_guard import disagreement, validate_threshold
+    max_market_disagreement = validate_threshold(max_market_disagreement)
     age_limit = _finite_number(max_age_seconds)
     drift = _finite_number(decimal_odds_drift)
     edge_floor = _finite_number(min_edge)
@@ -190,6 +193,15 @@ def gate_prefight_alerts(
 
     for row in rows:
         result = dict(row)
+        try:
+            gap, blocked = disagreement(row.get("model_probability_fighter_a",row.get("p_fighter_a")),
+                                        row.get("market_no_vig_probability"),max_market_disagreement)
+            invalid_market = False
+        except ValueError:
+            gap, blocked, invalid_market = None,False,True
+        if blocked:
+            result["decision"] = "pass_market_disagreement"
+        result["market_disagreement"] = gap
         result.update(
             alert_eligible=False,
             alert_decision="reject",
@@ -202,6 +214,10 @@ def gate_prefight_alerts(
             reason = "invalid_reference_time"
         elif now >= event_start:
             reason = "event_started"
+        elif invalid_market:
+            reason = "invalid_market_probability"
+        elif blocked or row.get("decision") == "pass_market_disagreement":
+            reason = "pass_market_disagreement"
         elif row.get("decision") != "candidate":
             reason = "not_model_candidate"
         elif not row.get("quote_id") or not row.get("bookmaker"):
@@ -253,6 +269,7 @@ def record_prefight_checks(
     max_age_seconds: float = 60,
     decimal_odds_drift: float = 0.05,
     min_edge: float = 0.03,
+    max_market_disagreement: float = 0.10,
 ) -> list[dict[str, object]]:
     """Evaluate and store immutable checks against a real live-odds receipt.
 
@@ -260,6 +277,8 @@ def record_prefight_checks(
     enter the gate. The receipt identifies the exact source file and snapshot;
     a caller cannot mark a raw score row eligible by adding a boolean field.
     """
+    from .market_guard import validate_threshold
+    max_market_disagreement = validate_threshold(max_market_disagreement)
     edge_floor = _finite_number(min_edge)
     if edge_floor is None or edge_floor < 0:
         raise ValueError("min_edge must be a nonnegative finite number")
@@ -311,6 +330,7 @@ def record_prefight_checks(
         verified_quotes.append(_verify_saved_score(
             connection, row, edge_floor, ingestion_run_id, now,
             quote_receipt_cache,
+            max_market_disagreement=max_market_disagreement, max_age_hours=max_age_seconds/3600,
         ))
     checked = gate_prefight_alerts(
         source_rows,
@@ -320,6 +340,7 @@ def record_prefight_checks(
         max_age_seconds=max_age_seconds,
         decimal_odds_drift=decimal_odds_drift,
         min_edge=min_edge,
+        max_market_disagreement=max_market_disagreement,
     )
     readiness_cache: dict[tuple[str, str], tuple[bool, dict[str, float] | None]] = {}
     for row, verified_quote in zip(checked, verified_quotes):
@@ -344,6 +365,7 @@ def record_prefight_checks(
             max_age_seconds=max_age_seconds,
             decimal_odds_drift=decimal_odds_drift,
             min_edge=min_edge,
+            max_market_disagreement=max_market_disagreement,
         )[0]
         if (verified_quote and roster["accepted"]
                 and row.get("quote_id") and row["decision"] in ("candidate", "pass")
@@ -387,8 +409,8 @@ def record_prefight_checks(
                     quoted_decimal_odds, model_probability, model_decision,
                     gate_decision, gate_reason, max_age_seconds,
                     decimal_odds_drift, min_edge, conservative_decimal_odds,
-                    conservative_expected_profit_per_dollar, roster_snapshot_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    conservative_expected_profit_per_dollar, roster_snapshot_id, max_market_disagreement
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     ingestion_run_id, event_id, row["bout_id"], int(row["prediction_id"]),
@@ -403,6 +425,7 @@ def record_prefight_checks(
                     row["conservative_decimal_odds"],
                     row["conservative_expected_profit_per_dollar"],
                     row["roster_snapshot_id"],
+                    max_market_disagreement,
                 ),
             )
             row["gate_check_id"] = int(cursor.lastrowid)
@@ -420,6 +443,7 @@ def record_prefight_checks(
 def _verify_saved_score(
     connection: sqlite3.Connection, row: Mapping[str, object], min_edge: float,
     ingestion_run_id: int, cutoff_at_utc: datetime, receipt_cache: dict,
+    *, max_market_disagreement: float = .10, max_age_hours: float = 1/60,
 ) -> bool:
     try:
         prediction_id = int(row["prediction_id"])
@@ -479,6 +503,16 @@ def _verify_saved_score(
             or not math.isclose(scored_probability, probability, rel_tol=1e-12, abs_tol=1e-12)):
         raise ValueError("The scored probability, price, or quote times differ from saved evidence")
     expected_decision = "candidate" if probability * price - 1 >= min_edge else "pass"
+    from .market_guard import verified_market, disagreement
+    market = verified_market(connection,saved,_utc(saved["feature_cutoff_at_utc"]),max_age_hours,
+                             snapshot=quote["captured_at_utc"],bookmaker=quote["bookmaker"])
+    _, blocked = disagreement(float(saved["p_fighter_a"]),market,max_market_disagreement)
+    if blocked:
+        expected_decision = "pass_market_disagreement"
+    if row.get("market_no_vig_probability") is not None:
+        supplied_market = _finite_number(row["market_no_vig_probability"])
+        if market is None or supplied_market is None or not math.isclose(market,supplied_market,abs_tol=1e-12):
+            raise ValueError("The scored market probability differs from saved two-sided evidence")
     if row.get("decision") != expected_decision:
         raise ValueError("The scored model decision differs from saved evidence")
     return verified_quote

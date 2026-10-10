@@ -218,7 +218,9 @@ class PrefightCliTests(unittest.TestCase):
 
     def test_qualified_observed_history_can_clear_readiness_floor(self) -> None:
         self._add_qualified_observed_history()
-        result = self._command("paper-trade", "--bankroll-units", "1000")
+        # This test isolates the existing readiness floor; the new market gate
+        # has separate rejection tests and keeps its default at 0.10.
+        result = self._command("paper-trade", "--bankroll-units", "1000", "--max-market-disagreement", "1")
         self.assertEqual(result["checks"][0]["alert_reason"], "ok")
         self.assertEqual(result["paper_bets_created"], 1)
         self.assertEqual(result["paper_bets"][0]["stake_units"], 10)
@@ -229,7 +231,7 @@ class PrefightCliTests(unittest.TestCase):
             db.upsert_result(connection, "history-bout-0-1", "win",
                              "history-b-0-1", utc_string(utc_now()))
             connection.commit()
-        result = self._command("paper-trade", "--bankroll-units", "1000")
+        result = self._command("paper-trade", "--bankroll-units", "1000", "--max-market-disagreement", "1")
         self.assertEqual(result["checks"][0]["alert_reason"], "model_not_validated")
         self.assertEqual(result["paper_bets_created"], 0)
 
@@ -243,6 +245,7 @@ class PrefightCliTests(unittest.TestCase):
             _, rows = score_event(
                 connection, "event", utc_now(), self.root / "reports",
                 required_snapshot_at_utc=odds["snapshot_at_utc"],
+                max_market_disagreement=1,
             )
             self.assertEqual(rows[0]["decision"], "candidate")
             connection.execute(
@@ -252,6 +255,7 @@ class PrefightCliTests(unittest.TestCase):
             forged = dict(rows[0], model_selection_probability=0.99)
             checked = record_prefight_checks(
                 connection, [forged], ingestion_run_id=int(odds["ingestion_run_id"]),
+                max_market_disagreement=1,
             )
             self.assertEqual(checked[0]["alert_reason"], "model_not_validated")
             self.assertFalse(checked[0]["alert_eligible"])

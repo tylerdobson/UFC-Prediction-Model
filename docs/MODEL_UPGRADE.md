@@ -163,3 +163,39 @@ repository has no captured historical prices to verify that benchmark on the
 holdout. The model does not establish market parity; richer fight statistics
 or market inputs would be needed to close that gap. Retrospective improvement
 also does not prove prospective wagering value.
+
+## Phase 4: frozen forward forecasts and the market guardrail
+
+The append-only `reports/forecast_ledger.jsonl` preserves the September 27 v2
+forecasts, their original cutoff and input hashes. Recovery on October 9 is
+explicitly marked after-event recovery, not a newly prospective freeze. The
+completed Wikipedia capture retains revision 1379225905, response bytes,
+fetch receipt and the verified pre-fight anchor. Results match by participant
+IDs, so winner-first ordering and card-position changes cannot change labels.
+Eight saved forecasts settle: 5/8 correct, log loss 0.64123, Brier 0.22464.
+On the same four bouts with saved two-sided prices, model accuracy is 25%,
+loss 0.71285, Brier 0.25985; market accuracy is 75%, loss 0.54111, Brier 0.18343.
+The saved market rule averages each book's no-vig probability. Weight-class
+holds remain visible and cannot approve an operating result or wager.
+
+`forecast freeze`, `forecast settle`, and `forecast summary` verify the ledger
+hash chain. New freezes require a future verified start and a full scored card.
+Repeated scoring creates a new CSV; reports are never replaced. Missing
+absolute receipt paths may be rebased under the copied repo's `data/raw`,
+with the original hashes still required; an existing changed file is refused.
+
+Scoring and pre-fight alerts now return `pass_market_disagreement` whenever
+the absolute model/verified two-sided market gap exceeds 0.10. The explicit
+`--max-market-disagreement` override is persisted; every other gate remains.
+Figueiredo-like 0.52/0.17 and Green-like 0.52/0.30 predictions are rejected even
+with positive calculated EV. This guardrail does not establish profitability.
+
+`odds-schedule` supports T-7d, T-24h and T-2h captures within the actual slot
+window; no backdating. It checks quota on the zero-cost sports endpoint and
+refuses below 50 remaining requests. Responses also enforce the header floor.
+See [The Odds API documentation](https://the-odds-api.com/liveapi/guides/v4/).
+`clv` compares paper and actual entry prices with the last later verified
+same-book, two-sided, pre-start snapshot. Positive price CLV is
+`entry_decimal / closing_decimal - 1`. One early capture cannot establish CLV;
+UFC 332 has no observed closing proxy. No actual wagers were placed.
+Exact event commands are in [EVENT_WORKFLOW.md](EVENT_WORKFLOW.md).

@@ -276,7 +276,8 @@ def _receipt_page_key(page_id: object, page_url: object) -> tuple[int, str] | No
 def _intact_payload(path_text: str, stated_hash: str) -> bool:
     if (len(stated_hash) != 64 or any(char not in "0123456789abcdef" for char in stated_hash)):
         return False
-    path = Path(path_text).expanduser()
+    from .retained_paths import retained_path
+    path = retained_path(path_text)
     if not path.is_absolute():
         path = Path.cwd() / path
     try:

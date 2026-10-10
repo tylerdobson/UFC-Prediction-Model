@@ -17,7 +17,8 @@ dashboard = ["streamlit==1.64.0"]
 ufc-model = "ufc_odds_model.cli:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "."]
+include = ["ufc_odds_model*", "scripts*"]
 
 [tool.setuptools.package-data]
 ufc_odds_model = ["sql/migrations/*.sql"]

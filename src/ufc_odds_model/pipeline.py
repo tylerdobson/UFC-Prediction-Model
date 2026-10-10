@@ -88,6 +88,8 @@ REPORT_FIELDS = [
     "break_even_probability", "model_selection_probability",
     "expected_profit_per_dollar", "quote_captured_at_utc", "decision",
     "bookmaker_updated_at_utc", "feature_coverage_json", "history_evidence_status",
+    "model_probability_fighter_a", "market_no_vig_probability", "market_disagreement",
+    "max_market_disagreement", "prediction_metadata_json",
 ]
 
 
@@ -101,7 +103,10 @@ def score_event(
     model_kind: str = "elo",
     model_dir: str | Path = "models",
     required_snapshot_at_utc: str | None = None,
+    max_market_disagreement: float = 0.10,
 ) -> tuple[Path, list[dict]]:
+    from .market_guard import disagreement, validate_threshold, verified_market
+    max_market_disagreement = validate_threshold(max_market_disagreement)
     if as_of.tzinfo is None or as_of.utcoffset() is None:
         raise ValueError("Prediction cutoff needs a timezone")
     as_of = as_of.astimezone(timezone.utc)
@@ -183,6 +188,18 @@ def score_event(
             connection, bout, probability_a, as_of, max_quote_age_hours,
             required_snapshot_at_utc=required_snapshot_at_utc,
         )
+        market_probability = verified_market(connection,bout,as_of,max_quote_age_hours,
+                                              snapshot=required_snapshot_at_utc,
+                                              bookmaker=quote["bookmaker"] if quote else None) if quote else None
+        gap, market_blocked = disagreement(probability_a,market_probability,max_market_disagreement)
+        metadata = {"market_no_vig_probability":market_probability,"market_disagreement":gap,
+                    "max_market_disagreement":max_market_disagreement,
+                    "market_bookmaker":quote["bookmaker"] if quote else None,
+                    "market_snapshot_at_utc":quote["captured_at_utc"] if quote else None,
+                    "market_max_age_hours":max_quote_age_hours,
+                    "quote_id":quote["quote_id"] if quote else None}
+        metadata_json = json.dumps(metadata,sort_keys=True)
+        connection.execute("UPDATE predictions SET metadata_json=? WHERE prediction_id=?",(metadata_json,prediction_id))
         row = {
             "event_id": event_id,
             "event_name": event["name"],
@@ -193,6 +210,11 @@ def score_event(
             "as_of_utc": as_of_str,
             "p_fighter_a": round(probability_a, 4),
             "p_fighter_b": round(1 - probability_a, 4),
+            "model_probability_fighter_a": probability_a,
+            "market_no_vig_probability": market_probability,
+            "market_disagreement": gap,
+            "max_market_disagreement": max_market_disagreement,
+            "prediction_metadata_json": metadata_json,
             "prediction_id": prediction_id,
             "quote_id": quote["quote_id"] if quote else "",
             "bookmaker": quote["bookmaker"] if quote else "",
@@ -204,7 +226,8 @@ def score_event(
             "quote_captured_at_utc": quote["captured_at_utc"] if quote else "",
             "bookmaker_updated_at_utc": quote["bookmaker_updated_at_utc"] if quote else "",
             "decision": (
-                "research_only" if historical_replay and quote
+                "pass_market_disagreement" if market_blocked
+                else "research_only" if historical_replay and quote
                 else "candidate" if quote and quote["expected_profit_per_dollar"] >= min_expected_profit
                 else "pass" if quote else "no_quote"
             ),
@@ -219,7 +242,12 @@ def score_event(
     output_dir.mkdir(parents=True, exist_ok=True)
     safe_event_id = re.sub(r"[^A-Za-z0-9_-]", "_", event_id)
     file_path = output_dir / f"{safe_event_id}_{as_of.strftime('%Y%m%dT%H%M%SZ')}.csv"
-    with file_path.open("w", newline="", encoding="utf-8") as stream:
+    original_path = file_path
+    suffix = 0
+    while file_path.exists():
+        suffix += 1
+        file_path = original_path.with_name(f"{original_path.stem}_{suffix}.csv")
+    with file_path.open("x", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=REPORT_FIELDS)
         writer.writeheader()
         writer.writerows(report_rows)
