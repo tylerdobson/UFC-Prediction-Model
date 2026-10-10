@@ -155,6 +155,7 @@ def make_parser() -> argparse.ArgumentParser:
     scoring.add_argument("--model", choices=["elo", "logistic"], default="elo")
     scoring.add_argument("--model-dir", default="models")
     scoring.add_argument("--max-market-disagreement",type=float,default=.10)
+    scoring.add_argument('--training-history',help='Read-only complete research DB for explicitly labelled v3 forecasts; requires --model logistic')
 
     backtest = subcommands.add_parser("backtest", help="Walk forward through past events")
     backtest.add_argument("--min-prior-results", type=int, default=0)
@@ -213,6 +214,7 @@ def make_parser() -> argparse.ArgumentParser:
     paper.add_argument("--model", choices=["elo", "logistic"], default="elo")
     paper.add_argument("--model-dir", default="models")
     paper.add_argument("--max-market-disagreement",type=float,default=.10)
+    paper.add_argument('--training-history',help='Opt-in retrospective research training; existing decision gates still apply')
 
     paper_settlement = subcommands.add_parser("settle-paper", help="Settle binary paper bets for an event")
     paper_settlement.add_argument("event_id")
@@ -230,6 +232,7 @@ def make_parser() -> argparse.ArgumentParser:
     alerts.add_argument("--decimal-odds-drift", type=float, default=0.05)
     alerts.add_argument("--min-ev", type=float, default=0.03)
     alerts.add_argument("--max-market-disagreement",type=float,default=.10)
+    alerts.add_argument('--training-history',help='Opt-in retrospective research training; existing decision gates still apply')
 
     bet = subcommands.add_parser("record-bet", help="Record an actual manually placed wager")
     bet.add_argument("--prediction-id", type=int, required=True)
@@ -245,6 +248,8 @@ def make_parser() -> argparse.ArgumentParser:
 
 
 def _check_prefight_event(connection, args) -> tuple[object, dict, list[dict]]:
+    if getattr(args,'training_history',None) is not None and args.model != 'logistic':
+        raise ValueError('--training-history requires --model logistic')
     wikipedia_history = connection.execute(
         "SELECT 1 FROM events WHERE source = 'wikipedia_research' LIMIT 1"
     ).fetchone()
@@ -280,6 +285,7 @@ def _check_prefight_event(connection, args) -> tuple[object, dict, list[dict]]:
         model_kind=args.model, model_dir=args.model_dir,
         required_snapshot_at_utc=odds_result["snapshot_at_utc"],
         max_market_disagreement=args.max_market_disagreement,
+        training_history=args.training_history,
     )
     checked = record_prefight_checks(
         connection, rows, ingestion_run_id=int(odds_result["ingestion_run_id"]),
@@ -499,6 +505,7 @@ def main(argv: list[str] | None = None) -> int:
                     args.min_ev, args.max_quote_age_hours,
                     model_kind=args.model, model_dir=args.model_dir,
                     max_market_disagreement=args.max_market_disagreement,
+                    training_history=args.training_history,
                 )
                 print(f"Wrote {len(rows)} bout predictions to {report}")
                 for row in rows:

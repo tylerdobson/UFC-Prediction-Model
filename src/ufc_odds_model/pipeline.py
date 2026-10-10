@@ -89,7 +89,7 @@ REPORT_FIELDS = [
     "expected_profit_per_dollar", "quote_captured_at_utc", "decision",
     "bookmaker_updated_at_utc", "feature_coverage_json", "history_evidence_status",
     "model_probability_fighter_a", "market_no_vig_probability", "market_disagreement",
-    "max_market_disagreement", "prediction_metadata_json",
+    "max_market_disagreement", "prediction_metadata_json", "training_history",
 ]
 
 
@@ -104,9 +104,12 @@ def score_event(
     model_dir: str | Path = "models",
     required_snapshot_at_utc: str | None = None,
     max_market_disagreement: float = 0.10,
+    training_history: str | Path | None = None,
 ) -> tuple[Path, list[dict]]:
     from .market_guard import disagreement, validate_threshold, verified_market
     max_market_disagreement = validate_threshold(max_market_disagreement)
+    if training_history is not None and model_kind != 'logistic':
+        raise ValueError('--training-history requires --model logistic')
     if as_of.tzinfo is None or as_of.utcoffset() is None:
         raise ValueError("Prediction cutoff needs a timezone")
     as_of = as_of.astimezone(timezone.utc)
@@ -128,6 +131,7 @@ def score_event(
         raise ValueError("This event has no scheduled bouts")
     history_before = min(event["event_date"], as_of.date().isoformat())
     coverage_by_bout: dict[str, dict[str, bool]] = {}
+    model_metadata_by_bout = {}
     if model_kind == "elo":
         model = model_from_results(db.prior_results(connection, history_before))
         model_version = MODEL_VERSION
@@ -138,34 +142,46 @@ def score_event(
     elif model_kind == "logistic":
         from .features import FEATURE_NAMES
         from .live_logistic import prepare_live_logistic
-        run = prepare_live_logistic(connection, event_id, as_of)
+        if training_history is not None:
+            from .research_training import prepare_research_logistic
+            run = prepare_research_logistic(connection, event_id, as_of, training_history)
+            model_metadata_by_bout = run.metadata_by_bout
+            artifact = run.artifact
+        else:
+            run = prepare_live_logistic(connection, event_id, as_of)
+            artifact = {
+                "model_version": run.model_version,
+                "feature_cutoff_date": run.history_before_date,
+                "feature_names": FEATURE_NAMES,
+                "weights": run.model.weights,
+                "calibration_scale": run.calibrator.scale,
+                "training_bouts": run.training_bouts,
+                "training_event_dates": run.training_event_dates,
+                "training_last_date": run.training_last_date,
+                "calibration_bouts": run.calibration_bouts,
+                "calibration_event_dates": run.calibration_event_dates,
+                "calibration_first_date": run.calibration_first_date,
+                "calibration_last_date": run.calibration_last_date,
+                "observation_coverage": run.observation_coverage,
+                "prior_result_evidence": run.prior_result_evidence,
+                "coverage_by_bout": run.coverage_by_bout,
+            }
         model_version = run.model_version
         probabilities = run.predictions
         coverage_by_bout = run.coverage_by_bout
-        artifact = {
-            "model_version": model_version,
-            "feature_cutoff_date": run.history_before_date,
-            "feature_names": FEATURE_NAMES,
-            "weights": run.model.weights,
-            "calibration_scale": run.calibrator.scale,
-            "training_bouts": run.training_bouts,
-            "training_event_dates": run.training_event_dates,
-            "training_last_date": run.training_last_date,
-            "calibration_bouts": run.calibration_bouts,
-            "calibration_event_dates": run.calibration_event_dates,
-            "calibration_first_date": run.calibration_first_date,
-            "calibration_last_date": run.calibration_last_date,
-            "observation_coverage": run.observation_coverage,
-            "prior_result_evidence": run.prior_result_evidence,
-            "coverage_by_bout": run.coverage_by_bout,
-        }
         directory = Path(model_dir)
         directory.mkdir(parents=True, exist_ok=True)
-        artifact_path = directory / f"{model_version.replace(':', '_')}.json"
+        artifact_suffix = ''
+        if training_history is not None:
+            from .research_evaluation import _digest_json
+            artifact_suffix = '_'+_digest_json(artifact)[:16]
+        artifact_path = directory / f"{model_version.replace(':', '_')}{artifact_suffix}.json"
         artifact_text = json.dumps(artifact, indent=2) + "\n"
         if artifact_path.exists() and artifact_path.read_text(encoding="utf-8") != artifact_text:
             raise ValueError("Saved logistic model version conflicts with existing artifact")
-        artifact_path.write_text(artifact_text, encoding="utf-8")
+        if not artifact_path.exists():
+            with artifact_path.open('x',encoding='utf-8') as stream:
+                stream.write(artifact_text)
     else:
         raise ValueError("model_kind must be elo or logistic")
     report_rows: list[dict] = []
@@ -192,7 +208,8 @@ def score_event(
                                               snapshot=required_snapshot_at_utc,
                                               bookmaker=quote["bookmaker"] if quote else None) if quote else None
         gap, market_blocked = disagreement(probability_a,market_probability,max_market_disagreement)
-        metadata = {"market_no_vig_probability":market_probability,"market_disagreement":gap,
+        metadata = {**model_metadata_by_bout.get(bout['bout_id'],{}),
+                    "market_no_vig_probability":market_probability,"market_disagreement":gap,
                     "max_market_disagreement":max_market_disagreement,
                     "market_bookmaker":quote["bookmaker"] if quote else None,
                     "market_snapshot_at_utc":quote["captured_at_utc"] if quote else None,
@@ -215,6 +232,7 @@ def score_event(
             "market_disagreement": gap,
             "max_market_disagreement": max_market_disagreement,
             "prediction_metadata_json": metadata_json,
+            "training_history": metadata.get('training_history','operating'),
             "prediction_id": prediction_id,
             "quote_id": quote["quote_id"] if quote else "",
             "bookmaker": quote["bookmaker"] if quote else "",
@@ -233,7 +251,8 @@ def score_event(
             ),
             "feature_coverage_json": coverage_json or "",
             "history_evidence_status": (
-                "unverified_historical_replay" if historical_replay else "current_cutoff"
+                "research_retrospective" if training_history is not None
+                else "unverified_historical_replay" if historical_replay else "current_cutoff"
             ),
         }
         report_rows.append(row)

@@ -199,3 +199,44 @@ same-book, two-sided, pre-start snapshot. Positive price CLV is
 `entry_decimal / closing_decimal - 1`. One early capture cannot establish CLV;
 UFC 332 has no observed closing proxy. No actual wagers were placed.
 Exact event commands are in [EVENT_WORKFLOW.md](EVENT_WORKFLOW.md).
+
+## Phase 5: opt-in research training for live card forecasts
+
+`score-event`, `alert-event` and `paper-trade` accept `--training-history PATH`
+with `--model logistic`. They fit v3 on the separate read-only complete
+research database. Defaults still use operating history. K=64/start=2010 are
+the frozen Phase 3 selections. Calibration reserves the last 20% of earlier
+binary bouts on whole dates, preserving the existing live minimum of 100
+bouts/10 dates and separate calibration sample floors. Every historical
+feature uses results on strictly earlier dates; same-day and future labels
+cannot affect the model or target features. Training and calibration end
+before both the UTC decision day and target event date.
+
+The model version includes `research_retrospective`, and each prediction
+stores that label, input hashes, cutoff rule, selected parameters, coverage
+and feature contributions. Immutable birth dates can enter retrospective
+fitting, but a live target's attributes require an intact receipt fetched
+strictly before its decision. Conflicting operating/research birth dates
+refuse scoring. No names or provisional identities are automatically merged.
+
+The full-history smoke verification fits 5,985 training and 1,504 calibration
+bouts through 2026-09-19 against a clearly synthetic scheduled card with zero
+operating results. The default path refuses, while opt-in produces labelled
+v3 probabilities and leaves both source DB and operating result count intact.
+It is a behavior check, not a new test-set evaluation or real event forecast:
+
+```sh
+python scripts/verify_research_training.py \
+  --history data/ufc_research_complete_profiles.sqlite \
+  --output reports/research-training-check-UNIQUE.json
+```
+
+All existing alert/paper gates remain. In particular, research retrospective
+training does not satisfy the operating source-observation/readiness gate;
+such decisions remain `model_not_validated`, including with fresh reviewed
+rosters and odds. The flag enables live-card forecast research, not automatic
+wager authorization. Making it default or admitting it to decisions requires
+a separate evidence and policy decision. Tests cover both alert and paper
+commands, future labels, future profile fetches, separation, saved metadata
+and contribution arithmetic. Fixed test/rolling metrics are carried forward
+unchanged from Phase 3, not re-fitted to improve a test result.

@@ -47,6 +47,16 @@ most 120 minutes). The event must not have started, and API quota must be at
 least 50 before the request. Missing/low quota fails closed. The closing proxy
 is the last verified pre-start snapshot, not necessarily the true closing line.
 The default logistic needs sufficient source-dated operating training history.
+For labelled forecast research when that history is missing, explicitly use:
+
+```sh
+ufc-model --db data/EVENT-operating-UNIQUE/operating-card.sqlite score-event EVENT \
+  --model logistic --training-history data/ufc_research_complete_profiles.sqlite
+```
+
+The same flag is accepted by `alert-event` and `paper-trade`; research-only
+training still fails the existing operating model-readiness gate. The default
+path and all roster, identity, odds freshness and market-gap checks remain.
 An attractive calculated EV alone does not authorize a wager. Local alerts
 and paper entries still require fresh odds, a fresh reviewed roster, verified
 identities, model readiness and the default 0.10 market-gap limit.

@@ -286,7 +286,8 @@ def static_profiles(connection, *, cutoff_at_utc=None, research=False, receipt_c
         """SELECT a.fighter_id,a.attribute,a.value,a.license,a.ingestion_run_id,
                   i.fetched_at_utc,i.payload_path,i.sha256
            FROM fighter_static_attributes a JOIN ingestion_runs i ON i.run_id=a.ingestion_run_id
-           WHERE a.source='wikidata' AND a.attribute IN ('birth_date','height_cm')"""):
+           WHERE a.source='wikidata' AND i.source='wikidata_profiles'
+             AND a.attribute IN ('birth_date','height_cm')"""):
         if row["license"] != LICENSE or not _intact_receipt(row, cache):
             continue
         if not research and parse_utc(row["fetched_at_utc"]) >= parse_utc(cutoff_at_utc):

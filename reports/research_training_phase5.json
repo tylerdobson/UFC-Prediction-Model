@@ -1,0 +1,191 @@
+{
+  "calibration_bouts": 1504,
+  "calibration_first_date": "2023-10-21",
+  "calibration_last_date": "2026-09-19",
+  "cutoff_at_utc": "2026-10-10T01:00:00Z",
+  "default_refusal": "Live logistic unavailable: need at least 100 earlier binary bouts across 10 event dates (have 0 bouts, 0 dates)",
+  "model_probability": 0.4695138448798378,
+  "model_version": "logistic-prior-v3:research_retrospective:3dacc477a7e62c1b",
+  "operating_readiness": false,
+  "operating_result_rows": 0,
+  "prediction_metadata": {
+    "calibration_last_date": "2026-09-19",
+    "coverage_by_fighter": {
+      "fighter_a": {
+        "age": true,
+        "fight_statistics": false,
+        "prior_ufc_bouts": 6,
+        "reach": false
+      },
+      "fighter_b": {
+        "age": true,
+        "fight_statistics": false,
+        "prior_ufc_bouts": 7,
+        "reach": false
+      }
+    },
+    "elo_k": 64,
+    "feature_contributions": [
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "age_years_difference_10",
+        "label": "Age gap",
+        "logit_contribution": 0.20096668420443928,
+        "value": -0.3545589574050119,
+        "weight": -0.42076006687202444
+      },
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "rest_years_difference",
+        "label": "Time since last fight",
+        "logit_contribution": -0.13944630281991383,
+        "value": 1.4054794520547946,
+        "weight": -0.07365146903372888
+      },
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "elo_difference_400",
+        "label": "Elo history gap",
+        "logit_contribution": -0.13025559268078563,
+        "value": -0.30532143014880203,
+        "weight": 0.31669266261754336
+      },
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "age_decline_32_difference",
+        "label": "Age above 32",
+        "logit_contribution": 0.12062472507079726,
+        "value": -0.3861763075217155,
+        "weight": -0.23187270096113058
+      },
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "smoothed_win_rate_difference",
+        "label": "UFC win rate gap",
+        "logit_contribution": -0.10516215218985052,
+        "value": -0.29166666666666663,
+        "weight": 0.2676526682895911
+      },
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "recent_form_5_difference",
+        "label": "Recent results",
+        "logit_contribution": -0.050136006066350984,
+        "value": -0.14285714285714285,
+        "weight": 0.2605233681822479
+      },
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "log_prior_bouts_difference",
+        "label": "UFC experience gap",
+        "logit_contribution": -0.018687428662098625,
+        "value": -0.13353139262452252,
+        "weight": 0.1038879267915466
+      },
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "known_rest_difference",
+        "label": "Recorded fight history",
+        "logit_contribution": 0.0,
+        "value": 0.0,
+        "weight": 0.17101263492469612
+      },
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "reach_cm_difference_20",
+        "label": "Reach gap",
+        "logit_contribution": 0.0,
+        "value": 0.0,
+        "weight": 0.0
+      },
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "opponent_adjusted_sig_strike_accuracy_difference",
+        "label": "Adjusted strike accuracy",
+        "logit_contribution": 0.0,
+        "value": 0.0,
+        "weight": 0.0
+      },
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "log_stat_bouts_difference",
+        "label": "Recorded strike history",
+        "logit_contribution": 0.0,
+        "value": 0.0,
+        "weight": 0.0
+      }
+    ],
+    "feature_names": [
+      "elo_difference_400",
+      "log_prior_bouts_difference",
+      "smoothed_win_rate_difference",
+      "rest_years_difference",
+      "known_rest_difference",
+      "recent_form_5_difference",
+      "age_years_difference_10",
+      "reach_cm_difference_20",
+      "opponent_adjusted_sig_strike_accuracy_difference",
+      "log_stat_bouts_difference",
+      "age_decline_32_difference"
+    ],
+    "feature_values": [
+      -0.30532143014880203,
+      -0.13353139262452252,
+      -0.29166666666666663,
+      1.4054794520547946,
+      0.0,
+      -0.14285714285714285,
+      -0.3545589574050119,
+      0.0,
+      0.0,
+      0.0,
+      -0.3861763075217155
+    ],
+    "history_before_date": "2026-10-10",
+    "market_bookmaker": null,
+    "market_disagreement": null,
+    "market_max_age_hours": 24.0,
+    "market_no_vig_probability": null,
+    "market_snapshot_at_utc": null,
+    "max_market_disagreement": 0.1,
+    "promotion_eligible": false,
+    "quote_id": null,
+    "top_feature_contributions": [
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "age_years_difference_10",
+        "label": "Age gap",
+        "logit_contribution": 0.20096668420443928,
+        "value": -0.3545589574050119,
+        "weight": -0.42076006687202444
+      },
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "rest_years_difference",
+        "label": "Time since last fight",
+        "logit_contribution": -0.13944630281991383,
+        "value": 1.4054794520547946,
+        "weight": -0.07365146903372888
+      },
+      {
+        "calibration_scale": 1.3471038890413471,
+        "feature": "elo_difference_400",
+        "label": "Elo history gap",
+        "logit_contribution": -0.13025559268078563,
+        "value": -0.30532143014880203,
+        "weight": 0.31669266261754336
+      }
+    ],
+    "training_history": "research_retrospective",
+    "training_history_path": "/private/tmp/ufc-model-upgrade/data/ufc_research_complete_profiles.sqlite",
+    "training_history_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+    "training_last_date": "2023-10-14",
+    "training_start_year": 2010
+  },
+  "source_database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+  "synthetic_target_only": true,
+  "training_bouts": 5985,
+  "training_history": "research_retrospective",
+  "training_last_date": "2023-10-14",
+  "training_source_unchanged": true
+}
