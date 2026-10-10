@@ -38,6 +38,12 @@ def make_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="UFC moneyline modeling starter")
     parser.add_argument("--db", default=str(db.DEFAULT_DB), help="SQLite database path")
     subcommands = parser.add_subparsers(dest="command", required=True)
+    lab = subcommands.add_parser("research-compare", help="Fixed-date, read-only research model comparison")
+    lab.add_argument("--db", default=argparse.SUPPRESS)
+    lab.add_argument("--complete-db")
+    lab.add_argument("--identity-review")
+    lab.add_argument("--out")
+    lab.add_argument("--phase", type=int)
     subcommands.add_parser("init-db", help="Initialize a new or empty SQLite database")
     migration = subcommands.add_parser(
         "migrate", help="Verify a new backup, then apply pending SQL migrations"
@@ -291,6 +297,10 @@ def main(argv: list[str] | None = None) -> int:
     args = make_parser().parse_args(argv)
     job_run_id: int | None = None
     try:
+        if args.command == "research-compare":
+            from .model_lab import run_comparison
+            run_comparison(args.db, args.complete_db, args.out, args.identity_review, args.phase)
+            return 0
         if args.command in {"import-wikipedia-history", "import-wikipedia-years", "import-wikipedia-embedded"} and Path(args.db).resolve() == db.DEFAULT_DB.resolve():
             raise ValueError("Use an explicit separate --db path for Wikipedia research history")
         if _handle_schema_command(args):
