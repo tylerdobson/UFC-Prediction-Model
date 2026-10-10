@@ -119,7 +119,7 @@ def market_pairs(connection: sqlite3.Connection, rows: list[FeatureRow]):
 
 def compare(connection: sqlite3.Connection, *, originally_kept: set[str] | None = None,
             identity_review: dict | None = None) -> dict:
-    rows, source = research_feature_rows(connection)
+    rows, source = research_feature_rows(connection, include_restored=True)
     train, validation, test = fixed_split(rows)
     originally_kept = originally_kept if originally_kept is not None else {r.bout_id for r in rows}
     model = fit_logistic(train)
@@ -183,9 +183,16 @@ def compare(connection: sqlite3.Connection, *, originally_kept: set[str] | None 
     }
     if identity_review is not None:
         held = _held_bouts_by_event(connection, identity_review)
+        restored = {str(r[0]): int(r[1]) for r in connection.execute(
+            "SELECT event_id,COUNT(*) FROM bouts WHERE source='wikipedia_research_restored' GROUP BY event_id")}
+        if any(restored.get(event, 0) > count for event, count in held.items()):
+            raise ValueError("Restored fights exceed the checked held count")
+        restored_count = sum(restored.values())
+        held = {event: count - restored.get(event, 0) for event, count in held.items()}
         dates = {str(r["event_id"]): str(r["event_date"]) for r in connection.execute(
             "SELECT event_id, event_date FROM events WHERE source = 'wikipedia_research'")}
-        report["identity_coverage"] = {"held_bout_rows": sum(held.values()), "by_split": {}}
+        report["identity_coverage"] = {"held_bout_rows": sum(held.values()),
+                                       "restored_bouts": restored_count, "by_split": {}}
         for name, group in (("train", train), ("validation", validation), ("test", test)):
             lower, upper = min(r.event_date for r in group), max(r.event_date for r in group)
             count = sum(count for event, count in held.items() if lower <= dates[event] <= upper)

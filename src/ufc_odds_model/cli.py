@@ -44,6 +44,12 @@ def make_parser() -> argparse.ArgumentParser:
     lab.add_argument("--identity-review")
     lab.add_argument("--out")
     lab.add_argument("--phase", type=int)
+    complete = subcommands.add_parser("research-complete-history", help="Restore held bouts into a NEW research database")
+    complete.add_argument("--db", default=argparse.SUPPRESS)
+    complete.add_argument("--out-db", required=True)
+    complete.add_argument("--identity-review", default="reports/wikipedia_1993_2026_identity_review.json")
+    complete.add_argument("--identity-report", default="reports/research_complete_identity_report.json")
+    complete.add_argument("--raw-dir", default="data/raw/research_complete")
     subcommands.add_parser("init-db", help="Initialize a new or empty SQLite database")
     migration = subcommands.add_parser(
         "migrate", help="Verify a new backup, then apply pending SQL migrations"
@@ -300,6 +306,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "research-compare":
             from .model_lab import run_comparison
             run_comparison(args.db, args.complete_db, args.out, args.identity_review, args.phase)
+            return 0
+        if args.command == "research-complete-history":
+            from .research_complete import complete_history
+            report = complete_history(args.db, args.out_db, review_path=args.identity_review,
+                                      report_path=args.identity_report, raw_dir=args.raw_dir)
+            print(f"Restored {report['restored_bouts']} research bouts; {report['parser_fallbacks']} parser fallbacks")
             return 0
         if args.command in {"import-wikipedia-history", "import-wikipedia-years", "import-wikipedia-embedded"} and Path(args.db).resolve() == db.DEFAULT_DB.resolve():
             raise ValueError("Use an explicit separate --db path for Wikipedia research history")

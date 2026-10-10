@@ -42,3 +42,37 @@ the published result, not to claim better accuracy.
 The checked worksheet/receipt reconciliation confirms 1,647 held fights:
 659 in training, 332 in validation, and 656 in test (all outcomes). These
 omissions make the original holdout conditional on accepted identities.
+
+## Phase 1: complete-card research history
+
+```sh
+ufc-model research-complete-history --db data/ufc_research_2011_2025.sqlite \
+  --out-db data/ufc_research_complete.sqlite
+ufc-model research-compare --db data/ufc_research_2011_2025.sqlite \
+  --complete-db data/ufc_research_complete.sqlite \
+  --identity-review reports/wikipedia_1993_2026_identity_review.json \
+  --out reports/model_lab_phase1.json --phase 1
+```
+
+The original 1,677 worksheet positions reconcile to 30 reviewed identity
+recoveries and 1,647 genuinely held fights. All 1,647 were reparsed from intact
+retained wikitext, including embedded cards; no review-JSON fallback was needed.
+The SQLite backup API creates a separate DB. Both DB outputs and reports refuse
+existing paths. The original DB hash remains
+`e9a24dc1e69599deedb083c60fab47b3fd11bbb044d4e89b46313ca53bda07a4`.
+
+Restored fights keep method/outcome and carry source
+`wikipedia_research_restored`. A content-addressed restoration manifest records
+the source receipt for every restored fight. Title redirects and normalization
+come only from hash-verified saved Action API responses. Plain/unresolved names
+use NFKC/casefold/whitespace-normalized provisional IDs and are never merged
+automatically, even when a canonical real name matches. The identity report
+flags same-date appearances, nearby weight-class changes, and name collisions;
+early tournaments and genuine weight changes can produce valid flags.
+
+All binary test fights: 1,447; Elo K=32 accuracy 55.56%, log loss 0.6843,
+Brier 0.2456; calibrated v2 accuracy 53.63%, log loss 0.6878, Brier 0.2473.
+The count and both loss targets are met. No held rows remain. These scores
+measure the complete result history and provisional identities; restored data
+alone does not make the model strong. The originally kept subset is evaluated
+using this same fitted model, with restored earlier fights in its history.

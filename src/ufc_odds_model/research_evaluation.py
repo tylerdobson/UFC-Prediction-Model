@@ -43,22 +43,23 @@ def _digest_json(value: object) -> str:
     ).hexdigest()
 
 
-def _source_results(connection: sqlite3.Connection) -> list[sqlite3.Row]:
+def _source_results(connection: sqlite3.Connection, *, include_restored: bool = False) -> list[sqlite3.Row]:
     return connection.execute(
         """SELECT e.event_id, e.event_date, b.bout_id, b.fighter_a_id,
                   b.fighter_b_id, r.outcome, r.winner_fighter_id
            FROM events e
            JOIN bouts b ON b.event_id = e.event_id
            JOIN results r ON r.bout_id = b.bout_id
-           WHERE e.source = ? AND b.source = ?
+           WHERE e.source = ? AND b.source IN (?, ?)
              AND e.status = 'completed' AND b.status = 'completed'
            ORDER BY e.event_date, e.event_id, b.bout_id""",
-        (SOURCE, SOURCE),
+        (SOURCE, SOURCE, "wikipedia_research_restored" if include_restored else SOURCE),
     ).fetchall()
 
 
 def research_feature_rows(
     connection: sqlite3.Connection,
+    *, include_restored: bool = False,
 ) -> tuple[list[FeatureRow], dict[str, object]]:
     """Replay accepted research results with all same-date outcomes withheld.
 
@@ -67,7 +68,7 @@ def research_feature_rows(
     outcomes are never consulted. Draws update later history, while draws and
     no contests are excluded from binary targets.
     """
-    source = _source_results(connection)
+    source = _source_results(connection, include_restored=include_restored)
     builder = FeatureBuilder()
     examples: list[FeatureRow] = []
     outcome_counts = {"win": 0, "draw": 0, "no_contest": 0}
