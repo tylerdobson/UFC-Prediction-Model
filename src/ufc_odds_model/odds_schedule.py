@@ -73,18 +73,27 @@ def closing_line_value(connection):
             if not bout['start_time_utc']:
                 rows.append(result); continue
             start=parse_utc(bout['start_time_utc'])
+            observed_cutoff=min(start,utc_now())
             entry=connection.execute("SELECT captured_at_utc FROM odds_quotes WHERE quote_id=?",(bet['quote_id'],)).fetchone()
             quotes=linked_quote_rows(connection,bet['bout_id']); cache={}
+            entry_rows=[q for q in quotes if q['quote_id']==bet['quote_id'] and q['bookmaker']==bet['bookmaker']
+                        and q['selection_fighter_id']==bet['selection_fighter_id']
+                        and quote_receipt_matches(q,parse_utc(bet['decision']),cache)]
+            if not entry_rows:
+                result['status']='unavailable_unverified_entry_snapshot'
+                rows.append(result); continue
             possible=sorted({q['captured_at_utc'] for q in quotes if q['bookmaker']==bet['bookmaker']
                 and entry['captured_at_utc']<q['captured_at_utc']<bout['start_time_utc']
-                and quote_receipt_matches(q,start,cache)},reverse=True)
+                and parse_utc(q['captured_at_utc'])>parse_utc(bet['decision'])
+                and parse_utc(q['captured_at_utc'])<=observed_cutoff
+                and quote_receipt_matches(q,observed_cutoff,cache)},reverse=True)
             for captured in possible:
-                market=verified_market(connection,bout,start,24*365,snapshot=captured,bookmaker=bet['bookmaker'])
+                market=verified_market(connection,bout,observed_cutoff,24*365,snapshot=captured,bookmaker=bet['bookmaker'])
                 if market is None:
                     continue
                 closing={float(q['decimal_odds']) for q in quotes if q['bookmaker']==bet['bookmaker']
                          and q['captured_at_utc']==captured and q['selection_fighter_id']==bet['selection_fighter_id']
-                         and quote_receipt_matches(q,start,cache)}
+                         and quote_receipt_matches(q,observed_cutoff,cache)}
                 if len(closing)!=1:
                     continue
                 price=next(iter(closing)); entry_price=float(bet['entry_decimal_odds'])

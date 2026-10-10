@@ -101,6 +101,7 @@ def freeze_saved_research(event_id, source_path, *, ledger=DEFAULT_LEDGER):
     forecast_id=_digest_json([event_id,model_version,saved["cutoff_at_utc"],rows])
     return append_entry(ledger,{"kind":"freeze","forecast_id":forecast_id,"event_id":event_id,
         "event_name":saved["event_name"],"event_start_at_utc":saved["event_start_at_utc"],
+        "event_date":saved.get('event_date',parse_utc(saved['event_start_at_utc']).date().isoformat()),
         "model_version":model_version,"cutoff_at_utc":saved["cutoff_at_utc"],"rows":rows,
         "research_only":True,"promotion_eligible":False,"wager_authorization":False,
         "recovered_saved_forecast":True,"recovered_after_event":utc_now()>=parse_utc(saved["event_start_at_utc"]),
@@ -133,8 +134,9 @@ def freeze_event(connection,event_id,*,ledger=DEFAULT_LEDGER,model_version=None)
         if p["bout_id"] in seen:
             continue
         seen.add(p["bout_id"])
-        if parse_utc(p["generated_at_utc"]) >= parse_utc(event["start_time_utc"]):
-            raise ValueError("Prediction was generated after event start")
+        generated=parse_utc(p['generated_at_utc'])
+        if not parse_utc(cutoff)<=generated<=utc_now()<parse_utc(event['start_time_utc']):
+            raise ValueError('Forecast cutoff and generation must already have occurred before event start')
         metadata=json.loads(p["metadata_json"] or "{}")
         bout=connection.execute("SELECT * FROM bouts WHERE bout_id=?",(p["bout_id"],)).fetchone()
         market=verified_market(connection,bout,parse_utc(cutoff),metadata.get("market_max_age_hours",24),
@@ -154,6 +156,7 @@ def freeze_event(connection,event_id,*,ledger=DEFAULT_LEDGER,model_version=None)
     forecast_id=_digest_json([event_id,version,cutoff,rows])
     return append_entry(ledger,{"kind":"freeze","forecast_id":forecast_id,"event_id":event_id,
         "event_name":event["name"],"event_start_at_utc":event["start_time_utc"],"model_version":version,
+        "event_date":event['event_date'],'event_source':event['source'],'source_event_id':event['source_event_id'],
         "cutoff_at_utc":cutoff,"rows":rows,"research_only":research,"promotion_eligible":False,
         "wager_authorization":False,"recovered_saved_forecast":False,"rows_sha256":_digest_json(rows)})
 
@@ -197,6 +200,18 @@ def settle_event(event_id,*,ledger=DEFAULT_LEDGER,completed_manifest=None,connec
     for freeze in freezes:
         if utc_now() < parse_utc(freeze["event_start_at_utc"]):
             raise ValueError("Cannot settle before the frozen event start")
+        expected_date=freeze.get('event_date',parse_utc(freeze['event_start_at_utc']).date().isoformat())
+        if completed_manifest:
+            if capture['event']['event_date']!=expected_date:
+                raise ValueError('Completed capture is for a different event date')
+            if event_id.startswith(('wikipedia_pilot:','wikipedia_prefight:')):
+                page=event_id.split(':')[-1]
+                if page.isdigit() and int(page)!=capture['event']['source_page_id']:
+                    raise ValueError('Completed capture is for a different Wikipedia event page')
+        elif connection is not None:
+            observed_event=connection.execute('SELECT event_date FROM events WHERE event_id=?',(event_id,)).fetchone()
+            if observed_event is None or observed_event['event_date']!=expected_date:
+                raise ValueError('Database result date differs from the frozen event')
         evaluated,pending=[],[]
         for row in freeze["rows"]:
             observed=by_pair.get(frozenset((row["fighter_a_id"],row["fighter_b_id"])))
@@ -214,6 +229,7 @@ def settle_event(event_id,*,ledger=DEFAULT_LEDGER,completed_manifest=None,connec
             model,market=row["model_probability"],row["market_no_vig_probability"]
             evaluated.append({**row,"outcome":target,"winner_fighter_id":winner,"method":observed["method"],
                 "result_hold_reasons":observed.get("hold_reasons",[]),
+                'result_review_status':observed.get('status'),
                 "model_log_loss":_loss(model,target),"model_brier":(model-target)**2,
                 "model_correct":int((model>=.5)==bool(target)),
                 "market_log_loss":_loss(market,target) if market is not None else None,
@@ -252,4 +268,8 @@ def summary(ledger=DEFAULT_LEDGER):
     return {"schema_version":1,"ledger_path":_portable_path(ledger),"ledger_entries":len(entries),
             "hash_chain_verified":True,"frozen_forecasts":len(freezes),"settled_forecasts":len(settled),
             "events":events,"cumulative":_metrics(all_rows),
+            'pending_forecasts':[{'forecast_id':f['forecast_id'],'event_id':f['event_id'],
+                                 'event_name':f['event_name'],'model_version':f['model_version'],
+                                 'cutoff_at_utc':f['cutoff_at_utc'],'bouts':len(f['rows'])}
+                                for key,f in freezes.items() if key not in {s['forecast_id'] for s in settled}],
             "wager_authorization":False,"closing_proxy_note":"CLV requires a later verified pre-start snapshot; early saved prices are not closing prices"}

@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
-import test_prefight_cli as prefight_fixture
+from tests import test_prefight_cli as prefight_fixture
 from ufc_odds_model import db
 from ufc_odds_model.cli import make_parser
 from ufc_odds_model.logistic import V3_FEATURE_NAMES

@@ -106,7 +106,7 @@ def score_event(
     max_market_disagreement: float = 0.10,
     training_history: str | Path | None = None,
 ) -> tuple[Path, list[dict]]:
-    from .market_guard import disagreement, validate_threshold, verified_market
+    from .market_guard import disagreement, validate_threshold, market_for_quote
     max_market_disagreement = validate_threshold(max_market_disagreement)
     if training_history is not None and model_kind != 'logistic':
         raise ValueError('--training-history requires --model logistic')
@@ -133,12 +133,25 @@ def score_event(
     coverage_by_bout: dict[str, dict[str, bool]] = {}
     model_metadata_by_bout = {}
     if model_kind == "elo":
-        model = model_from_results(db.prior_results(connection, history_before))
+        prior_results = db.prior_results(connection, history_before)
+        model = model_from_results(prior_results)
         model_version = MODEL_VERSION
         probabilities = {
             bout["bout_id"]: model.probability(bout["fighter_a_id"], bout["fighter_b_id"])
             for bout in bouts
         }
+        from .research_training import feature_contributions
+        from collections import Counter
+        counts = Counter(fighter for result in prior_results if result['outcome']!='no_contest'
+                         for fighter in (result['fighter_a_id'],result['fighter_b_id']))
+        for bout in bouts:
+            value = (model.ratings[bout['fighter_a_id']]-model.ratings[bout['fighter_b_id']])/400
+            contributions = feature_contributions([value],['elo_difference_400'],[math.log(10)],1.)
+            model_metadata_by_bout[bout['bout_id']] = {
+                'training_history':'operating','feature_contributions':contributions,
+                'top_feature_contributions':contributions[:3],
+                'coverage_by_fighter':{side:{'prior_ufc_bouts':counts[bout[key]]}
+                                       for side,key in [('fighter_a','fighter_a_id'),('fighter_b','fighter_b_id')]}}
     elif model_kind == "logistic":
         from .features import FEATURE_NAMES
         from .live_logistic import prepare_live_logistic
@@ -149,6 +162,16 @@ def score_event(
             artifact = run.artifact
         else:
             run = prepare_live_logistic(connection, event_id, as_of)
+            from .features import event_feature_rows
+            from .research_training import feature_contributions
+            for target in event_feature_rows(connection,event_id,cutoff_at_utc=as_of,require_result_observations=True):
+                contributions=feature_contributions(target.features,FEATURE_NAMES,run.model.weights,run.calibrator.scale)
+                model_metadata_by_bout[target.bout_id] = {
+                    'training_history':'operating','feature_contributions':contributions,
+                    'top_feature_contributions':contributions[:3],
+                    'coverage_by_fighter':{
+                        'fighter_a':{'age':target.coverage[0],'reach':target.coverage[2],'fight_statistics':target.coverage[4]},
+                        'fighter_b':{'age':target.coverage[1],'reach':target.coverage[3],'fight_statistics':target.coverage[5]}}}
             artifact = {
                 "model_version": run.model_version,
                 "feature_cutoff_date": run.history_before_date,
@@ -204,15 +227,18 @@ def score_event(
             connection, bout, probability_a, as_of, max_quote_age_hours,
             required_snapshot_at_utc=required_snapshot_at_utc,
         )
-        market_probability = verified_market(connection,bout,as_of,max_quote_age_hours,
+        market_info = market_for_quote(connection,bout,as_of,max_quote_age_hours,
                                               snapshot=required_snapshot_at_utc,
-                                              bookmaker=quote["bookmaker"] if quote else None) if quote else None
+                                              bookmaker=quote["bookmaker"] if quote else None,details=True) if quote else None
+        market_probability=market_info['probability'] if market_info else None
         gap, market_blocked = disagreement(probability_a,market_probability,max_market_disagreement)
         metadata = {**model_metadata_by_bout.get(bout['bout_id'],{}),
                     "market_no_vig_probability":market_probability,"market_disagreement":gap,
                     "max_market_disagreement":max_market_disagreement,
-                    "market_bookmaker":quote["bookmaker"] if quote else None,
-                    "market_snapshot_at_utc":quote["captured_at_utc"] if quote else None,
+                    "market_bookmaker":market_info['bookmaker'] if market_info else None,
+                    "market_snapshot_at_utc":market_info['captured_at_utc'] if market_info else None,
+                    'market_ingestion_run_id':market_info['ingestion_run_id'] if market_info else None,
+                    'market_source_sha256':market_info['source_sha256'] if market_info else None,
                     "market_max_age_hours":max_quote_age_hours,
                     "quote_id":quote["quote_id"] if quote else None}
         metadata_json = json.dumps(metadata,sort_keys=True)

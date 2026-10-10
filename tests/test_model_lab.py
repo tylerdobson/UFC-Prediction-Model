@@ -11,7 +11,7 @@ from ufc_odds_model import db
 from ufc_odds_model.features import FEATURE_NAMES, FeatureRow
 from ufc_odds_model.model_lab import (
     compare, fixed_split, hash_oriented_pairs, metric_report, read_only, write_new_json,
-    rolling_origin, absolute_bootstrap,
+    rolling_origin, rolling_comparison, absolute_bootstrap,
 )
 
 
@@ -97,3 +97,24 @@ class ModelLabTests(unittest.TestCase):
         self.assertEqual(result["event_date_blocks"],1)
         low,high = result["log_loss_95pct_interval"]
         self.assertEqual(low,high)
+
+    def test_rolling_kept_baselines_use_the_same_bouts_as_the_kept_model(self):
+        with sqlite3.connect(':memory:') as connection:
+            connection.row_factory=sqlite3.Row; db.init_db(connection)
+            for fighter in ('a','b'):
+                db.upsert_fighter(connection,fighter,fighter)
+            for i,day in enumerate(('2011-01-01','2012-01-01','2013-01-01','2024-01-01','2024-01-02')):
+                event,bout=f'e{i}',f'b{i}'
+                db.upsert_event(connection,event,event,day,'completed',source='wikipedia_research')
+                db.upsert_bout(connection,bout,event,'a','b','completed',source='wikipedia_research')
+                db.upsert_result(connection,bout,'win','a' if i%2 else 'b',day+'T23:00:00Z')
+            report=rolling_comparison(connection,elo_k=64,start_year=2010,originally_kept={'b3'})
+            fold=next(f for f in report['folds'] if f['year']==2024)
+            self.assertEqual(report['pooled']['metrics']['bouts'],2)
+            for kept in (fold['originally_kept'],report['originally_kept']):
+                self.assertEqual(kept['metrics']['bouts'],1)
+                for name in ('coin_flip','elo','logistic_v2'):
+                    self.assertEqual(kept['baselines'][name]['metrics']['bouts'],1)
+                    self.assertEqual(kept['baselines'][name]['uncertainty']['event_date_blocks'],1)
+                self.assertEqual(kept['baselines']['market_no_vig']['status'],'unavailable')
+                self.assertEqual(kept['baselines']['younger_fighter_wins']['bouts'],0)

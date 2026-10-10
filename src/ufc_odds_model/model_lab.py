@@ -337,6 +337,25 @@ def select_parameters(connection):
             "selection_feature_rows_sha256": source["retrospective_feature_rows_sha256"]}
 
 
+def _rolling_baselines(connection, rows, probabilities, model_probabilities):
+    results = {}
+    for name, values in probabilities.items():
+        results[name] = metric_report(rows, values)
+        results[name]["uncertainty"] = absolute_bootstrap(rows, values)
+    both = [r for r in rows if r.coverage[0] and r.coverage[1]]
+    younger = [1. if r.features[6] < 0 else 0. if r.features[6] > 0 else .5 for r in both]
+    results["younger_fighter_wins"] = {
+        "bouts": len(both), "accuracy": metric_report(both, younger)["metrics"]["accuracy"] if both else None,
+        "log_loss": None, "brier_score": None,
+        "accuracy_95pct_interval": absolute_bootstrap(both, younger)["accuracy_95pct_interval"] if both else None}
+    market_rows, market = market_pairs(connection, rows)
+    results["market_no_vig"] = metric_report(market_rows, market)
+    if market_rows:
+        by_id = dict(zip((r.bout_id for r in rows), model_probabilities))
+        results["logistic_on_market_subset"] = metric_report(market_rows, [by_id[r.bout_id] for r in market_rows])
+    return results
+
+
 def rolling_comparison(connection, *, elo_k, start_year, originally_kept=None):
     v3_rows, _, names = lab_rows(connection, feature_set="age-hinge", elo_k=elo_k)
     v2_rows, _, _ = lab_rows(connection)
@@ -356,37 +375,19 @@ def rolling_comparison(connection, *, elo_k, start_year, originally_kept=None):
         kept_rows = [pooled_rows[i] for i in kept_indices]
         fold["originally_kept"] = metric_report(kept_rows, [p3[i] for i in kept_indices])
         fold["originally_kept"]["uncertainty"] = absolute_bootstrap(kept_rows, [p3[i] for i in kept_indices])
-        fold["baselines"] = {}
-        for name, probs in baseline_probabilities.items():
-            values = [probs[i] for i in indices]
-            result = metric_report(yearly_rows, values)
-            result["uncertainty"] = absolute_bootstrap(yearly_rows, values)
-            fold["baselines"][name] = result
-        both = [r for r in yearly_rows if r.coverage[0] and r.coverage[1]]
-        younger = [1. if r.features[6] < 0 else 0. if r.features[6] > 0 else .5 for r in both]
-        fold["baselines"]["younger_fighter_wins"] = {
-            "bouts": len(both), "accuracy": metric_report(both,younger)["metrics"]["accuracy"] if both else None,
-            "log_loss": None, "brier_score": None,
-            "accuracy_95pct_interval": absolute_bootstrap(both,younger)["accuracy_95pct_interval"] if both else None}
-        market_rows, market = market_pairs(connection, yearly_rows)
-        fold["baselines"]["market_no_vig"] = metric_report(market_rows, market)
-    v3["baselines"] = {name: metric_report(pooled_rows, probs) for name,probs in baseline_probabilities.items()}
-    for name, probs in baseline_probabilities.items():
-        v3["baselines"][name]["uncertainty"] = absolute_bootstrap(pooled_rows, probs)
-    both = [r for r in pooled_rows if r.coverage[0] and r.coverage[1]]
-    younger = [1. if r.features[6] < 0 else 0. if r.features[6] > 0 else .5 for r in both]
-    v3["baselines"]["younger_fighter_wins"] = {
-        "bouts":len(both), "accuracy":metric_report(both,younger)["metrics"]["accuracy"] if both else None,
-        "log_loss":None,"brier_score":None,
-        "accuracy_95pct_interval":absolute_bootstrap(both,younger)["accuracy_95pct_interval"] if both else None}
-    market_rows, market = market_pairs(connection, pooled_rows)
-    v3["baselines"]["market_no_vig"] = metric_report(market_rows,market)
+        fold["baselines"] = _rolling_baselines(connection, yearly_rows,
+            {name:[p[i] for i in indices] for name,p in baseline_probabilities.items()}, [p3[i] for i in indices])
+        fold["originally_kept"]["baselines"] = _rolling_baselines(connection, kept_rows,
+            {name:[p[i] for i in kept_indices] for name,p in baseline_probabilities.items()}, [p3[i] for i in kept_indices])
+    v3["baselines"] = _rolling_baselines(connection, pooled_rows, baseline_probabilities, p3)
     v3["paired_v3_minus_v2"] = _paired_event_bootstrap(pooled_rows,p2,p3)
     kept_indices = [i for i,r in enumerate(pooled_rows) if r.bout_id in originally_kept]
     kept_rows = [pooled_rows[i] for i in kept_indices]
     kept_p3 = [p3[i] for i in kept_indices]
     v3["originally_kept"] = metric_report(kept_rows,kept_p3)
     v3["originally_kept"]["uncertainty"] = absolute_bootstrap(kept_rows,kept_p3)
+    v3["originally_kept"]["baselines"] = _rolling_baselines(connection, kept_rows,
+        {name:[p[i] for i in kept_indices] for name,p in baseline_probabilities.items()}, kept_p3)
     v3["originally_kept"]["paired_v3_minus_v2"] = _paired_event_bootstrap(
         kept_rows,[p2[i] for i in kept_indices],kept_p3)
     return v3

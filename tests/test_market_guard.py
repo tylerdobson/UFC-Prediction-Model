@@ -1,12 +1,14 @@
 """UFC 332 disagreement shapes can never become default candidates."""
+import json
 import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
 from datetime import timedelta
+from unittest.mock import patch
 
-from ufc_odds_model import db
-from ufc_odds_model.alerts import gate_prefight_alerts
+from ufc_odds_model import db, odds_api
+from ufc_odds_model.alerts import gate_prefight_alerts, _verify_saved_score
 from ufc_odds_model.ingest import import_odds_payload
 from ufc_odds_model.pipeline import score_event,utc_now,utc_string
 
@@ -48,3 +50,40 @@ class MarketGuardTests(unittest.TestCase):
             _,relaxed=score_event(connection,'event',utc_now(),Path(directory)/'reports',
                                   required_snapshot_at_utc=odds['snapshot_at_utc'],max_market_disagreement=.5)
             self.assertEqual(relaxed[0]['decision'],'candidate')
+
+    def test_one_sided_best_quote_cannot_hide_another_verified_market(self):
+        with tempfile.TemporaryDirectory() as directory, sqlite3.connect(':memory:') as connection:
+            connection.row_factory=sqlite3.Row; db.init_db(connection)
+            now=utc_now(); start=now+timedelta(days=1)
+            for fighter in ('a','b'):
+                db.upsert_fighter(connection,fighter,fighter)
+            db.upsert_event(connection,'event','event',start.date().isoformat(),'scheduled',
+                            start_time_utc=utc_string(start))
+            db.upsert_bout(connection,'bout','event','a','b','scheduled')
+            payload=[{'id':'feed','home_team':'a','away_team':'b','commence_time':utc_string(start),
+                      'bookmakers':[
+                          {'key':'one-sided','markets':[{'key':'h2h','last_update':utc_string(now),
+                          'outcomes':[{'name':'a','price':10.},{'name':'b','price':1.1}]}]},
+                          {'key':'paired','markets':[{'key':'h2h','last_update':utc_string(now),
+                          'outcomes':[{'name':'a','price':6.},{'name':'b','price':1.2}]}]}]}]
+            # Model a partial local quote set while retaining the intact API receipt.
+            normalized=odds_api.normalize_h2h(payload,utc_string(now))
+            retained=[q for q in normalized
+                      if not (q['bookmaker_key']=='one-sided' and q['selection_name']=='b')]
+            with patch('ufc_odds_model.odds_api.normalize_h2h',return_value=retained):
+                odds=import_odds_payload(connection,payload,utc_string(now),Path(directory)/'raw')
+            _,rows=score_event(connection,'event',now,Path(directory)/'reports',
+                               required_snapshot_at_utc=odds['snapshot_at_utc'])
+            row=rows[0]
+            self.assertEqual(row['bookmaker'],'one-sided')
+            self.assertAlmostEqual(row['market_no_vig_probability'],1/6)
+            self.assertEqual(row['decision'],'pass_market_disagreement')
+            metadata=json.loads(row['prediction_metadata_json'])
+            self.assertEqual(metadata['market_bookmaker'],'paired')
+            self.assertEqual(metadata['market_ingestion_run_id'],odds['ingestion_run_id'])
+            self.assertEqual(len(metadata['market_source_sha256']),64)
+            # Verification recomputes the same fallback from saved receipts.
+            self.assertTrue(_verify_saved_score(connection,row,.03,odds['ingestion_run_id'],now,{}))
+            with self.assertRaisesRegex(ValueError,'decision differs'):
+                _verify_saved_score(connection,{**row,'decision':'candidate'},.03,
+                                    odds['ingestion_run_id'],now,{})

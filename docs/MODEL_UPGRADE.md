@@ -240,3 +240,43 @@ a separate evidence and policy decision. Tests cover both alert and paper
 commands, future labels, future profile fetches, separation, saved metadata
 and contribution arithmetic. Fixed test/rolling metrics are carried forward
 unchanged from Phase 3, not re-fitted to improve a test result.
+
+## Phase 6: read-only deliverable and final audit
+
+The dashboard adds the complete v3 comparison, yearly loss chart and
+favorite reliability; the upcoming card shows verified no-vig prices, the
+market-gap pass, three saved contributions in logit units and each fighter's
+coverage. Contributions must reproduce the saved probability. The Forward
+test tab verifies the append-only chain and retained forecast/completed-page
+files, and compares the model and market on the same priced bouts. Pending
+forecasts remain visible. No dashboard route fits, fetches or writes data.
+
+`reports/model_lab_phase6.json` replays the frozen Phase 3 selection once and
+adds all baselines and intervals for the originally kept rolling subset, at
+both yearly and pooled levels. Its model, temperature, fixed-test metrics
+and pooled all-bout metrics equal Phase 3 exactly; there is no new selection.
+Earlier reports remain unchanged. Reproduce with a new filename:
+
+```sh
+ufc-model research-compare --db data/ufc_research_2011_2025.sqlite \
+  --complete-db data/ufc_research_complete_profiles.sqlite \
+  --identity-review reports/wikipedia_1993_2026_identity_review.json \
+  --selection reports/model_lab_phase3_selection.json --rolling-origin \
+  --out reports/model-lab-final-UNIQUE.json
+```
+
+The final offline suite passes 428 tests. Streamlit runtime checks cover all
+six tabs, the yearly chart, reliability, matched forward metrics and saved
+contribution arithmetic. A local Streamlit health check returns `ok`.
+Screenshot inspection was unavailable because no browser is enabled in this
+session. Runtime checks also read the retained local research/forward data,
+with source hashes checked before and after.
+
+The final guard audit checks a partly retained one-sided selected quote
+against another intact two-sided book, rather than losing the market check.
+Settlement verifies the event date and Wikipedia page as well as participant
+IDs. CLV requires a verified entry and a later observed pre-start pair;
+future-dated responses cannot count as observed closing evidence.
+The [model card](MODEL_CARD.md), short README, [event workflow](EVENT_WORKFLOW.md)
+and [final report](../reports/model_upgrade_summary.md) document the measured
+gain, market shortfall, optional work skipped and decisions left to Tyler.

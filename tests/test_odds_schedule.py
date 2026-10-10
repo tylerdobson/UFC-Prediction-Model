@@ -52,7 +52,7 @@ class OddsScheduleTests(unittest.TestCase):
                 return [{"id":"feed","home_team":"a","away_team":"b","commence_time":utc_string(start),
                     "bookmakers":[{"key":"book","markets":[{"key":"h2h","last_update":utc_string(captured),
                     "outcomes":[{"name":"a","price":a},{"name":"b","price":b}]}]}]}]
-            import_odds_payload(connection,payload(now,2.,2.),utc_string(now),Path(directory)/'raw')
+            initial=import_odds_payload(connection,payload(now,2.,2.),utc_string(now),Path(directory)/'raw')
             quote=connection.execute("SELECT quote_id FROM odds_quotes WHERE selection_fighter_id='a'").fetchone()[0]
             prediction=db.save_prediction(connection,'bout','elo',utc_string(now),utc_string(now),.5)
             connection.execute("""INSERT INTO bets(prediction_id,quote_id,selection_fighter_id,placed_at_utc,actual_decimal_odds,stake)
@@ -61,7 +61,34 @@ class OddsScheduleTests(unittest.TestCase):
             later=now+timedelta(hours=24)
             with patch('ufc_odds_model.ingest.utc_now',return_value=later):
                 import_odds_payload(connection,payload(later,1.8,2.2),utc_string(later),Path(directory)/'raw')
-            result=closing_line_value(connection)
+            self.assertEqual(closing_line_value(connection)['observed'],0)
+            with patch('ufc_odds_model.odds_schedule.utc_now',return_value=later):
+                result=closing_line_value(connection)
             self.assertEqual(result['observed'],1)
             self.assertAlmostEqual(result['rows'][0]['price_clv'],2.05/1.8-1)
             self.assertAlmostEqual(result['rows'][0]['closing_no_vig_probability'],.55)
+            raw=connection.execute('SELECT payload_path FROM ingestion_runs WHERE run_id=?',
+                                   (initial['ingestion_run_id'],)).fetchone()[0]
+            Path(raw).write_bytes(b'changed entry receipt')
+            with patch('ufc_odds_model.odds_schedule.utc_now',return_value=later):
+                self.assertEqual(closing_line_value(connection)['observed'],0)
+
+    def test_paper_clv_uses_recorded_entry_and_a_later_closing_proxy(self):
+        from tests import test_prefight_cli as fixture
+        helper=fixture.PrefightCliTests(); helper.setUp()
+        self.addCleanup(helper.tearDown)
+        helper._command('paper-trade','--bankroll-units','1000')
+        later=utc_now()+timedelta(hours=1)
+        payload=helper._payload(); market=payload[0]['bookmakers'][0]['markets'][0]
+        market['last_update']=utc_string(later)
+        market['outcomes'][0]['price']=2.
+        with db.connect(helper.database) as connection:
+            self.assertEqual(closing_line_value(connection)['observed'],0)
+            with patch('ufc_odds_model.ingest.utc_now',return_value=later):
+                import_odds_payload(connection,payload,utc_string(later),helper.root/'closing-raw')
+            self.assertEqual(closing_line_value(connection)['observed'],0)
+            with patch('ufc_odds_model.odds_schedule.utc_now',return_value=later):
+                result=closing_line_value(connection)
+            self.assertEqual(result['observed'],1)
+            self.assertEqual(result['rows'][0]['ledger'],'paper')
+            self.assertAlmostEqual(result['rows'][0]['price_clv'],2.3/2.-1)

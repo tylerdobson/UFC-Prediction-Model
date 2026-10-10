@@ -19,10 +19,18 @@ def disagreement(model, market, threshold=.10):
     return gap, gap > threshold
 
 
-def verified_market(connection, bout, cutoff, max_age_hours, *, snapshot=None, bookmaker=None):
+def verified_market(connection, bout, cutoff, max_age_hours, *, snapshot=None, bookmaker=None, details=False):
     from .features import FeatureRow
     from .evaluation import _bookmaker_probability
     row = FeatureRow(str(bout["bout_id"]),str(bout["event_id"]),"",str(bout["fighter_a_id"]),
                      str(bout["fighter_b_id"]),())
     return _bookmaker_probability(connection,row,cutoff,max_age_hours,{},
-                                 required_snapshot_at_utc=snapshot,bookmaker=bookmaker)
+                                 required_snapshot_at_utc=snapshot,bookmaker=bookmaker,details=details)
+
+
+def market_for_quote(connection,bout,cutoff,max_age_hours,*,snapshot=None,bookmaker=None,details=False):
+    """Prefer the quote's book; one-sided quotes cannot hide another valid market."""
+    market=verified_market(connection,bout,cutoff,max_age_hours,snapshot=snapshot,bookmaker=bookmaker,details=details)
+    if market is None and bookmaker is not None:
+        market=verified_market(connection,bout,cutoff,max_age_hours,snapshot=snapshot,details=details)
+    return market

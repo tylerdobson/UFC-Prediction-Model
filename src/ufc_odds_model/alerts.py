@@ -503,8 +503,8 @@ def _verify_saved_score(
             or not math.isclose(scored_probability, probability, rel_tol=1e-12, abs_tol=1e-12)):
         raise ValueError("The scored probability, price, or quote times differ from saved evidence")
     expected_decision = "candidate" if probability * price - 1 >= min_edge else "pass"
-    from .market_guard import verified_market, disagreement
-    market = verified_market(connection,saved,_utc(saved["feature_cutoff_at_utc"]),max_age_hours,
+    from .market_guard import market_for_quote, disagreement
+    market = market_for_quote(connection,saved,_utc(saved["feature_cutoff_at_utc"]),max_age_hours,
                              snapshot=quote["captured_at_utc"],bookmaker=quote["bookmaker"])
     _, blocked = disagreement(float(saved["p_fighter_a"]),market,max_market_disagreement)
     if blocked:

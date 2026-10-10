@@ -77,7 +77,7 @@ class DashboardAppSmokeTests(unittest.TestCase):
             app = self._run_app(Path(temporary) / "missing.sqlite", Path(temporary) / "missing.json")
         self.assertEqual(list(app.exception), [])
         self.assertEqual([tab.label for tab in app.tabs], [
-            "Upcoming card", "Historical data", "Model evidence", "Data quality", "Ledgers",
+            "Upcoming card", "Historical data", "Model evidence", "Data quality", "Ledgers", "Forward test",
         ])
         markup = self._all_markup(app)
         self.assertIn("No verified upcoming card", markup)

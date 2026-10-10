@@ -16,7 +16,9 @@ from urllib.parse import urlsplit
 
 import streamlit as st
 
-from ufc_odds_model.dashboard_data import load_dashboard, load_ufc332_forward_research
+from ufc_odds_model.dashboard_data import (
+    load_dashboard, load_ufc332_forward_research, load_model_upgrade_report, load_forward_ledger,
+)
 from ufc_odds_model.integrity import verify_evidence
 
 
@@ -45,6 +47,11 @@ _UFC332_FRESH_FILES = {
 _UFC332_FRESH_STRICT = Path("reports/ufc332-forward-research-20260927T1601Z.json")
 _UFC332_FRESH_FULL = Path("reports/ufc332-forward-research-full-20260927T1601Z.json")
 CSS_PATH = Path(__file__).with_name("dashboard.css")
+PROJECT_ROOT = Path(__file__).resolve().parent
+UPGRADE_REPORT_PATH = Path(os.environ.get('UFC_MODEL_UPGRADE_REPORT',str(PROJECT_ROOT/'reports/model_lab_phase6.json')))
+UPGRADE_DB_PATH = Path(os.environ.get('UFC_MODEL_UPGRADE_DB',str(PROJECT_ROOT/'data/ufc_research_complete_profiles.sqlite')))
+UPGRADE_SELECTION_PATH = Path(os.environ.get('UFC_MODEL_UPGRADE_SELECTION',str(PROJECT_ROOT/'reports/model_lab_phase3_selection.json')))
+FORECAST_LEDGER_PATH = Path(os.environ.get('UFC_MODEL_FORECAST_LEDGER',str(PROJECT_ROOT/'reports/forecast_ledger.jsonl')))
 
 
 def _ufc332_evidence_root() -> Path:
@@ -203,6 +210,26 @@ def _feature_coverage_text(prediction: Mapping[str, Any] | None) -> str:
     present = sum(coverage.get(key) is True for key, _ in labels)
     missing = [label for key, label in labels if coverage.get(key) is not True]
     return (f"{present}/6 dated inputs" + (f"; missing: {', '.join(missing)}" if missing else ""))
+
+
+def _fighter_coverage_text(prediction, side):
+    coverage=_mapping(_mapping(_mapping(prediction).get('metadata')).get('coverage_by_fighter')).get(side,{})
+    if not coverage:
+        return 'Coverage not saved'
+    parts=[]
+    if 'prior_ufc_bouts' in coverage:
+        parts.append(f"{coverage['prior_ufc_bouts']} earlier UFC fights")
+    for key,label in [('age','age'),('reach','reach'),('fight_statistics','fight stats')]:
+        if key in coverage:
+            parts.append(f"{label}: {'available' if coverage[key] else 'missing'}")
+    return '; '.join(parts)
+
+
+def _contribution_text(prediction):
+    values=_mapping(prediction).get('top_feature_contributions') or []
+    if not values:
+        return 'Explanation not saved'
+    return '; '.join(f"{row['label']}: {row['logit_contribution']:+.3f}" for row in values)
 
 
 def _table(headers: Sequence[str], rows: Sequence[Sequence[Any]], empty: str) -> str:
@@ -415,7 +442,7 @@ def _render_upcoming(snapshot: Mapping[str, Any]) -> None:
                 "checks before model predictions and quotes will appear here.</p></section>",
                 unsafe_allow_html=True,
             )
-            rows: list[list[str]] = [["Awaiting verified data", "—", "—", "—", "Unavailable"]]
+            rows: list[list[str]] = [["Awaiting verified data", "—", "—", "—", "—", "—", "Unavailable"]]
             empty = "Awaiting verified data"
         else:
             intro = (
@@ -445,21 +472,37 @@ def _render_upcoming(snapshot: Mapping[str, Any]) -> None:
                 rows.append([
                     f"{_text(bout.get('fighter_a_name'))} vs {_text(bout.get('fighter_b_name'))}",
                     model,
+                    _percent(bout.get('market_no_vig_probability')),
+                    (f"{bout['market_disagreement']:.1%} · {'PASS' if bout.get('market_disagreement_exceeds_limit') else 'within limit'}"
+                     if bout.get('market_disagreement') is not None else 'Unavailable'),
                     quote,
                     quote_age,
                     decision,
                 ])
             empty = "No scheduled bouts in this card"
         st.markdown(
-            _table(["Bout", "Model", "Observed quote", "Quote age", "Decision"], rows, empty),
+            _table(["Bout", "Model A", "Market A · no vig", "Model–market gap", "Observed quote", "Quote age", "Decision"], rows, empty),
             unsafe_allow_html=True,
         )
         if event:
+            explanation_rows=[[
+                f"{b['fighter_a_name']} vs {b['fighter_b_name']}",
+                _contribution_text(b.get('prediction')),
+                _fighter_coverage_text(b.get('prediction'),'fighter_a'),
+                _fighter_coverage_text(b.get('prediction'),'fighter_b')]
+                for b in event.get('bouts') or []]
+            st.markdown(
+                "<section class='panel'><h2>What shapes these forecasts</h2>"
+                "<p>Top three saved contributions in logit units: weight × feature value × calibration scale. "
+                "Positive values favor fighter A. Missing inputs remain neutral; coverage is metadata in v3.</p>"
+                +_table(['Bout','Largest contributions','Fighter A coverage','Fighter B coverage'],explanation_rows,'No saved forecasts')
+                +"</section>",unsafe_allow_html=True)
             st.markdown(
                 "<p class='table-note'>Observed prices are snapshots. A current alert requires a separate "
                 "matched, timestamped gate check; this page cannot place wagers.</p>",
                 unsafe_allow_html=True,
             )
+            st.caption('Market probabilities require fresh, source-verified two-sided prices from one book. Default gap limit: 10 percentage points. Research-trained forecasts retain their retrospective label and do not pass operating model readiness.')
             with st.expander("Source and model evidence for this card"):
                 st.markdown(
                     f"<p class='evidence-line'><strong>Event ID:</strong> <code>{_esc(event.get('event_id'))}</code> · "
@@ -1279,6 +1322,94 @@ def _render_ledgers(snapshot: Mapping[str, Any]) -> None:
         )
 
 
+def _render_upgrade_research() -> None:
+    st.markdown("<section class='page-title'><h1>Model evidence</h1>"
+                "<p>Complete-card v3 research, with fixed dates and an untouched test period.</p></section>",unsafe_allow_html=True)
+    saved=load_model_upgrade_report(UPGRADE_REPORT_PATH,UPGRADE_DB_PATH,UPGRADE_SELECTION_PATH)
+    if saved['status']!='available':
+        st.info(saved['reason'])
+        return
+    report=saved['result']; rolling=report['rolling_origin']; pooled=rolling['pooled']
+    current=report['test']['all']['logistic_calibrated']['metrics']
+    cols=st.columns(3)
+    cols[0].metric('Fixed-test accuracy',_percent(current['accuracy']))
+    cols[1].metric('Fixed-test log loss',_number(current['log_loss'],4))
+    cols[2].metric('Rolling log loss',_number(pooled['metrics']['log_loss'],4))
+    st.caption(f"{current['bouts']:,} test bouts · 2023-12-09 to 2026-09-19 · K=64 · fitting starts 2010. "
+               'Retrospective research; dataset and pre-test selection hashes verified. No operating promotion or wagering claim.')
+    comparison=[]
+    for scope,label in [('all','All complete-card test'),('originally_kept','Originally kept test')]:
+        for key,name in [('logistic_calibrated','v3 · age and decline'),('logistic_v2','v2 · result only'),('elo','Elo K=64'),('coin_flip','Coin flip')]:
+            values=report['test'][scope][key]['metrics']
+            comparison.append([label,name,values['bouts'],_percent(values['accuracy']),_number(values['log_loss'],4),_number(values['brier_score'],4)])
+    st.markdown("<section class='panel'><h2>Fixed test against baselines</h2>"
+                +_table(['Subset','Model','Bouts','Accuracy','Log loss ↓','Brier ↓'],comparison,'No results')+"</section>",unsafe_allow_html=True)
+    younger=report['test']['all']['younger_fighter_wins']
+    st.caption(f"Younger-fighter classifier: {_percent(younger['accuracy'])} on {younger['bouts']} bouts with both birth dates. "
+               'Historical market odds are unavailable. The review’s typical ~65%+ market accuracy is an external reference, not a measured holdout benchmark.')
+    interval=pooled['uncertainty']['log_loss_95pct_interval']
+    paired=rolling['paired_v3_minus_v2']['logistic_minus_elo_log_loss_95pct_interval']
+    st.markdown("<section class='panel'><h2>Rolling-origin evaluation · 2016–2026</h2>"
+                f"<p>{pooled['metrics']['bouts']:,} bouts. v3 loss {_number(pooled['metrics']['log_loss'],5)} "
+                f"with 95% event-date block interval [{_number(interval[0],5)}, {_number(interval[1],5)}]. "
+                f"Paired v3-minus-v2 loss interval [{_number(paired[0],5)}, {_number(paired[1],5)}] "
+                f"{'includes zero' if paired[0]<=0<=paired[1] else 'excludes zero'}.</p></section>",unsafe_allow_html=True)
+    folds=[f for f in rolling['folds'] if f['status']=='evaluated']
+    chart={'Year':[f['year'] for f in folds],'v3':[f['test']['metrics']['log_loss'] for f in folds]}
+    for key,label in [('logistic_v2','v2'),('elo','Elo'),('coin_flip','Coin flip')]:
+        chart[label]=[f['baselines'][key]['metrics']['log_loss'] for f in folds]
+    st.line_chart(chart,x='Year',y=['v3','v2','Elo','Coin flip'],x_label='Test year',y_label='Log loss · lower is better')
+    st.caption('Each year fits and calibrates on earlier dates. The 2026 fold covers through September 19 and is weaker than the pooled result.')
+    reliability=report['test']['all']['logistic_calibrated']['favorite_reliability']
+    st.markdown("<section class='panel'><h2>Favorite-oriented reliability</h2>"
+                "<p>Fixed test: predicted probability for the model favorite versus the observed favorite win rate. "
+                "Hash orientation handles exact 0.5 ties.</p>"
+                +_table(['Favorite probability','Bouts','Mean prediction','Observed wins'],[
+                    [f"{r['lower']:.0%}–{r['upper']:.0%}",r['bouts'],_percent(r['mean_probability']),_percent(r['observed_win_rate'])]
+                    for r in reliability],'No reliability observations')+"</section>",unsafe_allow_html=True)
+
+
+def _render_forward_test() -> None:
+    st.markdown("<section class='page-title'><h1>Forward test ledger</h1>"
+                "<p>Frozen forecasts and later outcomes, with the model and market compared on the same priced bouts.</p></section>",unsafe_allow_html=True)
+    saved=load_forward_ledger(FORECAST_LEDGER_PATH)
+    if saved['status']!='available':
+        st.info(saved['reason'])
+        return
+    ledger=saved['result']; cumulative=ledger['cumulative']
+    if ledger.get('pending_forecasts'):
+        st.markdown("<section class='panel'><h2>Frozen · awaiting settlement</h2>"
+                    +_table(['Event','Model','Cutoff UTC','Bouts'],[
+                        [r['event_name'],r['model_version'],r['cutoff_at_utc'],r['bouts']]
+                        for r in ledger['pending_forecasts']],'No pending forecasts')+"</section>",unsafe_allow_html=True)
+    rows=[]
+    for event in ledger['events']:
+        values=event['metrics']
+        for key,label in [('model','Model · all'),('model_on_market_subset','Model · priced subset'),('market','Market · priced subset')]:
+            metrics=values[key]
+            if metrics:
+                rows.append([event['event_name'],label,metrics['bouts'],_percent(metrics['accuracy']),
+                             _number(metrics['log_loss'],4),_number(metrics['brier_score'],4)])
+    for key,label in [('model','Model · all'),('model_on_market_subset','Model · priced subset'),('market','Market · priced subset')]:
+        metrics=cumulative[key]
+        if metrics:
+            rows.append(['Cumulative',label,metrics['bouts'],_percent(metrics['accuracy']),_number(metrics['log_loss'],4),_number(metrics['brier_score'],4)])
+    st.markdown("<section class='panel'><h2>Event and cumulative results</h2>"
+                +_table(['Event','Comparison','Bouts','Accuracy','Log loss ↓','Brier ↓'],rows,'No settled forecasts')+"</section>",unsafe_allow_html=True)
+    st.caption(f"{ledger['frozen_forecasts']} frozen forecast sets · {ledger['settled_forecasts']} settled · chain and retained files verified. "
+               'The first entry recovers pre-saved v2 forecasts after UFC 332; it is not evidence for the new v3 model. Small samples do not prove wagering value.')
+    for event in ledger['events']:
+        st.markdown(f"<section class='panel'><h2>{_esc(event['event_name'])}</h2>"
+                    f"<p>{_esc(event['model_version'])} · cutoff {_esc(event['cutoff_at_utc'])} · "
+                    f"{'saved forecast recovered after event' if event['recovered_saved_forecast'] else 'frozen before event'}</p>"
+                    +_table(['Bout','Model A','Market A','A outcome','Method','Review holds'],[
+                        [f"{r['fighter_a']} vs {r['fighter_b']}",_percent(r['model_probability']),
+                         _percent(r['market_no_vig_probability']),'Won' if r['outcome'] else 'Lost',r['method'],
+                         ', '.join(r.get('result_hold_reasons',[])) or 'None'] for r in event['rows']],
+                        'No settled bouts')+"</section>",unsafe_allow_html=True)
+    st.caption('No UFC 332 closing proxy was captured. CLV needs a later verified pre-start snapshot; early saved odds cannot establish it. Ledger settlement never approves operating results or places a wager.')
+
+
 def main() -> None:
     st.set_page_config(page_title="UFC Forecast · Pre-fight workspace", page_icon="🥊", layout="wide")
     st.markdown("<style>" + CSS_PATH.read_text(encoding="utf-8") + "</style>", unsafe_allow_html=True)
@@ -1294,19 +1425,30 @@ def main() -> None:
         return
     historical = _historical_snapshot(snapshot, as_of)
     _header(snapshot)
-    upcoming, history, model, quality, ledgers = st.tabs([
-        "Upcoming card", "Historical data", "Model evidence", "Data quality", "Ledgers",
+    upcoming, history, model, quality, ledgers, forward = st.tabs([
+        "Upcoming card", "Historical data", "Model evidence", "Data quality", "Ledgers", "Forward test",
     ])
     with upcoming:
         _render_upcoming(snapshot)
     with history:
         _render_historical_data(historical)
     with model:
-        _render_model(snapshot, historical)
+        _render_upgrade_research()
+        with st.expander('Operating and earlier research evidence'):
+            _render_model(snapshot, historical)
     with quality:
         _render_quality(snapshot)
     with ledgers:
         _render_ledgers(snapshot)
+        clv=_mapping(snapshot.get('closing_line_value'))
+        st.markdown("<section class='panel'><h2>Observed closing-line value</h2>"
+                    +_table(['Ledger','Entry','Status','Entry price','Closing proxy price','Price CLV'],[
+                        [r['ledger'],r['bet_id'],r['status'],_number(r.get('entry_decimal_odds')),
+                         _number(r.get('closing_decimal_odds')),_percent(r.get('price_clv'))]
+                        for r in clv.get('rows') or []],'No paper or actual entries with closing evidence')+"</section>",unsafe_allow_html=True)
+        st.caption('Price CLV = entry decimal / later closing proxy decimal − 1. Positive values mean a better entry price; closing prices must be later, pre-start and verified on both sides at the same book.')
+    with forward:
+        _render_forward_test()
     st.markdown(
         "<footer class='app-footer'><span>All times UTC · Read-only · No wagers placed from this app · "
         f"Snapshot {_esc(_utc(snapshot.get('as_of_utc')))}</span><span>UFC Forecast</span></footer>",

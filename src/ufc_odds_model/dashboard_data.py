@@ -39,6 +39,9 @@ class PredictionView(TypedDict):
     age_seconds: int
     feature_coverage: dict[str, bool] | None
     feature_coverage_status: str
+    metadata: dict[str, Any]
+    top_feature_contributions: list[dict[str, Any]]
+    explanation_status: str
 
 
 class QuoteView(TypedDict):
@@ -245,6 +248,34 @@ def _latest_prediction(
                 feature_coverage_status = "recorded"
             else:
                 feature_coverage_status = "invalid"
+    metadata = {}
+    explanation_status = 'missing'
+    contributions = []
+    if 'metadata_json' in row.keys() and row['metadata_json']:
+        try:
+            metadata = json.loads(row['metadata_json'])
+            if not isinstance(metadata,dict):
+                raise ValueError('Prediction metadata must be an object')
+            json.dumps(metadata,allow_nan=False)
+            values = metadata.get('feature_contributions',[])
+            from .logistic import V3_FEATURE_NAMES
+            allowed_v3 = set(V3_FEATURE_NAMES)
+            for item in values:
+                if (not isinstance(item,dict) or not isinstance(item.get('label'),str)
+                        or not isinstance(item.get('feature'),str)
+                        or any(_finite_float(item.get(key)) is None for key in
+                               ('value','weight','calibration_scale','logit_contribution'))
+                        or not math.isclose(item['logit_contribution'],item['weight']*item['value']*item['calibration_scale'],abs_tol=1e-12)
+                        or (model_version.startswith('logistic-prior-v3:') and item['feature'] not in allowed_v3)):
+                    raise ValueError('Invalid contribution arithmetic or feature')
+            if values:
+                logit=math.log(max(probability,1e-12)/max(1-probability,1e-12))
+                if not math.isclose(sum(item['logit_contribution'] for item in values),logit,rel_tol=1e-8,abs_tol=1e-8):
+                    raise ValueError('Contributions do not explain the saved probability')
+                contributions=sorted(values,key=lambda item:abs(item['logit_contribution']),reverse=True)[:3]
+                explanation_status='recorded'
+        except (TypeError,ValueError,KeyError,OverflowError):
+            metadata={}; contributions=[]; explanation_status='invalid'
     return {
         "prediction_id": int(row["prediction_id"]),
         "model_version": model_version,
@@ -255,6 +286,8 @@ def _latest_prediction(
         "age_seconds": max(0, int((as_of - generated).total_seconds())),
         "feature_coverage": feature_coverage,
         "feature_coverage_status": feature_coverage_status,
+        'metadata':metadata,'top_feature_contributions':contributions,
+        'explanation_status':explanation_status,
     }
 
 
@@ -765,6 +798,12 @@ def _upcoming_events(
             quotes = _latest_quotes(connection, bout["bout_id"], as_of, max_age_seconds)
             gate_check = _latest_gate_check(connection, bout["bout_id"], prediction,
                                             quotes, as_of, max_age_seconds)
+            from .market_guard import disagreement, market_for_quote, validate_threshold
+            market=market_for_quote(connection,bout,as_of,max_age_seconds/3600,
+                                   bookmaker=(prediction or {}).get('metadata',{}).get('market_bookmaker'))
+            threshold=(prediction or {}).get('metadata',{}).get('max_market_disagreement',.10)
+            threshold=validate_threshold(threshold)
+            gap,blocked=disagreement(prediction['p_fighter_a'],market,threshold) if prediction else (None,False)
             bouts.append({
                 "bout_id": str(bout["bout_id"]),
                 "fighter_a_id": str(bout["fighter_a_id"]),
@@ -778,7 +817,9 @@ def _upcoming_events(
                 "prediction": prediction,
                 "quotes": quotes,
                 "gate_check": gate_check,
-                "availability": _availability(event, bout, prediction, quotes,
+                'market_no_vig_probability':market,'market_disagreement':gap,
+                'max_market_disagreement':threshold,'market_disagreement_exceeds_limit':blocked,
+                "availability": 'pass_market_disagreement' if blocked else _availability(event, bout, prediction, quotes,
                                                gate_check, as_of, max_age_seconds),
             })
         result.append({
@@ -2359,6 +2400,8 @@ def load_dashboard(
                 ),
                 "integrity": _integrity_report(integrity_report, path, as_of),
             }
+            from .odds_schedule import closing_line_value
+            view['closing_line_value'] = closing_line_value(connection)
             # Standard JSON excludes NaN/Infinity; never send such values to
             # the UI even if someone bypassed SQLite's normal constraints.
             json.dumps(view, allow_nan=False)
@@ -2369,3 +2412,102 @@ def load_dashboard(
         return _empty_view(as_of, "unreadable_database", "SQLite could not read the database or its schema.")
     except (ValueError, TypeError, OverflowError):
         return _empty_view(as_of, "invalid_data", "Stored records contain invalid values; inspect and repair the source rows.")
+
+
+def load_model_upgrade_report(report_path, database_path, selection_path):
+    """Read saved research scores only when their exact data/selection match."""
+    from .logistic import V3_FEATURE_NAMES
+    from .model_lab import file_sha256, TRAIN_END, VALIDATION_START, VALIDATION_END, TEST_START
+    from .research_evaluation import _digest_json
+    try:
+        paths=[Path(p) for p in (report_path,database_path,selection_path)]
+        if any(p.is_symlink() or not p.is_file() for p in paths):
+            raise ValueError('Saved report, complete research data, or selection manifest is missing')
+        report=json.loads(paths[0].read_text())
+        selection=json.loads(paths[2].read_text())
+        if not isinstance(report,dict) or not isinstance(selection,dict):
+            raise ValueError('Research reports must be objects')
+        json.dumps(report,allow_nan=False)
+        if (report.get('research_only') is not True or report.get('promotion_eligible') is not False
+                or report.get('protocol_version')!='research-fixed-dates-v1'
+                or report.get('database_sha256')!=file_sha256(paths[1])
+                or report.get('selection_manifest_sha256')!=file_sha256(paths[2])
+                or selection.get('database_sha256')!=report['database_sha256']
+                or selection.get('fixed_test_labels_used') is not False
+                or selection.get('selection_labels_through')!=VALIDATION_END
+                or report.get('feature_names')!=list(V3_FEATURE_NAMES)
+                or report.get('split_boundaries')!={'train_end':TRAIN_END,'validation_start':VALIDATION_START,
+                                                   'validation_end':VALIDATION_END,'test_start':TEST_START}):
+            raise ValueError('Research report does not match its frozen data and pre-test selection')
+        model=report['model']
+        if (model['version']!='logistic-prior-v3' or model['weights_sha256']!=_digest_json(model['weights'])
+                or model['elo_k']!=selection['elo_k'] or model['training_start_year']!=selection['training_start_year']):
+            raise ValueError('Recorded model parameters differ from the selection')
+        if set(report['test'])!={'all','originally_kept'}:
+            raise ValueError('Both fixed-test subsets are required')
+        for scope, results in report['test'].items():
+            count=results['logistic_calibrated']['metrics']['bouts']
+            if count<=0 or count>report['split']['test']['binary_bouts']:
+                raise ValueError('Invalid fixed-test count')
+            for name in ('coin_flip','elo','logistic_calibrated','logistic_v2'):
+                if not _valid_metrics(results[name]['metrics'],count):
+                    raise ValueError('Invalid fixed-test metrics')
+            reliability=results['logistic_calibrated']['favorite_reliability']
+            if sum(row['bouts'] for row in reliability)!=count:
+                raise ValueError('Favorite reliability count differs from evaluated bouts')
+            for row in reliability:
+                if row['bouts'] and any(_finite_float(row.get(key)) is None or not 0<=row[key]<=1
+                                        for key in ('mean_probability','observed_win_rate')):
+                    raise ValueError('Invalid favorite reliability values')
+        rolling=report['rolling_origin']
+        pooled=rolling['pooled']['metrics']
+        if not _valid_metrics(pooled,pooled['bouts']):
+            raise ValueError('Invalid rolling-origin metrics')
+        folds=[f for f in rolling['folds'] if f['status']=='evaluated']
+        if sum(f['test']['metrics']['bouts'] for f in folds)!=pooled['bouts']:
+            raise ValueError('Yearly fold counts do not match pooled scores')
+        for fold in folds:
+            count=fold['test']['metrics']['bouts']
+            if not _valid_metrics(fold['test']['metrics'],count):
+                raise ValueError('Invalid yearly fold metrics')
+            for name in ('coin_flip','elo','logistic_v2'):
+                if not _valid_metrics(fold['baselines'][name]['metrics'],count):
+                    raise ValueError('Invalid yearly baseline metrics')
+        return {'status':'available','result':report,'database_hash_verified':True,
+                'selection_hash_verified':True,'research_only':True}
+    except (OSError,TypeError,ValueError,KeyError):
+        return {'status':'unavailable','reason':'Complete research scores could not be verified against their data and frozen selection.'}
+
+
+def load_forward_ledger(ledger_path):
+    """Read the chain and check files referenced by recovered forecasts/results."""
+    from .forecast_ledger import read_entries, summary
+    from .model_lab import file_sha256
+    from .retained_paths import retained_path
+    path=Path(ledger_path)
+    if not path.is_file():
+        return {'status':'missing','reason':'No frozen forecasts recorded yet.'}
+    root=path.resolve().parent.parent
+    try:
+        entries=read_entries(path)
+        for entry in entries:
+            if entry['kind']=='freeze' and 'source_path' in entry:
+                source=Path(entry['source_path'])
+                if not source.is_absolute():
+                    source=root/source
+                if source.is_symlink() or file_sha256(source)!=entry['source_sha256']:
+                    raise ValueError('Saved forecast source changed')
+            if entry['kind']=='settle' and 'manifest_path' in entry['source']:
+                source=Path(entry['source']['manifest_path'])
+                if not source.is_absolute():
+                    source=root/source
+                source=retained_path(source,reference=root/'data/raw')
+                if source.is_symlink() or file_sha256(source)!=entry['source']['manifest_sha256']:
+                    raise ValueError('Completed manifest changed')
+                from scripts.capture_completed_event import verify_completed_capture
+                capture=verify_completed_capture(source)
+                if capture['source']['raw_sha256']!=entry['source']['source_sha256']:
+                    raise ValueError('Completed result response changed')
+        return {'status':'available','result':summary(path),'referenced_files_verified':True}
+    except (OSError,ValueError,TypeError,KeyError):
+        return {'status':'invalid','reason':'Forecast ledger or its retained source files failed verification.'}

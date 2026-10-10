@@ -254,8 +254,8 @@ def _bookmaker_probability(
     decision_time: datetime,
     max_quote_age_hours: float,
     receipt_cache: dict,
-    *, required_snapshot_at_utc: str | None = None, bookmaker: str | None = None,
-) -> float | None:
+    *, required_snapshot_at_utc: str | None = None, bookmaker: str | None = None, details: bool = False,
+) -> float | dict | None:
     """Return a no-vig probability for the first, canonically ordered fighter.
 
     A book is usable only when both sides share one source, capture time, and
@@ -292,8 +292,8 @@ def _bookmaker_probability(
         key = (str(quote["bookmaker"]), int(quote["ingestion_run_id"]), captured, updated)
         markets.setdefault(key, {}).setdefault(str(fighter_id), set()).add(odds)
 
-    paired: list[tuple[datetime, datetime, str, float]] = []
-    for (bookmaker, _receipt_id, captured, updated), sides in markets.items():
+    paired: list[tuple[datetime, datetime, str, float, int]] = []
+    for (bookmaker, receipt_id, captured, updated), sides in markets.items():
         side_a = sides.get(row.fighter_a_id, set())
         side_b = sides.get(row.fighter_b_id, set())
         if len(side_a) != 1 or len(side_b) != 1:
@@ -301,11 +301,16 @@ def _bookmaker_probability(
         implied_a = 1.0 / next(iter(side_a))
         implied_b = 1.0 / next(iter(side_b))
         probability_a = implied_a / (implied_a + implied_b)
-        paired.append((captured, updated, bookmaker, probability_a))
+        paired.append((captured, updated, bookmaker, probability_a, receipt_id))
     if not paired:
         return None
     # Tie-breaking by book name is deterministic and is unrelated to outcome.
     paired.sort(key=lambda item: (-item[0].timestamp(), -item[1].timestamp(), item[2]))
+    if details:
+        captured,updated,book,probability,run_id=paired[0]
+        receipt=connection.execute('SELECT sha256 FROM ingestion_runs WHERE run_id=?',(run_id,)).fetchone()
+        return {'probability':probability,'bookmaker':book,'captured_at_utc':utc_string(captured),
+                'bookmaker_updated_at_utc':utc_string(updated),'ingestion_run_id':run_id,'source_sha256':receipt['sha256']}
     return paired[0][3]
 
 

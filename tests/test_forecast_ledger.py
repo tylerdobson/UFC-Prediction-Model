@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from ufc_odds_model.forecast_ledger import freeze_saved_research,settle_event,summary,read_entries
+from ufc_odds_model.forecast_ledger import freeze_saved_research,freeze_event,settle_event,summary,read_entries
 from ufc_odds_model.research_evaluation import _digest_json
 
 
@@ -29,7 +29,8 @@ class ForecastLedgerTests(unittest.TestCase):
         initial=self.ledger.read_bytes()
         capture={"completed_bouts":[{"fighter_a":{"stable_id":"b"},"fighter_b":{"stable_id":"a"},
             "winner_fighter_id":"b","outcome":"win","method":"TKO","status":"matched_unreviewed","hold_reasons":[]}],
-            "source":{"raw_sha256":"b"*64,"fetched_at_utc":"2024-01-03T00:00:00Z","revision_id":9}}
+            "source":{"raw_sha256":"b"*64,"fetched_at_utc":"2024-01-03T00:00:00Z","revision_id":9},
+            'event':{'event_date':'2024-01-02','source_page_id':99}}
         manifest=self.root/'completed.json'; manifest.write_text('{}')
         with patch('scripts.capture_completed_event.verify_completed_capture',return_value=capture):
             settle_event('event',ledger=self.ledger,completed_manifest=manifest)
@@ -54,3 +55,35 @@ class ForecastLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'changed'):
             freeze_saved_research('event',self.saved,ledger=self.ledger)
         self.assertFalse(self.ledger.exists())
+
+    def test_live_freeze_uses_latest_prediction_once_and_refuses_future_cutoff(self):
+        import sqlite3
+        from datetime import timedelta
+        from ufc_odds_model import db
+        from ufc_odds_model.pipeline import score_event,utc_now,utc_string
+        with sqlite3.connect(':memory:') as c:
+            c.row_factory=sqlite3.Row; db.init_db(c)
+            now=utc_now(); start=now+timedelta(days=1)
+            for fighter in ('a','b'):
+                db.upsert_fighter(c,fighter,fighter)
+            db.upsert_event(c,'event','event',start.date().isoformat(),'scheduled',start_time_utc=utc_string(start))
+            db.upsert_bout(c,'bout','event','a','b','scheduled'); c.commit()
+            score_event(c,'event',now,self.root/'reports')
+            _,latest=score_event(c,'event',now,self.root/'reports')
+            freeze=freeze_event(c,'event',ledger=self.ledger)
+            self.assertEqual(len(freeze['rows']),1)
+            self.assertEqual(freeze['rows'][0]['prediction_id'],latest[0]['prediction_id'])
+            self.assertEqual(summary(self.ledger)['pending_forecasts'][0]['bouts'],1)
+            c.execute('UPDATE predictions SET feature_cutoff_at_utc=?',(utc_string(start-timedelta(hours=1)),)); c.commit()
+            with self.assertRaisesRegex(ValueError,'already have occurred'):
+                freeze_event(c,'event',ledger=self.ledger)
+
+    def test_same_fighters_on_another_event_date_cannot_settle_the_forecast(self):
+        freeze_saved_research('event',self.saved,ledger=self.ledger)
+        capture={'event':{'event_date':'2024-01-03','source_page_id':99},'completed_bouts':[],
+                 'source':{'raw_sha256':'b'*64,'fetched_at_utc':'2024-01-04T00:00:00Z','revision_id':9}}
+        manifest=self.root/'completed.json'; manifest.write_text('{}')
+        with patch('scripts.capture_completed_event.verify_completed_capture',return_value=capture):
+            with self.assertRaisesRegex(ValueError,'different event date'):
+                settle_event('event',ledger=self.ledger,completed_manifest=manifest)
+        self.assertEqual(len(read_entries(self.ledger)),1)

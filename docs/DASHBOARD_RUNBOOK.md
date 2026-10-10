@@ -41,10 +41,43 @@ The page is a snapshot, not a live market feed. Refresh it to see later stored r
 
 ## Local smoke check
 
-After installation, run the app and verify all five tabs. With an empty database, each view should show unavailable or no-entry states. With `data/demo.sqlite`, the dashboard must label demo data, and it must not show an executable wager. Set `UFC_MODEL_HISTORY_DB=data/ufc_research_2011_2025.sqlite` alongside the operating `UFC_MODEL_DB` to inspect the real research history; only Historical data and the retrospective holdout use that separate, receipt-verified database. In a second terminal, the Streamlit health endpoint should return `ok`:
+After installation, run the app and verify all six tabs. With an empty database, each view should show unavailable or no-entry states. With `data/demo.sqlite`, the dashboard must label demo data, and it must not show an executable wager. Set `UFC_MODEL_HISTORY_DB=data/ufc_research_2011_2025.sqlite` alongside the operating `UFC_MODEL_DB` to inspect the real research history; only Historical data and the retrospective holdout use that separate, receipt-verified database. In a second terminal, the Streamlit health endpoint should return `ok`:
 
 ```bash
 curl -fsS http://127.0.0.1:8501/_stcore/health
 ```
 
 For the offline core pipeline tests run `python -m unittest discover -s tests -v`. The dashboard dependency is optional so core CLI tests and CI do not need to install Streamlit.
+
+## Model upgrade views
+
+The Model evidence tab now leads with the complete-card v3 comparison,
+2016–2026 rolling log loss against v2/Elo/coin, date-block confidence intervals
+and the favorite-oriented reliability table. Its report must match the exact
+complete-profile database and frozen selection hashes. Earlier operating and
+research evidence remains in an expander; it does not promote the new model.
+
+The Upcoming card compares the model with fresh, verified two-sided market
+probabilities, marks gaps above the recorded limit (default 0.10), and shows
+the top three saved `weight × value × calibration scale` contributions in
+logit units. Positive contributions favor fighter A. Each fighter’s optional
+inputs and prior UFC history are shown when saved. Invalid or absent
+explanations stay unavailable; page loads never compute a fitted model.
+
+The sixth tab, Forward test, verifies the forecast hash chain and retained
+forecast/completed-capture files. It displays per-event and cumulative model
+metrics, plus model/market on the same priced subset. UFC 332 is recovered v2
+research, not a v3 forward validation. Ledgers also shows source-verified CLV
+for paper/actual entries when a later pre-start snapshot exists.
+
+Optional server paths (defaults are relative to the app’s repository root):
+
+```sh
+export UFC_MODEL_UPGRADE_REPORT=/absolute/path/to/model_lab_phase6.json
+export UFC_MODEL_UPGRADE_DB=/absolute/path/to/ufc_research_complete_profiles.sqlite
+export UFC_MODEL_UPGRADE_SELECTION=/absolute/path/to/model_lab_phase3_selection.json
+export UFC_MODEL_FORECAST_LEDGER=/absolute/path/to/forecast_ledger.jsonl
+```
+
+Verify all six tabs after launch. The source databases remain read-only and
+no output, schema migration, source request or ledger append happens on load.
