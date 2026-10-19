@@ -112,6 +112,10 @@ Refresh source evidence before a later run. The saved card and athlete facts are
 
 ## Existing dashboard and operating workflow
 
+Captured from the running Streamlit dashboard with the project's fictional demo database. The upcoming-card view labels the records as demo data and shows the read-only decision requirements.
+
+![UFC Forecast dashboard showing a fictional upcoming card, observed demo quotes, and decision requirements.](docs/images/ufc-demo-dashboard.png)
+
 ```sh
 python -m streamlit run app.py --server.address 127.0.0.1
 ```
