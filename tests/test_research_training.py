@@ -104,15 +104,25 @@ class ResearchTrainingTests(unittest.TestCase):
         changed=prepare_research_logistic(self.operating,'target',AS_OF,self.history)
         self.assertNotEqual(initial.model_version,changed.model_version)
 
-    def test_legacy_default_preserves_frozen_v3_probability_and_version(self):
+    def test_legacy_default_preserves_v3_probability_and_repeatable_version(self):
         run=prepare_research_logistic(self.operating,'target',AS_OF,self.history)
         explicit_default=prepare_research_logistic(self.operating,'target',AS_OF,self.history,model_policy=None)
-        self.assertEqual(run.model_version,'logistic-prior-v3:research_retrospective:b0cdef82dfca1d68')
-        self.assertAlmostEqual(run.predictions['target-bout'],.6657645778363136)
+        # Python 3.12 changed float summation; tiny fitting differences also
+        # change the digest. Preserve numeric behavior across supported runtimes
+        # and require exact repeatability within the same runtime.
+        self.assertRegex(run.model_version,r'^logistic-prior-v3:research_retrospective:[0-9a-f]{16}$')
+        self.assertAlmostEqual(run.predictions['target-bout'],.6657645778363136,delta=1e-8)
         self.assertEqual(run.model_version,explicit_default.model_version)
+        self.assertEqual(run.predictions,explicit_default.predictions)
+        self.assertEqual(run.model.weights,explicit_default.model.weights)
+        self.assertEqual(run.calibrator.scale,explicit_default.calibrator.scale)
         self.assertEqual(run.artifact['algorithm'],'logistic-prior-v3')
+        self.assertEqual(run.artifact['feature_names'],V3_FEATURE_NAMES)
+        self.assertEqual(run.artifact['elo_k'],64)
         self.assertEqual(run.artifact['l2'],.02)
         self.assertEqual(run.artifact['training_start_year'],2010)
+        self.assertEqual(run.artifact['training_bouts'],90)
+        self.assertEqual(run.artifact['calibration_bouts'],30)
         for key in ('training_policy','lookback_years','training_window_lower_date','selection_manifest_sha256'):
             self.assertNotIn(key,run.artifact)
             self.assertNotIn(key,run.metadata_by_bout['target-bout'])
