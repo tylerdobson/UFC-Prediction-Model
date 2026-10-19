@@ -7,8 +7,10 @@ import tempfile
 import unittest
 import io
 import json
+import hashlib
 from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 from ufc_odds_model import db
 from ufc_odds_model.importers import import_bouts_csv
@@ -79,6 +81,54 @@ class EvidenceIntegrityTests(unittest.TestCase):
             report = verify_evidence(database)
             self.assertEqual(report["status"], "unavailable")
             self.assertEqual(report["issues"][0]["code"], "database_read_failed")
+
+    def test_moved_receipts_use_explicit_root_without_rewriting_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            original = Path(temporary).resolve() / "original"
+            original.mkdir()
+            source = original / "bouts.csv"
+            source.write_text(CSV, encoding="utf-8")
+            database = original / "ufc.sqlite"
+            with db.connect(database) as connection:
+                db.init_db(connection)
+                import_bouts_csv(connection, source, original / "data/raw")
+                recorded = Path(connection.execute(
+                    "SELECT payload_path FROM ingestion_runs"
+                ).fetchone()[0])
+            before = hashlib.sha256(database.read_bytes()).hexdigest()
+            relocated = original.with_name("relocated")
+            original.rename(relocated)
+            database = relocated / database.name
+            copied_payload = relocated / recorded.relative_to(original)
+
+            # An unrelated process cwd must not override the chosen evidence root.
+            with patch("pathlib.Path.cwd", return_value=Path(temporary)):
+                report = verify_evidence(database, project_root=relocated)
+                self.assertTrue(report["ok"])
+                self.assertEqual(report["verified_receipts"], 1)
+                wrong_root = verify_evidence(database, project_root=Path(temporary))
+                self.assertEqual(wrong_root["issues"][0]["code"], "missing_payload")
+
+            copied_bytes = copied_payload.read_bytes()
+            copied_payload.write_bytes(b"changed after move")
+            changed = verify_evidence(database, project_root=relocated)
+            self.assertEqual(changed["issues"][0]["code"], "payload_hash_mismatch")
+            copied_payload.write_bytes(copied_bytes)
+
+            # An existing or linked original path must never be bypassed by a copy.
+            recorded.parent.mkdir(parents=True)
+            recorded.write_bytes(b"changed original")
+            existing = verify_evidence(database, project_root=relocated)
+            self.assertEqual(existing["issues"][0]["code"], "payload_hash_mismatch")
+            recorded.unlink()
+            recorded.symlink_to(copied_payload)
+            linked = verify_evidence(database, project_root=relocated)
+            self.assertEqual(linked["issues"][0]["code"], "symlink_payload")
+            self.assertEqual(hashlib.sha256(database.read_bytes()).hexdigest(), before)
+            with sqlite3.connect(database) as connection:
+                self.assertEqual(connection.execute(
+                    "SELECT payload_path FROM ingestion_runs"
+                ).fetchone()[0], str(recorded))
 
 
 if __name__ == "__main__":

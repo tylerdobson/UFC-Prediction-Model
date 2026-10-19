@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 from ufc_odds_model import db
 from ufc_odds_model.card_history import record_card_snapshots
@@ -299,7 +300,69 @@ class DashboardDataTests(unittest.TestCase):
         self.assertEqual(conflicted["receipt_status"], "unavailable")
         self.assertIsNone(conflicted["held_identity_rows"])
 
-    def test_reviewed_identity_replay_requires_intact_scoped_crosswalk(self) -> None:
+    def test_moved_research_receipts_keep_coverage_verified_and_reject_tampering(self) -> None:
+        original = Path(self.temp.name) / "original"
+        source = original / "data/raw/wikipedia/event.json"
+        source.parent.mkdir(parents=True)
+        source.write_text('{"source":"checked"}', encoding="utf-8")
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        database = original / "data/research.sqlite"
+        with db.connect(database) as connection:
+            db.init_db(connection)
+            for fighter in ("a", "b"):
+                db.upsert_fighter(connection, fighter, fighter.upper(),
+                                  "wikipedia_research", fighter)
+            db.upsert_event(connection, "card", "UFC Fixture", "2025-01-11",
+                            "completed", source="wikipedia_research", source_event_id="101")
+            db.upsert_bout(connection, "bout", "card", "a", "b", "completed",
+                           source="wikipedia_research", source_bout_id="bout")
+            db.upsert_result(connection, "bout", "win", "a", "2026-02-01T15:00:00Z")
+            run_id = connection.execute(
+                "INSERT INTO ingestion_runs(source, fetched_at_utc, payload_path, sha256) "
+                "VALUES ('wikipedia_research', ?, ?, ?)",
+                ("2026-02-01T15:00:00Z", str(source), digest),
+            ).lastrowid
+            connection.execute(
+                """INSERT INTO wikipedia_source_receipts(
+                    run_id, event_page_id, event_title, page_url, revision_id,
+                    revision_timestamp_utc, license_title, license_url,
+                    imported_bouts, skipped_unresolved_bouts
+                ) VALUES (?, 101, 'UFC Fixture', 'https://en.wikipedia.org/wiki/UFC_Fixture',
+                          10, '2026-02-01T15:00:00Z', 'CC BY-SA 4.0',
+                          'https://creativecommons.org/licenses/by-sa/4.0/', 1, 2)""",
+                (run_id,),
+            )
+            connection.commit()
+        before = hashlib.sha256(database.read_bytes()).hexdigest()
+        relocated = original.with_name("relocated")
+        original.rename(relocated)
+        database = relocated / "data/research.sqlite"
+        copied_source = relocated / source.relative_to(original)
+
+        with patch("pathlib.Path.cwd", return_value=relocated):
+            history = load_dashboard(database, as_of=self.now)["historical_research"]
+            self.assertEqual(history["receipt_status"], "verified")
+            self.assertEqual(history["receipt_events_verified"], 1)
+            self.assertEqual((history["source_bout_rows"], history["held_identity_rows"]), (3, 2))
+
+            copied_bytes = copied_source.read_bytes()
+            copied_source.write_bytes(b"changed after move")
+            changed = load_dashboard(database, as_of=self.now)["historical_research"]
+            self.assertEqual(changed["receipt_status"], "unavailable")
+            self.assertIsNone(changed["source_bout_rows"])
+            copied_source.write_bytes(copied_bytes)
+
+            source.parent.mkdir(parents=True)
+            source.write_bytes(b"changed original")
+            existing = load_dashboard(database, as_of=self.now)["historical_research"]
+            self.assertEqual(existing["receipt_status"], "unavailable")
+            source.unlink()
+            source.symlink_to(copied_source)
+            linked = load_dashboard(database, as_of=self.now)["historical_research"]
+            self.assertEqual(linked["receipt_status"], "unavailable")
+        self.assertEqual(hashlib.sha256(database.read_bytes()).hexdigest(), before)
+
+    def test_moved_reviewed_identity_replay_requires_intact_scoped_crosswalk(self) -> None:
         connection = self._connect()
         page = {
             "id": 74123456, "title": "UFC 999",
@@ -322,7 +385,8 @@ class DashboardDataTests(unittest.TestCase):
                 {"pageid": 74765470, "title": "Denise Gomes", "ns": 0},
             ]}}
 
-        raw_dir = Path(self.temp.name) / "raw"
+        original = Path(self.temp.name).resolve() / "original"
+        raw_dir = original / "data/raw/wikipedia"
         import_wikipedia_pages(connection, [(page, parsed)], raw_dir=raw_dir,
                                review_out=Path(self.temp.name) / "before.json", fetch_json=fetch)
         initial = load_dashboard(self.path, as_of=self.now)["historical_research"]
@@ -350,10 +414,43 @@ class DashboardDataTests(unittest.TestCase):
         receipt = connection.execute(
             "SELECT payload_path FROM ingestion_runs WHERE source = 'wikipedia_identity_crosswalk'"
         ).fetchone()
-        Path(receipt["payload_path"]).write_text('{"tampered":true}')
-        tampered = load_dashboard(self.path, as_of=self.now)["historical_research"]
-        self.assertEqual(tampered["receipt_status"], "unavailable")
-        self.assertIsNone(tampered["source_bout_rows"])
+        recorded = Path(receipt["payload_path"])
+        saved_paths = [row[0] for row in connection.execute(
+            "SELECT payload_path FROM ingestion_runs ORDER BY run_id"
+        )]
+        before = hashlib.sha256(self.path.read_bytes()).hexdigest()
+        relocated = original.with_name("relocated")
+        original.rename(relocated)
+        copied_crosswalk = relocated / recorded.relative_to(original)
+
+        with patch("pathlib.Path.cwd", return_value=relocated):
+            moved = load_dashboard(self.path, as_of=self.now)["historical_research"]
+            self.assertEqual(moved["receipt_status"], "verified")
+            self.assertEqual((moved["receipt_events_verified"], moved["bouts"],
+                              moved["source_bout_rows"], moved["held_identity_rows"]),
+                             (1, 1, 1, 0))
+
+            copied_bytes = copied_crosswalk.read_bytes()
+            copied_crosswalk.write_text('{"tampered":true}')
+            tampered = load_dashboard(self.path, as_of=self.now)["historical_research"]
+            self.assertEqual(tampered["receipt_status"], "unavailable")
+            self.assertIsNone(tampered["source_bout_rows"])
+            copied_crosswalk.write_bytes(copied_bytes)
+
+            # A relocated copy must not conceal a changed or linked original.
+            recorded.parent.mkdir(parents=True)
+            recorded.write_text('{"changed_original":true}')
+            existing = load_dashboard(self.path, as_of=self.now)["historical_research"]
+            self.assertEqual(existing["receipt_status"], "unavailable")
+            recorded.unlink()
+            recorded.symlink_to(copied_crosswalk)
+            linked = load_dashboard(self.path, as_of=self.now)["historical_research"]
+            self.assertEqual(linked["receipt_status"], "unavailable")
+
+        self.assertEqual(hashlib.sha256(self.path.read_bytes()).hexdigest(), before)
+        self.assertEqual([row[0] for row in connection.execute(
+            "SELECT payload_path FROM ingestion_runs ORDER BY run_id"
+        )], saved_paths)
 
     def test_successive_identity_replays_preserve_prior_reviewed_positions(self) -> None:
         connection = self._connect()

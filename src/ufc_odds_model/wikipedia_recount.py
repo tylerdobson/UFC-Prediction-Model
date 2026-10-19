@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Callable
 from urllib.parse import unquote, urlsplit
 
+from .retained_paths import retained_path
 from .wikipedia_history import parse_event_page_title
 
 
@@ -24,7 +25,7 @@ def _checked_json(
         checked[key] = receipt_matches(*key)
     if not checked[key]:
         return None
-    path = Path(path_text).expanduser()
+    path = retained_path(path_text)
     if not path.is_absolute():
         path = Path.cwd() / path
     try:

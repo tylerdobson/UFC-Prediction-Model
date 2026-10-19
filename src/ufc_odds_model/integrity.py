@@ -22,6 +22,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from .db import DEFAULT_DB
+from .retained_paths import retained_path
 
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -77,8 +78,9 @@ def verify_evidence(
     """Check the database and every ingestion payload without changing either.
 
     Relative receipt paths are resolved from ``project_root`` (the current
-    working directory by default). ``issues`` is capped for readable output,
-    while all receipts are still checked and counted.
+    working directory by default). Missing absolute paths under data/raw may
+    be located in that root after a repository move; their saved hashes still
+    have to match. ``issues`` is capped while every receipt is checked.
     """
     if isinstance(max_issues, bool) or not isinstance(max_issues, int) or max_issues < 1:
         raise ValueError("max_issues must be a positive integer")
@@ -159,6 +161,7 @@ def verify_evidence(
                     payload = Path(recorded).expanduser()
                     if not payload.is_absolute():
                         payload = root / payload
+                    payload = retained_path(payload, reference=root / "data/raw")
                     if payload.is_symlink():
                         issue("symlink_payload", run_id=run_id, detail=str(payload))
                         continue

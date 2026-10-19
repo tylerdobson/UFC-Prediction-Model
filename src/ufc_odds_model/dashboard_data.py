@@ -26,6 +26,7 @@ from .features import COVERAGE_NAMES
 from .integrity import database_file_state, verify_evidence
 from .pipeline import utc_string
 from .research_evaluation import RESEARCH_EVALUATION_VERSION, SOURCE as RESEARCH_SOURCE, _source_results
+from .retained_paths import retained_path
 from .wikipedia_recount import reviewed_same_revision_recount
 
 
@@ -640,7 +641,7 @@ def _receipt_payload_matches(path_text: object, stated_hash: object) -> bool:
             or not isinstance(stated_hash, str) or len(stated_hash) != 64
             or any(char not in "0123456789abcdef" for char in stated_hash)):
         return False
-    path = Path(path_text).expanduser()
+    path = retained_path(path_text)
     if not path.is_absolute():
         path = Path.cwd() / path
     try:
