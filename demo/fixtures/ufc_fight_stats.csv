@@ -1,0 +1,16 @@
+EVENT,BOUT,ROUND,FIGHTER,KD,SIG.STR.,TOTAL STR.,TD,SUB.ATT,REV.,CTRL,HEAD,BODY,LEG,DISTANCE,CLINCH,GROUND
+SYNTHETIC Open One,Demo Aster Vale vs. Demo Briar Stone,Round 1,Demo Aster Vale,1,10 of 20,14 of 26,1 of 2,0,0,--,5 of 10,3 of 6,2 of 4,6 of 12,3 of 6,1 of 2
+SYNTHETIC Open One,Demo Aster Vale vs. Demo Briar Stone,Round 1,Demo Briar Stone,0,8 of 18,12 of 24,0 of 1,1,0,0:20,4 of 9,2 of 5,2 of 4,5 of 11,2 of 5,1 of 2
+SYNTHETIC Open One,Demo Aster Vale vs. Demo Briar Stone,Round 2,Demo Aster Vale,0,6 of 15,9 of 20,1 of 1,0,0,0:40,3 of 7,2 of 5,1 of 3,3 of 8,2 of 5,1 of 2
+SYNTHETIC Open One,Demo Aster Vale vs. Demo Briar Stone,Round 2,Demo Briar Stone,0,5 of 12,7 of 16,0 of 1,0,0,0:10,3 of 6,1 of 3,1 of 3,3 of 7,1 of 3,1 of 2
+SYNTHETIC Open Two,Demo Aster Vale vs. Demo Cedar North,Round 1,Demo Aster Vale,0,12 of 30,18 of 40,1 of 3,1,0,0:40,7 of 17,3 of 8,2 of 5,8 of 20,3 of 7,1 of 3
+SYNTHETIC Open Two,Demo Aster Vale vs. Demo Cedar North,Round 1,Demo Cedar North,1,18 of 32,22 of 40,2 of 4,0,0,0:30,10 of 18,5 of 8,3 of 6,12 of 20,4 of 8,2 of 4
+SYNTHETIC Open Three,Demo Briar Stone vs. Demo Dune Reed,Round 1,Demo Briar Stone,0,7 of 16,10 of 22,1 of 2,0,0,0:20,4 of 9,2 of 4,1 of 3,4 of 10,2 of 4,1 of 2
+SYNTHETIC Open Three,Demo Briar Stone vs. Demo Dune Reed,Round 1,Demo Dune Reed,0,6 of 14,9 of 20,0 of 1,1,0,0:15,3 of 7,2 of 4,1 of 3,4 of 8,1 of 4,1 of 2
+SYNTHETIC Incomplete Card,Demo Cedar North vs. Demo Dune Reed,Round 1,Demo Cedar North,0,5 of 12,8 of 17,0 of 1,0,0,0:10,3 of 6,1 of 3,1 of 3,3 of 7,1 of 3,1 of 2
+SYNTHETIC Incomplete Card,Demo Cedar North vs. Demo Dune Reed,Round 2,Demo Cedar North,0,3 of 8,4 of 10,0 of 1,0,0,0:05,1 of 4,1 of 2,1 of 2,1 of 4,1 of 2,1 of 2
+SYNTHETIC Incomplete Card,Demo Cedar North vs. Demo Dune Reed,Round 1,Demo Dune Reed,0,4 of 10,6 of 14,0 of 1,0,0,0:15,2 of 5,1 of 3,1 of 2,2 of 6,1 of 2,1 of 2
+SYNTHETIC Showcase,Demo Aster Vale vs. Demo Dune Reed,Round 1,Demo Aster Vale,0,20 of 40,25 of 50,1 of 2,0,0,0:30,10 of 20,6 of 12,4 of 8,12 of 24,5 of 10,3 of 6
+SYNTHETIC Showcase,Demo Aster Vale vs. Demo Dune Reed,Round 1,Demo Dune Reed,0,15 of 35,20 of 45,0 of 2,1,0,0:20,8 of 18,4 of 9,3 of 8,9 of 20,4 of 9,2 of 6
+SYNTHETIC Showcase,Demo Briar Stone vs. Demo Cedar North,Round 1,Demo Briar Stone,0,16 of 30,20 of 38,1 of 3,0,0,0:40,8 of 15,5 of 9,3 of 6,10 of 18,4 of 8,2 of 4
+SYNTHETIC Showcase,Demo Briar Stone vs. Demo Cedar North,Round 1,Demo Cedar North,1,19 of 34,24 of 42,2 of 3,0,0,0:50,10 of 18,5 of 9,4 of 7,11 of 20,5 of 9,3 of 5

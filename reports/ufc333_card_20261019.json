@@ -1,0 +1,862 @@
+{
+  "schema_version": 1,
+  "artifact_type": "source_observed_research_card",
+  "event": {
+    "event_id": "wikipedia:83785572",
+    "name": "UFC 333: Volkanovski vs. Evloev",
+    "event_date": "2026-10-24",
+    "venue": "Etihad Arena",
+    "city": "Abu Dhabi, United Arab Emirates",
+    "event_start_utc": "2026-10-24T14:00:00Z",
+    "early_prelims_start_utc": "2026-10-24T14:00:00Z",
+    "prelims_start_utc": "2026-10-24T16:00:00Z",
+    "main_card_start_utc": "2026-10-24T18:00:00Z",
+    "start_time_basis": "Official fight week guide says Saturday October24 Early Prelims6pm GST, Prelims8pm GST, Main Card10pm GST. Asia/Dubai GST=UTC+04:00, so earliest card start is14:00Z. Guide date <time> metadata is not used as bout start."
+  },
+  "source_url": "https://www.ufc.com/event/ufc-333",
+  "access_mode": "direct_public_https_curl",
+  "retrieved_at_utc": "2026-10-19T19:38:12Z",
+  "human_roster_review_completed": false,
+  "human_identity_review_completed": false,
+  "sources": {
+    "official_event": {
+      "schema_version": 1,
+      "request_url": "https://www.ufc.com/event/ufc-333",
+      "response_url": "https://www.ufc.com/event/ufc-333",
+      "access_mode": "direct_public_https_curl",
+      "http_status": 200,
+      "fetched_at_utc": "2026-10-19T19:38:12Z",
+      "timestamp_basis": "clock__curr_time UTC recorded after the parallel curl fetch batch completed; all three complete response bodies were received before this timestamp",
+      "response_path": "data/raw/ufc333-report-20261019/official-event-2.response",
+      "response_sha256": "212b1d3f26b5ff96a4466648c53f26e4a035b2e45f3964091d44ae9ff5d25480",
+      "response_bytes": 246344,
+      "headers_path": "data/raw/ufc333-report-20261019/official-event-2.headers",
+      "headers_sha256": "0671c04561c418460d4096a41cadb444b25b745be966b82cfb923546c560945f",
+      "curl_exit_code": 0,
+      "receipt_path": "data/raw/ufc333-report-20261019/official-event-2.receipt.json",
+      "receipt_sha256": "80819f3c075ba37756912e870aabe1877118a296ac0774a57f1942681f20cbb3"
+    },
+    "official_start_guide": {
+      "schema_version": 1,
+      "request_url": "https://www.ufc.com/ufc-333-fight-week-guide",
+      "response_url": "https://www.ufc.com/ufc-333-fight-week-guide",
+      "access_mode": "direct_public_https_curl",
+      "http_status": 200,
+      "fetched_at_utc": "2026-10-19T19:38:12Z",
+      "timestamp_basis": "clock__curr_time UTC recorded after the parallel curl fetch batch completed; all three complete response bodies were received before this timestamp",
+      "response_path": "data/raw/ufc333-report-20261019/official-start-guide-2.response",
+      "response_sha256": "ac2c390dc0f89e058ab0b584cbae23a09b90e0d58aeddf99a3b1f38110ed69d2",
+      "response_bytes": 110763,
+      "headers_path": "data/raw/ufc333-report-20261019/official-start-guide-2.headers",
+      "headers_sha256": "3775288e537283cb0dcf3ba797d13dfb4332fbe505e35ef01bad9644c0d2b1f8",
+      "curl_exit_code": 0,
+      "receipt_path": "data/raw/ufc333-report-20261019/official-start-guide-2.receipt.json",
+      "receipt_sha256": "b6246a4d3640e572c098dcfd0be5871361cc67b7bef9ba3ad4559456651e8706"
+    },
+    "wikipedia_event": {
+      "schema_version": 1,
+      "request_url": "https://en.wikipedia.org/w/rest.php/v1/page/UFC_333",
+      "response_url": "https://en.wikipedia.org/w/rest.php/v1/page/UFC_333",
+      "access_mode": "direct_public_https_curl",
+      "http_status": 200,
+      "fetched_at_utc": "2026-10-19T19:38:12Z",
+      "timestamp_basis": "clock__curr_time UTC recorded after the parallel curl fetch batch completed; all three complete response bodies were received before this timestamp",
+      "response_path": "data/raw/ufc333-report-20261019/wikipedia-event-2.response",
+      "response_sha256": "9d2882bfcea123476af976d45fef994316aa2fe6eede16ec06389da3ea7e080a",
+      "response_bytes": 8368,
+      "headers_path": "data/raw/ufc333-report-20261019/wikipedia-event-2.headers",
+      "headers_sha256": "94ea903bcef65f1c3f2db7bf431b212b4c19eb17c85425ea43ca90009f127eb6",
+      "curl_exit_code": 0,
+      "receipt_path": "data/raw/ufc333-report-20261019/wikipedia-event-2.receipt.json",
+      "receipt_sha256": "690f7111aaaf4217d13ab02a3112a88e349fc972b19bdf9f36be7d4b778a58fc",
+      "page_id": 83785572,
+      "revision_id": 1380245887,
+      "revision_timestamp_utc": "2026-10-14T17:15:23Z",
+      "revision_url": "https://en.wikipedia.org/w/index.php?title=UFC_333&oldid=1380245887",
+      "license_title": "Creative Commons Attribution-Share Alike 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+      "attribution": "UFC 333, Wikipedia contributors; source transformed into structured research card with identity matches and holds."
+    },
+    "fighter_lookup": {
+      "schema_version": 1,
+      "request_url": "https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&redirects=1&titles=Aaron+Pico%7CAbusupiyan+Magomedov%7CAlexander+Volkanovski%7CAlexander+Volkov+%28fighter%29%7CAzamat+Murzakanov%7CColby+Thicknesse%7CDaniel+Santos+%28fighter%29%7CDominick+Reyes%7CGrant+Dawson%7CIasmin+Lucindo%7CJacob+Malkoun%7CLone%27er+Kavanagh%7CLosene+Keita%7CMerab+Dvalishvili%7CMovsar+Evloev%7CNikita+Krylov%7CNurullo+Aliev%7CPetr+Yan%7CRamazan+Temirov%7CRizvan+Kuniev&maxlag=5&prop=pageprops&ppprop=disambiguation",
+      "response_url": "https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&redirects=1&titles=Aaron+Pico%7CAbusupiyan+Magomedov%7CAlexander+Volkanovski%7CAlexander+Volkov+%28fighter%29%7CAzamat+Murzakanov%7CColby+Thicknesse%7CDaniel+Santos+%28fighter%29%7CDominick+Reyes%7CGrant+Dawson%7CIasmin+Lucindo%7CJacob+Malkoun%7CLone%27er+Kavanagh%7CLosene+Keita%7CMerab+Dvalishvili%7CMovsar+Evloev%7CNikita+Krylov%7CNurullo+Aliev%7CPetr+Yan%7CRamazan+Temirov%7CRizvan+Kuniev&maxlag=5&prop=pageprops&ppprop=disambiguation",
+      "access_mode": "direct_public_https_curl",
+      "http_status": 200,
+      "fetched_at_utc": "2026-10-19T19:38:51Z",
+      "timestamp_basis": "UTC clock read after the complete curl response was received",
+      "response_path": "data/raw/ufc333-report-20261019/fighter-lookup.response",
+      "response_sha256": "f5d0e2929a76e5981d8c5a403f3200f199ff1da935271359342885016c07c07a",
+      "response_bytes": 1108,
+      "headers_path": "data/raw/ufc333-report-20261019/fighter-lookup.headers",
+      "headers_sha256": "3cb15fd7e123aa2a4f1acaa767bb47655beed181e3eade5600f612b85483a140",
+      "curl_exit_code": 0,
+      "receipt_path": "data/raw/ufc333-report-20261019/fighter-lookup.receipt.json",
+      "receipt_sha256": "f540fb1ba339a4a4767e0d407096adf4572e4dc5ba42d2e37da195537c8f1700"
+    },
+    "magomedov_alias": {
+      "schema_version": 1,
+      "request_url": "https://en.wikipedia.org/w/rest.php/v1/page/Abusupiyan_Magomedov",
+      "response_url": "https://en.wikipedia.org/w/rest.php/v1/page/Abusupiyan_Magomedov",
+      "access_mode": "direct_public_https_curl",
+      "http_status": 200,
+      "fetched_at_utc": "2026-10-19T19:39:13Z",
+      "timestamp_basis": "UTC clock read after the complete curl response was received",
+      "response_path": "data/raw/ufc333-report-20261019/magomedov-alias.response",
+      "response_sha256": "8065ba7d1a46c283e265a664fd803c29127c5c7a80a35cd3afd3fb137d15987c",
+      "response_bytes": 30770,
+      "headers_path": "data/raw/ufc333-report-20261019/magomedov-alias.headers",
+      "headers_sha256": "8d1d8d31d954a5c8dd4189e4e076f5944df862dc9a66b9e6f74b2dc8e2fe3a54",
+      "curl_exit_code": 0,
+      "receipt_path": "data/raw/ufc333-report-20261019/magomedov-alias.receipt.json",
+      "receipt_sha256": "3b9e80850f5ba3d7b08f8cc0510206c0f35138da07d9ba96acdffb53da3aed47"
+    }
+  },
+  "database": {
+    "path": "data/ufc_research_complete_profiles.sqlite",
+    "sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+    "access_mode": "sqlite_read_only_query_only",
+    "mutated": false
+  },
+  "bouts": [
+    {
+      "position": 1,
+      "official_order": 1,
+      "bout_id": "report:ufc333:2026-10-24:1",
+      "card_section": "main_card",
+      "weight_class": "Featherweight",
+      "source_bout_label": "Featherweight Title Bout",
+      "title_bout": true,
+      "scheduled_rounds": 5,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Alexander Volkanovski",
+        "official_profile_url": "https://www.ufc.com/athlete/alexander-volkanovski",
+        "canonical_name": "Alexander Volkanovski",
+        "fighter_id": "wikipedia:54197580",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 54197580,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "alexander-volkanovski"
+        }
+      },
+      "fighter_b": {
+        "name": "Movsar Evloev",
+        "official_profile_url": "https://www.ufc.com/athlete/movsar-evloev",
+        "canonical_name": "Movsar Evloev",
+        "fighter_id": "wikipedia:64594369",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 64594369,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "movsar-evloev"
+        }
+      },
+      "identity_ready_for_research_prediction": true,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    },
+    {
+      "position": 2,
+      "official_order": 2,
+      "bout_id": "report:ufc333:2026-10-24:2",
+      "card_section": "main_card",
+      "weight_class": "Bantamweight",
+      "source_bout_label": "Bantamweight Title Bout",
+      "title_bout": true,
+      "scheduled_rounds": 5,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Petr Yan",
+        "official_profile_url": "https://www.ufc.com/athlete/petr-yan",
+        "canonical_name": "Petr Yan",
+        "fighter_id": "wikipedia:57503647",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 57503647,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "petr-yan"
+        }
+      },
+      "fighter_b": {
+        "name": "Merab Dvalishvili",
+        "official_profile_url": "https://www.ufc.com/athlete/merab-dvalishvili",
+        "canonical_name": "Merab Dvalishvili",
+        "fighter_id": "wikipedia:56012380",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 56012380,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "merab-dvalishvili"
+        }
+      },
+      "identity_ready_for_research_prediction": true,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    },
+    {
+      "position": 3,
+      "official_order": 3,
+      "bout_id": "report:ufc333:2026-10-24:3",
+      "card_section": "main_card",
+      "weight_class": "Flyweight",
+      "source_bout_label": "Flyweight Bout",
+      "title_bout": false,
+      "scheduled_rounds": 3,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Lone’er Kavanagh",
+        "official_profile_url": "https://www.ufc.com/athlete/loneer-kavanagh",
+        "canonical_name": "Lone'er Kavanagh",
+        "fighter_id": "wikipedia:82332159",
+        "mapping_status": "established_id_exact_wikipedia_page_id",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 82332159,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighters",
+          "source": "wikipedia",
+          "source_fighter_id": "82332159",
+          "linked_title": "Lone'er Kavanagh",
+          "lookup_response_path": "data/raw/ufc333-report-20261019/fighter-lookup.response",
+          "explicit_alias_basis": "Typographic apostrophe only; current Wikipedia page lookup and event linked title agree."
+        }
+      },
+      "fighter_b": {
+        "name": "Ramazan Temirov",
+        "official_profile_url": "https://www.ufc.com/athlete/ramazan-temirov",
+        "canonical_name": null,
+        "fighter_id": null,
+        "mapping_status": "provisional_history_candidate_only",
+        "candidate_fighter_id": "provisional:wikipedia_name:ramazan temirov",
+        "candidate_canonical_name": "Ramazan Temirov",
+        "current_source_page_id": 80204293,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighters",
+          "exact_candidate_canonical_name": "Ramazan Temirov",
+          "current_source_id_not_in_frozen_database": "wikipedia:80204293"
+        }
+      },
+      "identity_ready_for_research_prediction": false,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    },
+    {
+      "position": 4,
+      "official_order": 4,
+      "bout_id": "report:ufc333:2026-10-24:4",
+      "card_section": "main_card",
+      "weight_class": "Heavyweight",
+      "source_bout_label": "Heavyweight Bout",
+      "title_bout": false,
+      "scheduled_rounds": 3,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Alexander Volkov",
+        "official_profile_url": "https://www.ufc.com/athlete/alexander-volkov",
+        "canonical_name": "Alexander Volkov",
+        "fighter_id": "wikipedia:28754266",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 28754266,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "alexander-volkov"
+        }
+      },
+      "fighter_b": {
+        "name": "Rizvan Kuniev",
+        "official_profile_url": "https://www.ufc.com/athlete/rizvan-kuniev",
+        "canonical_name": "Rizvan Kuniev",
+        "fighter_id": "wikipedia:80262047",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 80262047,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "rizvan-kuniev"
+        }
+      },
+      "identity_ready_for_research_prediction": true,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    },
+    {
+      "position": 5,
+      "official_order": 5,
+      "bout_id": "report:ufc333:2026-10-24:5",
+      "card_section": "main_card",
+      "weight_class": "Featherweight",
+      "source_bout_label": "Featherweight Bout",
+      "title_bout": false,
+      "scheduled_rounds": 3,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Aaron Pico",
+        "official_profile_url": "https://www.ufc.com/athlete/aaron-pico",
+        "canonical_name": "Aaron Pico",
+        "fighter_id": "wikipedia:44843191",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 44843191,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "aaron-pico"
+        }
+      },
+      "fighter_b": {
+        "name": "Losene Keita",
+        "official_profile_url": "https://www.ufc.com/athlete/losene-keita",
+        "canonical_name": "Losene Keita",
+        "fighter_id": "wikipedia:78757319",
+        "mapping_status": "established_id_exact_wikipedia_page_id",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 78757319,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighters",
+          "source": "wikipedia",
+          "source_fighter_id": "78757319",
+          "linked_title": "Losene Keita",
+          "lookup_response_path": "data/raw/ufc333-report-20261019/fighter-lookup.response"
+        }
+      },
+      "identity_ready_for_research_prediction": true,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    },
+    {
+      "position": 6,
+      "official_order": 6,
+      "bout_id": "report:ufc333:2026-10-24:6",
+      "card_section": "prelims",
+      "weight_class": "Light Heavyweight",
+      "source_bout_label": "Light Heavyweight Bout",
+      "title_bout": false,
+      "scheduled_rounds": 3,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Azamat Murzakanov",
+        "official_profile_url": "https://www.ufc.com/athlete/azamat-murzakanov",
+        "canonical_name": "Azamat Murzakanov",
+        "fighter_id": "wikipedia:56012507",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 56012507,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "azamat-murzakanov"
+        }
+      },
+      "fighter_b": {
+        "name": "Dominick Reyes",
+        "official_profile_url": "https://www.ufc.com/athlete/dominick-reyes",
+        "canonical_name": "Dominick Reyes",
+        "fighter_id": "wikipedia:54278252",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 54278252,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "dominick-reyes"
+        }
+      },
+      "identity_ready_for_research_prediction": true,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    },
+    {
+      "position": 7,
+      "official_order": 7,
+      "bout_id": "report:ufc333:2026-10-24:7",
+      "card_section": "prelims",
+      "weight_class": "Light Heavyweight",
+      "source_bout_label": "Light Heavyweight Bout",
+      "title_bout": false,
+      "scheduled_rounds": 3,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Nikita Krylov",
+        "official_profile_url": "https://www.ufc.com/athlete/nikita-krylov",
+        "canonical_name": "Nikita Krylov",
+        "fighter_id": "wikipedia:41748830",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 41748830,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "nikita-krylov"
+        }
+      },
+      "fighter_b": {
+        "name": "Abdul Rakhman Yakhyaev",
+        "official_profile_url": "https://www.ufc.com/athlete/abdulrakhman-yakhyaev",
+        "canonical_name": null,
+        "fighter_id": null,
+        "mapping_status": "provisional_history_candidate_only",
+        "candidate_fighter_id": "provisional:wikipedia_name:abdul-rakhman yakhyaev",
+        "candidate_canonical_name": "Abdul-Rakhman Yakhyaev",
+        "current_source_page_id": null,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighters",
+          "exact_candidate_canonical_name": "Abdul-Rakhman Yakhyaev",
+          "explicit_alias_basis": "Explicit spelling in the retained Wikipedia event opposite the same opponent; provisional candidate only."
+        }
+      },
+      "identity_ready_for_research_prediction": false,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    },
+    {
+      "position": 8,
+      "official_order": 8,
+      "bout_id": "report:ufc333:2026-10-24:8",
+      "card_section": "prelims",
+      "weight_class": "Middleweight",
+      "source_bout_label": "Middleweight Bout",
+      "title_bout": false,
+      "scheduled_rounds": 3,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Abus Magomedov",
+        "official_profile_url": "https://www.ufc.com/athlete/abus-magomedov",
+        "canonical_name": "Abusupiyan Magomedov",
+        "fighter_id": "wikipedia:80563842",
+        "mapping_status": "established_id_exact_wikipedia_page_id",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 80563842,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighters",
+          "source": "wikipedia",
+          "source_fighter_id": "80563842",
+          "linked_title": "Abusupiyan Magomedov",
+          "lookup_response_path": "data/raw/ufc333-report-20261019/fighter-lookup.response",
+          "explicit_alias_basis": "Retained Wikipedia page 80563842 explicitly links {{UFC|abus-magomedov}}, identical to the official athlete URL.",
+          "alias_response_path": "data/raw/ufc333-report-20261019/magomedov-alias.response"
+        }
+      },
+      "fighter_b": {
+        "name": "Cam Rowston",
+        "official_profile_url": "https://www.ufc.com/athlete/cam-rowston",
+        "canonical_name": null,
+        "fighter_id": null,
+        "mapping_status": "provisional_history_candidate_only",
+        "candidate_fighter_id": "provisional:wikipedia_name:cameron rowston",
+        "candidate_canonical_name": "Cameron Rowston",
+        "current_source_page_id": null,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighters",
+          "exact_candidate_canonical_name": "Cameron Rowston",
+          "explicit_alias_basis": "Explicit full name in retained Wikipedia event opposite the same opponent; provisional candidate only."
+        }
+      },
+      "identity_ready_for_research_prediction": false,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    },
+    {
+      "position": 9,
+      "official_order": 9,
+      "bout_id": "report:ufc333:2026-10-24:9",
+      "card_section": "prelims",
+      "weight_class": "Lightweight",
+      "source_bout_label": "Lightweight Bout",
+      "title_bout": false,
+      "scheduled_rounds": 3,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Grant Dawson",
+        "official_profile_url": "https://www.ufc.com/athlete/grant-dawson",
+        "canonical_name": "Grant Dawson",
+        "fighter_id": "wikipedia:63260298",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 63260298,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "grant-dawson"
+        }
+      },
+      "fighter_b": {
+        "name": "Nurullo Aliev",
+        "official_profile_url": "https://www.ufc.com/athlete/nurullo-aliev",
+        "canonical_name": "Nurullo Aliev",
+        "fighter_id": "wikipedia:83479208",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 83479208,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "nurullo-aliev"
+        }
+      },
+      "identity_ready_for_research_prediction": true,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    },
+    {
+      "position": 10,
+      "official_order": 10,
+      "bout_id": "report:ufc333:2026-10-24:10",
+      "card_section": "early_prelims",
+      "weight_class": "Bantamweight",
+      "source_bout_label": "Bantamweight Bout",
+      "title_bout": false,
+      "scheduled_rounds": 3,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Colby Thicknesse",
+        "official_profile_url": "https://www.ufc.com/athlete/colby-thicknesse",
+        "canonical_name": null,
+        "fighter_id": null,
+        "mapping_status": "provisional_history_candidate_only",
+        "candidate_fighter_id": "provisional:wikipedia_name:colby thicknesse",
+        "candidate_canonical_name": "Colby Thicknesse",
+        "current_source_page_id": 84442621,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighters",
+          "exact_candidate_canonical_name": "Colby Thicknesse",
+          "current_source_id_not_in_frozen_database": "wikipedia:84442621"
+        }
+      },
+      "fighter_b": {
+        "name": "Asaf Chopurov",
+        "official_profile_url": "https://www.ufc.com/athlete/asaf-chopurov",
+        "canonical_name": null,
+        "fighter_id": null,
+        "mapping_status": "unavailable",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": null,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false
+        }
+      },
+      "identity_ready_for_research_prediction": false,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    },
+    {
+      "position": 11,
+      "official_order": 11,
+      "bout_id": "report:ufc333:2026-10-24:11",
+      "card_section": "early_prelims",
+      "weight_class": "Middleweight",
+      "source_bout_label": "Middleweight Bout",
+      "title_bout": false,
+      "scheduled_rounds": 3,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Abubakar Vagaev",
+        "official_profile_url": "https://www.ufc.com/athlete/abubakar-vagaev",
+        "canonical_name": null,
+        "fighter_id": null,
+        "mapping_status": "provisional_history_candidate_only",
+        "candidate_fighter_id": "provisional:wikipedia_name:abubakar vagaev",
+        "candidate_canonical_name": "Abubakar Vagaev",
+        "current_source_page_id": null,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighters",
+          "exact_candidate_canonical_name": "Abubakar Vagaev"
+        }
+      },
+      "fighter_b": {
+        "name": "Jacob Malkoun",
+        "official_profile_url": "https://www.ufc.com/athlete/jacob-malkoun",
+        "canonical_name": "Jacob Malkoun",
+        "fighter_id": "wikipedia:69151214",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 69151214,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "jacob-malkoun"
+        }
+      },
+      "identity_ready_for_research_prediction": false,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    },
+    {
+      "position": 12,
+      "official_order": 12,
+      "bout_id": "report:ufc333:2026-10-24:12",
+      "card_section": "early_prelims",
+      "weight_class": "Featherweight",
+      "source_bout_label": "Featherweight Bout",
+      "title_bout": false,
+      "scheduled_rounds": 3,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Bolaji Oki",
+        "official_profile_url": "https://www.ufc.com/athlete/bolaji-oki",
+        "canonical_name": null,
+        "fighter_id": null,
+        "mapping_status": "provisional_history_candidate_only",
+        "candidate_fighter_id": "provisional:wikipedia_name:bolaji oki",
+        "candidate_canonical_name": "Bolaji Oki",
+        "current_source_page_id": null,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighters",
+          "exact_candidate_canonical_name": "Bolaji Oki"
+        }
+      },
+      "fighter_b": {
+        "name": "Daniel Santos",
+        "official_profile_url": "https://www.ufc.com/athlete/daniel-santos",
+        "canonical_name": "Daniel Santos",
+        "fighter_id": "wikipedia:81261829",
+        "mapping_status": "established_id_exact_wikipedia_page_id",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 81261829,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighters",
+          "source": "wikipedia",
+          "source_fighter_id": "81261829",
+          "linked_title": "Daniel Santos (fighter)",
+          "lookup_response_path": "data/raw/ufc333-report-20261019/fighter-lookup.response"
+        }
+      },
+      "identity_ready_for_research_prediction": false,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    },
+    {
+      "position": 13,
+      "official_order": 13,
+      "bout_id": "report:ufc333:2026-10-24:13",
+      "card_section": "early_prelims",
+      "weight_class": "Lightweight",
+      "source_bout_label": "Lightweight Bout",
+      "title_bout": false,
+      "scheduled_rounds": 3,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Kody Steele",
+        "official_profile_url": "https://www.ufc.com/athlete/kody-steele",
+        "canonical_name": null,
+        "fighter_id": null,
+        "mapping_status": "provisional_history_candidate_only",
+        "candidate_fighter_id": "provisional:wikipedia_name:kody steele",
+        "candidate_canonical_name": "Kody Steele",
+        "current_source_page_id": null,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighters",
+          "exact_candidate_canonical_name": "Kody Steele"
+        }
+      },
+      "fighter_b": {
+        "name": "Noah Gugnon",
+        "official_profile_url": "https://www.ufc.com/athlete/noah-gugnon",
+        "canonical_name": null,
+        "fighter_id": null,
+        "mapping_status": "provisional_history_candidate_only",
+        "candidate_fighter_id": "provisional:wikipedia_name:noah gugnon",
+        "candidate_canonical_name": "Noah Gugnon",
+        "current_source_page_id": null,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighters",
+          "exact_candidate_canonical_name": "Noah Gugnon"
+        }
+      },
+      "identity_ready_for_research_prediction": false,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    },
+    {
+      "position": 14,
+      "official_order": 14,
+      "bout_id": "report:ufc333:2026-10-24:14",
+      "card_section": "early_prelims",
+      "weight_class": "Women's Strawweight",
+      "source_bout_label": "Women's Strawweight Bout",
+      "title_bout": false,
+      "scheduled_rounds": 3,
+      "scheduled_rounds_basis": "Inferred from standard UFC championship/non-championship format; no round-count field was present in the official card HTML.",
+      "fighter_a": {
+        "name": "Iasmin Lucindo",
+        "official_profile_url": "https://www.ufc.com/athlete/iasmin-lucindo",
+        "canonical_name": "Iasmin Lucindo",
+        "fighter_id": "wikipedia:81521210",
+        "mapping_status": "established_id_exact_ufc_crosswalk",
+        "candidate_fighter_id": null,
+        "candidate_canonical_name": null,
+        "current_source_page_id": 81521210,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighter_external_ids",
+          "source": "ufc_athlete_id",
+          "source_fighter_id": "iasmin-lucindo"
+        }
+      },
+      "fighter_b": {
+        "name": "Nicolle Caliari",
+        "official_profile_url": "https://www.ufc.com/athlete/nicolle-caliari",
+        "canonical_name": null,
+        "fighter_id": null,
+        "mapping_status": "provisional_history_candidate_only",
+        "candidate_fighter_id": "provisional:wikipedia_name:nicolle caliari",
+        "candidate_canonical_name": "Nicolle Caliari",
+        "current_source_page_id": null,
+        "mapping_provenance": {
+          "database_path": "data/ufc_research_complete_profiles.sqlite",
+          "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "automatic_fuzzy_matching": false,
+          "table": "fighters",
+          "exact_candidate_canonical_name": "Nicolle Caliari"
+        }
+      },
+      "identity_ready_for_research_prediction": false,
+      "source_url": "https://www.ufc.com/event/ufc-333",
+      "roster_status": "observed_from_official_source_human_review_pending"
+    }
+  ],
+  "summary": {
+    "official_bouts_observed": 14,
+    "fighters_observed": 28,
+    "established_fighter_ids": 18,
+    "provisional_history_candidates": 9,
+    "unavailable_fighters": 1,
+    "bouts_with_both_established_ids": 6,
+    "probabilities_included": false
+  },
+  "source_discrepancies": [
+    {
+      "issue": "Official direct HTML contains14 bouts while the web search extraction returned11.",
+      "treatment": "Use the exact direct official HTML as card source; search extraction is not a complete current roster capture."
+    },
+    {
+      "issue": "Wikipedia revision1380245887 puts Oki/Santos, Steele/Gugnon and Lucindo/Caliari in Announced bouts rather than its11-row Fight card section.",
+      "treatment": "All3 are included in official direct HTML Early Prelims and are retained here. Wikipedia is supplementary identity evidence."
+    },
+    {
+      "issue": "Official event HTML contains machine datetime fields inconsistent with visible time-zone labels.",
+      "treatment": "Use the explicit GST start times in the official fight week guide and convert UTC+4, not raw datetime attributes."
+    },
+    {
+      "issue": "Current source stable page IDs for Ramazan Temirov and Colby Thicknesse are absent from the frozen fighters table.",
+      "treatment": "Preserve the new page IDs plus existing provisional candidates separately; do not merge or rewrite database identities."
+    }
+  ],
+  "access_attempt_notes": [
+    "web.open on the official event and guide returned403/unavailable, while web.search exposed indexed page text. Direct public curl subsequently returned200 and full HTML; the retained source is that actual direct response.",
+    "Initial curl subprocesses inside a sandboxed Python command failed DNS resolution; these failed-attempt receipts are retained separately. Existing approved direct curl network access succeeded."
+  ],
+  "limitations": [
+    "Source observed on October19; substitutions, withdrawals and card order may change before October24.",
+    "This is a research/report source artifact. It carries no human approval, operating gate decision, odds, bets, staking instruction or probabilities.",
+    "Unresolved and provisional identities are held separately from established canonical IDs. No fuzzy identity merges or database writes were performed."
+  ]
+}

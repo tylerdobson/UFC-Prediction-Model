@@ -1,0 +1,1774 @@
+{
+  "schema_version": 1,
+  "artifact_type": "current_descriptive_official_fighter_statistics",
+  "captured_at_utc": "2026-10-19T19:48:47Z",
+  "event_id": "wikipedia:83785572",
+  "event_name": "UFC 333: Volkanovski vs. Evloev",
+  "event_date": "2026-10-24",
+  "scope": "Twelve fighters in the six matchups with established canonical identities.",
+  "summary": {
+    "fighters": 12,
+    "fighters_with_reach": 12,
+    "fighters_with_core_fight_statistics": 12,
+    "current_descriptive_only": true,
+    "historical_training_eligible": false,
+    "used_in_existing_v4_probability": false,
+    "published_takedown_accuracy_fields_excluded": 11,
+    "normalized_takedown_accuracy_fields_omitted": 12,
+    "material_takedown_panel_inconsistencies": 5,
+    "reach_archive_discrepancies": 5
+  },
+  "stat_definitions": {
+    "significant_strikes_landed_per_minute": "SLpM; significant strikes landed per minute, as shown in current official rate panel.",
+    "significant_strikes_absorbed_per_minute": "SApM; significant strikes absorbed per minute.",
+    "significant_strike_accuracy_display_pct": "Rounded percentage displayed by official striking accuracy chart. Raw landed/attempted totals are retained separately.",
+    "significant_strike_defense_pct": "Percentage of opponents significant strike attempts that do not land.",
+    "takedowns_average_per_15_minutes": "Average successful takedowns per15minutes, as reported.",
+    "takedown_defense_pct": "Percentage of opponents takedown attempts that do not land; null if source absent.",
+    "aggregate_totals": "Present-day publisher career/coverage totals, not per-fight count observations.",
+    "reach_cm": "Converted from UFC profile reach in inches using2.54cm/in."
+  },
+  "fighters": [
+    {
+      "fighter_id": "wikipedia:54197580",
+      "name": "Alexander Volkanovski",
+      "canonical_name": "Alexander Volkanovski",
+      "official_profile_url": "https://www.ufc.com/athlete/alexander-volkanovski",
+      "official_card_order": 1,
+      "observed_at_utc": "2026-10-19T19:48:17Z",
+      "observation_basis": "current_official_ufc_athlete_profile",
+      "reach_inches": 71.5,
+      "reach_cm": 181.61,
+      "reach_source_display": "71.50",
+      "reach_unit_basis": "Official UFC athlete profile imperial measurement convention; raw bio HTML provides a numeric Reach field without an explicit unit token. Centimeters converted at exactly2.54cm per inch.",
+      "stats": {
+        "significant_strikes_landed_per_minute": 5.99,
+        "significant_strikes_absorbed_per_minute": 3.31,
+        "significant_strike_defense_pct": 59.0,
+        "takedowns_average_per_15_minutes": 1.63,
+        "takedown_defense_pct": 69.0,
+        "submissions_average_per_15_minutes": 0.2,
+        "knockdowns_average_per_15_minutes": 0.3,
+        "average_fight_time_mm_ss": "16:50",
+        "significant_strikes_landed_total": 1815,
+        "significant_strikes_attempted_total": 3178,
+        "takedowns_landed_total": 16,
+        "takedowns_attempted_total": 97,
+        "significant_strike_accuracy_display_pct": 57.0,
+        "takedown_accuracy_display_pct": null
+      },
+      "source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Wollongong, Australia",
+          "Trains at": "Freestyle Fighting Gym",
+          "Age": "38",
+          "Height": "66.00",
+          "Weight": "158.30",
+          "Octagon Debut": "Oct. 15, 2016",
+          "Reach": "71.50",
+          "Leg reach": "36.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "5.99",
+          "Sig. Str. Absorbed": "3.31",
+          "Takedown avg": "1.63",
+          "Submission avg": "0.20",
+          "Sig. Str. Defense": "59 %",
+          "Takedown Defense": "69 %",
+          "Knockdown Avg": "0.30",
+          "Average fight time": "16:50"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "1815",
+          "Sig. Strikes Attempted": "3178",
+          "Takedowns Landed": "16",
+          "Takedowns Attempted": "97"
+        },
+        "accuracy_charts": [
+          "57%",
+          "16%"
+        ]
+      },
+      "source": {
+        "schema_version": 1,
+        "request_url": "https://www.ufc.com/athlete/alexander-volkanovski",
+        "response_url": "https://www.ufc.com/athlete/alexander-volkanovski",
+        "access_mode": "direct_public_https_curl",
+        "http_status": 200,
+        "fetched_at_utc": "2026-10-19T19:48:17Z",
+        "timestamp_basis": "UTC tool clock read after this complete response was received; timestamps for a parallel batch are shared post-batch observations",
+        "response_path": "data/raw/ufc333-fighter-stats-20261019/alexander-volkanovski.response",
+        "response_sha256": "d2b4de8d260ede9cbb4642dd6d78696718e528e1be77221d1b3f06d2716727a3",
+        "response_bytes": 142766,
+        "headers_path": "data/raw/ufc333-fighter-stats-20261019/alexander-volkanovski.headers",
+        "headers_sha256": "f94fed990886f45d579647185d8f436a4abc7637393dfa4c9111640b94831800",
+        "receipt_path": "data/raw/ufc333-fighter-stats-20261019/alexander-volkanovski.receipt.json",
+        "receipt_sha256": "3cc355b9e27306049514b79c8a7d749d461e8a6809f5ac34e56b0a3a5d85914d"
+      },
+      "missing_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "historical_training_eligible": false,
+      "used_in_existing_v4_probability": false,
+      "data_quality_notes": [],
+      "excluded_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "published_source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Wollongong, Australia",
+          "Trains at": "Freestyle Fighting Gym",
+          "Age": "38",
+          "Height": "66.00",
+          "Weight": "158.30",
+          "Octagon Debut": "Oct. 15, 2016",
+          "Reach": "71.50",
+          "Leg reach": "36.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "5.99",
+          "Sig. Str. Absorbed": "3.31",
+          "Takedown avg": "1.63",
+          "Submission avg": "0.20",
+          "Sig. Str. Defense": "59 %",
+          "Takedown Defense": "69 %",
+          "Knockdown Avg": "0.30",
+          "Average fight time": "16:50"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "1815",
+          "Sig. Strikes Attempted": "3178",
+          "Takedowns Landed": "16",
+          "Takedowns Attempted": "97"
+        },
+        "accuracy_charts": [
+          "57%",
+          "16%"
+        ]
+      },
+      "archive_reach_comparison": {
+        "match_basis": "Unique exact fighter name in pinned archive; comparison only, no database identity merge.",
+        "archive_source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+        "archive_manifest_path": "data/raw/ufcstats-archive-20261019/manifest.json",
+        "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "archive_file_sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+        "archive_upstream_fighter_url": "http://ufcstats.com/fighter-details/e1248941344b3288",
+        "archive_reach_source_display": "71\"",
+        "archive_reach_inches": 71.0,
+        "archive_reach_cm": 180.34,
+        "official_minus_archive_reach_inches": 0.5,
+        "official_minus_archive_reach_cm": 1.27,
+        "agreement": false,
+        "treatment": "Preserve both published measurements and source labels. Do not silently replace the archive training value with the current official profile display."
+      }
+    },
+    {
+      "fighter_id": "wikipedia:64594369",
+      "name": "Movsar Evloev",
+      "canonical_name": "Movsar Evloev",
+      "official_profile_url": "https://www.ufc.com/athlete/movsar-evloev",
+      "official_card_order": 1,
+      "observed_at_utc": "2026-10-19T19:48:17Z",
+      "observation_basis": "current_official_ufc_athlete_profile",
+      "reach_inches": 72.5,
+      "reach_cm": 184.15,
+      "reach_source_display": "72.50",
+      "reach_unit_basis": "Official UFC athlete profile imperial measurement convention; raw bio HTML provides a numeric Reach field without an explicit unit token. Centimeters converted at exactly2.54cm per inch.",
+      "stats": {
+        "significant_strikes_landed_per_minute": 3.91,
+        "significant_strikes_absorbed_per_minute": 2.8,
+        "significant_strike_defense_pct": 61.0,
+        "takedowns_average_per_15_minutes": 4.78,
+        "takedown_defense_pct": 61.0,
+        "submissions_average_per_15_minutes": 0.19,
+        "knockdowns_average_per_15_minutes": 0.0,
+        "average_fight_time_mm_ss": "16:00",
+        "significant_strikes_landed_total": 625,
+        "significant_strikes_attempted_total": 1312,
+        "takedowns_landed_total": 5,
+        "takedowns_attempted_total": 97,
+        "significant_strike_accuracy_display_pct": 48.0,
+        "takedown_accuracy_display_pct": null
+      },
+      "source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Ingushetia, Russia",
+          "Trains at": "American Top Team",
+          "Fighting style": "Freestyle",
+          "Age": "32",
+          "Height": "67.00",
+          "Weight": "145.50",
+          "Octagon Debut": "Apr. 20, 2019",
+          "Reach": "72.50",
+          "Leg reach": "36.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "3.91",
+          "Sig. Str. Absorbed": "2.80",
+          "Takedown avg": "4.78",
+          "Submission avg": "0.19",
+          "Sig. Str. Defense": "61 %",
+          "Takedown Defense": "61 %",
+          "Knockdown Avg": "0.00",
+          "Average fight time": "16:00"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "625",
+          "Sig. Strikes Attempted": "1312",
+          "Takedowns Landed": "5",
+          "Takedowns Attempted": "97"
+        },
+        "accuracy_charts": [
+          "48%",
+          "5%"
+        ]
+      },
+      "source": {
+        "schema_version": 1,
+        "request_url": "https://www.ufc.com/athlete/movsar-evloev",
+        "response_url": "https://www.ufc.com/athlete/movsar-evloev",
+        "access_mode": "direct_public_https_curl",
+        "http_status": 200,
+        "fetched_at_utc": "2026-10-19T19:48:17Z",
+        "timestamp_basis": "UTC tool clock read after this complete response was received; timestamps for a parallel batch are shared post-batch observations",
+        "response_path": "data/raw/ufc333-fighter-stats-20261019/movsar-evloev.response",
+        "response_sha256": "02a20cff28f66c2baf2fe2cc149d3ec00bf294585ebe049720a2599b30edd313",
+        "response_bytes": 139260,
+        "headers_path": "data/raw/ufc333-fighter-stats-20261019/movsar-evloev.headers",
+        "headers_sha256": "22e91559e9495535510c2e0bea09c39ff3ccc56637da702d26b79211898b368e",
+        "receipt_path": "data/raw/ufc333-fighter-stats-20261019/movsar-evloev.receipt.json",
+        "receipt_sha256": "92390bfc32c1e28a225dda5e92b29851ad6fe141678fc1c0a1fa3c4fb80eb93e"
+      },
+      "missing_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "historical_training_eligible": false,
+      "used_in_existing_v4_probability": false,
+      "data_quality_notes": [
+        "Official HTML publishes takedown accuracy 5%, landed 5 / attempted 97, alongside 4.78 takedowns per 15 minutes. The panels have unspecified common coverage and do not establish a consistent percentage. No corrected percentage or count is inferred."
+      ],
+      "excluded_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "published_source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Ingushetia, Russia",
+          "Trains at": "American Top Team",
+          "Fighting style": "Freestyle",
+          "Age": "32",
+          "Height": "67.00",
+          "Weight": "145.50",
+          "Octagon Debut": "Apr. 20, 2019",
+          "Reach": "72.50",
+          "Leg reach": "36.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "3.91",
+          "Sig. Str. Absorbed": "2.80",
+          "Takedown avg": "4.78",
+          "Submission avg": "0.19",
+          "Sig. Str. Defense": "61 %",
+          "Takedown Defense": "61 %",
+          "Knockdown Avg": "0.00",
+          "Average fight time": "16:00"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "625",
+          "Sig. Strikes Attempted": "1312",
+          "Takedowns Landed": "5",
+          "Takedowns Attempted": "97"
+        },
+        "accuracy_charts": [
+          "48%",
+          "5%"
+        ]
+      },
+      "published_questionable_fields": {
+        "takedown_accuracy_display_pct": 5.0,
+        "takedowns_landed_total": 5,
+        "takedowns_attempted_total": 97
+      },
+      "archive_reach_comparison": {
+        "match_basis": "Unique exact fighter name in pinned archive; comparison only, no database identity merge.",
+        "archive_source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+        "archive_manifest_path": "data/raw/ufcstats-archive-20261019/manifest.json",
+        "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "archive_file_sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+        "archive_upstream_fighter_url": "http://ufcstats.com/fighter-details/76e2870ffafbe38f",
+        "archive_reach_source_display": "72\"",
+        "archive_reach_inches": 72.0,
+        "archive_reach_cm": 182.88,
+        "official_minus_archive_reach_inches": 0.5,
+        "official_minus_archive_reach_cm": 1.27,
+        "agreement": false,
+        "treatment": "Preserve both published measurements and source labels. Do not silently replace the archive training value with the current official profile display."
+      }
+    },
+    {
+      "fighter_id": "wikipedia:57503647",
+      "name": "Petr Yan",
+      "canonical_name": "Petr Yan",
+      "official_profile_url": "https://www.ufc.com/athlete/petr-yan",
+      "official_card_order": 2,
+      "observed_at_utc": "2026-10-19T19:48:17Z",
+      "observation_basis": "current_official_ufc_athlete_profile",
+      "reach_inches": 67.0,
+      "reach_cm": 170.18,
+      "reach_source_display": "67.00",
+      "reach_unit_basis": "Official UFC athlete profile imperial measurement convention; raw bio HTML provides a numeric Reach field without an explicit unit token. Centimeters converted at exactly2.54cm per inch.",
+      "stats": {
+        "significant_strikes_landed_per_minute": 5.16,
+        "significant_strikes_absorbed_per_minute": 4.24,
+        "significant_strike_defense_pct": 60.0,
+        "takedowns_average_per_15_minutes": 1.7,
+        "takedown_defense_pct": 86.0,
+        "submissions_average_per_15_minutes": 0.11,
+        "knockdowns_average_per_15_minutes": 0.53,
+        "average_fight_time_mm_ss": "17:38",
+        "significant_strikes_landed_total": 1456,
+        "significant_strikes_attempted_total": 2652,
+        "takedowns_landed_total": null,
+        "takedowns_attempted_total": 65,
+        "significant_strike_accuracy_display_pct": 55.0,
+        "takedown_accuracy_display_pct": null
+      },
+      "source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Krasnoyarsk Krai, Russia",
+          "Fighting style": "Boxer",
+          "Age": "33",
+          "Height": "67.50",
+          "Weight": "135.00",
+          "Octagon Debut": "Jun. 23, 2018",
+          "Reach": "67.00",
+          "Leg reach": "38.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "5.16",
+          "Sig. Str. Absorbed": "4.24",
+          "Takedown avg": "1.70",
+          "Submission avg": "0.11",
+          "Sig. Str. Defense": "60 %",
+          "Takedown Defense": "86 %",
+          "Knockdown Avg": "0.53",
+          "Average fight time": "17:38"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "1456",
+          "Sig. Strikes Attempted": "2652",
+          "Takedowns Landed": "",
+          "Takedowns Attempted": "65"
+        },
+        "accuracy_charts": [
+          "55%",
+          "0%"
+        ]
+      },
+      "source": {
+        "schema_version": 1,
+        "request_url": "https://www.ufc.com/athlete/petr-yan",
+        "response_url": "https://www.ufc.com/athlete/petr-yan",
+        "access_mode": "direct_public_https_curl",
+        "http_status": 200,
+        "fetched_at_utc": "2026-10-19T19:48:17Z",
+        "timestamp_basis": "UTC tool clock read after this complete response was received; timestamps for a parallel batch are shared post-batch observations",
+        "response_path": "data/raw/ufc333-fighter-stats-20261019/petr-yan.response",
+        "response_sha256": "6ef3a6331a5ff610dc255995e69af0ac82b057c4c2b8c84d2d98c2176e1c54ab",
+        "response_bytes": 140934,
+        "headers_path": "data/raw/ufc333-fighter-stats-20261019/petr-yan.headers",
+        "headers_sha256": "bc96992de3423b4e9c931e6526cdfaaf2d5d7a43ea80e28661f68310a4c2a2fa",
+        "receipt_path": "data/raw/ufc333-fighter-stats-20261019/petr-yan.receipt.json",
+        "receipt_sha256": "7e5259c04b9c9bc27f4a345f1de22d42232680d611b476d039c0633b6b0ab864"
+      },
+      "missing_stat_fields": [
+        "takedowns_landed_total",
+        "takedown_accuracy_display_pct"
+      ],
+      "historical_training_eligible": false,
+      "used_in_existing_v4_probability": false,
+      "data_quality_notes": [
+        "Official HTML publishes takedown accuracy 0% with an empty Takedowns Landed field, 65 attempts and 1.70 takedowns per 15 minutes. A blank numerator cannot establish zero success. No corrected percentage or count is inferred."
+      ],
+      "excluded_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "published_source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Krasnoyarsk Krai, Russia",
+          "Fighting style": "Boxer",
+          "Age": "33",
+          "Height": "67.50",
+          "Weight": "135.00",
+          "Octagon Debut": "Jun. 23, 2018",
+          "Reach": "67.00",
+          "Leg reach": "38.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "5.16",
+          "Sig. Str. Absorbed": "4.24",
+          "Takedown avg": "1.70",
+          "Submission avg": "0.11",
+          "Sig. Str. Defense": "60 %",
+          "Takedown Defense": "86 %",
+          "Knockdown Avg": "0.53",
+          "Average fight time": "17:38"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "1456",
+          "Sig. Strikes Attempted": "2652",
+          "Takedowns Landed": "",
+          "Takedowns Attempted": "65"
+        },
+        "accuracy_charts": [
+          "55%",
+          "0%"
+        ]
+      },
+      "published_questionable_fields": {
+        "takedown_accuracy_display_pct": 0.0,
+        "takedowns_landed_total": null,
+        "takedowns_attempted_total": 65
+      },
+      "archive_reach_comparison": {
+        "match_basis": "Unique exact fighter name in pinned archive; comparison only, no database identity merge.",
+        "archive_source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+        "archive_manifest_path": "data/raw/ufcstats-archive-20261019/manifest.json",
+        "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "archive_file_sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+        "archive_upstream_fighter_url": "http://ufcstats.com/fighter-details/d661ce4da776fc20",
+        "archive_reach_source_display": "67\"",
+        "archive_reach_inches": 67.0,
+        "archive_reach_cm": 170.18,
+        "official_minus_archive_reach_inches": 0.0,
+        "official_minus_archive_reach_cm": 0.0,
+        "agreement": true,
+        "treatment": "Preserve both published measurements and source labels. Do not silently replace the archive training value with the current official profile display."
+      }
+    },
+    {
+      "fighter_id": "wikipedia:56012380",
+      "name": "Merab Dvalishvili",
+      "canonical_name": "Merab Dvalishvili",
+      "official_profile_url": "https://www.ufc.com/athlete/merab-dvalishvili",
+      "official_card_order": 2,
+      "observed_at_utc": "2026-10-19T19:48:17Z",
+      "observation_basis": "current_official_ufc_athlete_profile",
+      "reach_inches": 68.0,
+      "reach_cm": 172.72,
+      "reach_source_display": "68.00",
+      "reach_unit_basis": "Official UFC athlete profile imperial measurement convention; raw bio HTML provides a numeric Reach field without an explicit unit token. Centimeters converted at exactly2.54cm per inch.",
+      "stats": {
+        "significant_strikes_landed_per_minute": 4.42,
+        "significant_strikes_absorbed_per_minute": 2.8,
+        "significant_strike_defense_pct": 54.0,
+        "takedowns_average_per_15_minutes": 5.97,
+        "takedown_defense_pct": 76.0,
+        "submissions_average_per_15_minutes": 0.35,
+        "knockdowns_average_per_15_minutes": 0.05,
+        "average_fight_time_mm_ss": "17:36",
+        "significant_strikes_landed_total": 1322,
+        "significant_strikes_attempted_total": 3181,
+        "takedowns_landed_total": 17,
+        "takedowns_attempted_total": 338,
+        "significant_strike_accuracy_display_pct": 42.0,
+        "takedown_accuracy_display_pct": null
+      },
+      "source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Tbilisi, Georgia",
+          "Trains at": "Team Serra/Longo",
+          "Fighting style": "Freestyle",
+          "Age": "35",
+          "Height": "66.00",
+          "Weight": "135.00",
+          "Octagon Debut": "Dec. 9, 2017",
+          "Reach": "68.00",
+          "Leg reach": "38.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "4.42",
+          "Sig. Str. Absorbed": "2.80",
+          "Takedown avg": "5.97",
+          "Submission avg": "0.35",
+          "Sig. Str. Defense": "54 %",
+          "Takedown Defense": "76 %",
+          "Knockdown Avg": "0.05",
+          "Average fight time": "17:36"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "1322",
+          "Sig. Strikes Attempted": "3181",
+          "Takedowns Landed": "17",
+          "Takedowns Attempted": "338"
+        },
+        "accuracy_charts": [
+          "42%",
+          "5%"
+        ]
+      },
+      "source": {
+        "schema_version": 1,
+        "request_url": "https://www.ufc.com/athlete/merab-dvalishvili",
+        "response_url": "https://www.ufc.com/athlete/merab-dvalishvili",
+        "access_mode": "direct_public_https_curl",
+        "http_status": 200,
+        "fetched_at_utc": "2026-10-19T19:48:17Z",
+        "timestamp_basis": "UTC tool clock read after this complete response was received; timestamps for a parallel batch are shared post-batch observations",
+        "response_path": "data/raw/ufc333-fighter-stats-20261019/merab-dvalishvili.response",
+        "response_sha256": "366552d749a85d1dc67f7990087338aa499e69424de16f494087a54c817f1981",
+        "response_bytes": 141393,
+        "headers_path": "data/raw/ufc333-fighter-stats-20261019/merab-dvalishvili.headers",
+        "headers_sha256": "85f7edecd99df54100d323065069f74468ed12e505bfdb244cf03db557433701",
+        "receipt_path": "data/raw/ufc333-fighter-stats-20261019/merab-dvalishvili.receipt.json",
+        "receipt_sha256": "bfb044f84f87657d1264ac859a9810c3c8ba09f81e4deedc5b6c6db0c8706ff4"
+      },
+      "missing_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "historical_training_eligible": false,
+      "used_in_existing_v4_probability": false,
+      "data_quality_notes": [
+        "Official HTML publishes takedown accuracy 5%, landed 17 / attempted 338, alongside 5.97 takedowns per 15 minutes. The panels have unspecified common coverage and do not establish a consistent percentage. No corrected percentage or count is inferred."
+      ],
+      "excluded_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "published_source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Tbilisi, Georgia",
+          "Trains at": "Team Serra/Longo",
+          "Fighting style": "Freestyle",
+          "Age": "35",
+          "Height": "66.00",
+          "Weight": "135.00",
+          "Octagon Debut": "Dec. 9, 2017",
+          "Reach": "68.00",
+          "Leg reach": "38.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "4.42",
+          "Sig. Str. Absorbed": "2.80",
+          "Takedown avg": "5.97",
+          "Submission avg": "0.35",
+          "Sig. Str. Defense": "54 %",
+          "Takedown Defense": "76 %",
+          "Knockdown Avg": "0.05",
+          "Average fight time": "17:36"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "1322",
+          "Sig. Strikes Attempted": "3181",
+          "Takedowns Landed": "17",
+          "Takedowns Attempted": "338"
+        },
+        "accuracy_charts": [
+          "42%",
+          "5%"
+        ]
+      },
+      "published_questionable_fields": {
+        "takedown_accuracy_display_pct": 5.0,
+        "takedowns_landed_total": 17,
+        "takedowns_attempted_total": 338
+      },
+      "archive_reach_comparison": {
+        "match_basis": "Unique exact fighter name in pinned archive; comparison only, no database identity merge.",
+        "archive_source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+        "archive_manifest_path": "data/raw/ufcstats-archive-20261019/manifest.json",
+        "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "archive_file_sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+        "archive_upstream_fighter_url": "http://ufcstats.com/fighter-details/c03520b5c88ed6b4",
+        "archive_reach_source_display": "68\"",
+        "archive_reach_inches": 68.0,
+        "archive_reach_cm": 172.72,
+        "official_minus_archive_reach_inches": 0.0,
+        "official_minus_archive_reach_cm": 0.0,
+        "agreement": true,
+        "treatment": "Preserve both published measurements and source labels. Do not silently replace the archive training value with the current official profile display."
+      }
+    },
+    {
+      "fighter_id": "wikipedia:28754266",
+      "name": "Alexander Volkov",
+      "canonical_name": "Alexander Volkov",
+      "official_profile_url": "https://www.ufc.com/athlete/alexander-volkov",
+      "official_card_order": 4,
+      "observed_at_utc": "2026-10-19T19:48:17Z",
+      "observation_basis": "current_official_ufc_athlete_profile",
+      "reach_inches": 80.0,
+      "reach_cm": 203.2,
+      "reach_source_display": "80.00",
+      "reach_unit_basis": "Official UFC athlete profile imperial measurement convention; raw bio HTML provides a numeric Reach field without an explicit unit token. Centimeters converted at exactly2.54cm per inch.",
+      "stats": {
+        "significant_strikes_landed_per_minute": 4.84,
+        "significant_strikes_absorbed_per_minute": 2.9,
+        "significant_strike_defense_pct": 54.0,
+        "takedowns_average_per_15_minutes": 0.54,
+        "takedown_defense_pct": 69.0,
+        "submissions_average_per_15_minutes": 0.22,
+        "knockdowns_average_per_15_minutes": 0.22,
+        "average_fight_time_mm_ss": "13:09",
+        "significant_strikes_landed_total": 1336,
+        "significant_strikes_attempted_total": 2305,
+        "takedowns_landed_total": 5,
+        "takedowns_attempted_total": 16,
+        "significant_strike_accuracy_display_pct": 58.0,
+        "takedown_accuracy_display_pct": null
+      },
+      "source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Moscow, Russia",
+          "Trains at": "Global Fight Gym",
+          "Fighting style": "Brazilian Jiu-Jitsu",
+          "Age": "37",
+          "Height": "79.00",
+          "Weight": "261.50",
+          "Octagon Debut": "Nov. 19, 2016",
+          "Reach": "80.00",
+          "Leg reach": "47.50"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "4.84",
+          "Sig. Str. Absorbed": "2.90",
+          "Takedown avg": "0.54",
+          "Submission avg": "0.22",
+          "Sig. Str. Defense": "54 %",
+          "Takedown Defense": "69 %",
+          "Knockdown Avg": "0.22",
+          "Average fight time": "13:09"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "1336",
+          "Sig. Strikes Attempted": "2305",
+          "Takedowns Landed": "5",
+          "Takedowns Attempted": "16"
+        },
+        "accuracy_charts": [
+          "58%",
+          "31%"
+        ]
+      },
+      "source": {
+        "schema_version": 1,
+        "request_url": "https://www.ufc.com/athlete/alexander-volkov",
+        "response_url": "https://www.ufc.com/athlete/alexander-volkov",
+        "access_mode": "direct_public_https_curl",
+        "http_status": 200,
+        "fetched_at_utc": "2026-10-19T19:48:17Z",
+        "timestamp_basis": "UTC tool clock read after this complete response was received; timestamps for a parallel batch are shared post-batch observations",
+        "response_path": "data/raw/ufc333-fighter-stats-20261019/alexander-volkov.response",
+        "response_sha256": "b8e09f8b410e371603f871eb3cd6a79b5a07a87d9b851c4a1a81b2dffade042b",
+        "response_bytes": 143918,
+        "headers_path": "data/raw/ufc333-fighter-stats-20261019/alexander-volkov.headers",
+        "headers_sha256": "51da1ff6ac071f14ea7a9d6bf45d9aa177f4e0078b619eab21a3bb61106e9550",
+        "receipt_path": "data/raw/ufc333-fighter-stats-20261019/alexander-volkov.receipt.json",
+        "receipt_sha256": "25303f16307453347591aafdc811c25335b21aef2315fe8e644a52d8280a91e7"
+      },
+      "missing_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "historical_training_eligible": false,
+      "used_in_existing_v4_probability": false,
+      "data_quality_notes": [],
+      "excluded_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "published_source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Moscow, Russia",
+          "Trains at": "Global Fight Gym",
+          "Fighting style": "Brazilian Jiu-Jitsu",
+          "Age": "37",
+          "Height": "79.00",
+          "Weight": "261.50",
+          "Octagon Debut": "Nov. 19, 2016",
+          "Reach": "80.00",
+          "Leg reach": "47.50"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "4.84",
+          "Sig. Str. Absorbed": "2.90",
+          "Takedown avg": "0.54",
+          "Submission avg": "0.22",
+          "Sig. Str. Defense": "54 %",
+          "Takedown Defense": "69 %",
+          "Knockdown Avg": "0.22",
+          "Average fight time": "13:09"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "1336",
+          "Sig. Strikes Attempted": "2305",
+          "Takedowns Landed": "5",
+          "Takedowns Attempted": "16"
+        },
+        "accuracy_charts": [
+          "58%",
+          "31%"
+        ]
+      },
+      "archive_reach_comparison": {
+        "match_basis": "Unique exact fighter name in pinned archive; comparison only, no database identity merge.",
+        "archive_source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+        "archive_manifest_path": "data/raw/ufcstats-archive-20261019/manifest.json",
+        "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "archive_file_sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+        "archive_upstream_fighter_url": "http://ufcstats.com/fighter-details/279566840aa55bf2",
+        "archive_reach_source_display": "80\"",
+        "archive_reach_inches": 80.0,
+        "archive_reach_cm": 203.2,
+        "official_minus_archive_reach_inches": 0.0,
+        "official_minus_archive_reach_cm": 0.0,
+        "agreement": true,
+        "treatment": "Preserve both published measurements and source labels. Do not silently replace the archive training value with the current official profile display."
+      }
+    },
+    {
+      "fighter_id": "wikipedia:80262047",
+      "name": "Rizvan Kuniev",
+      "canonical_name": "Rizvan Kuniev",
+      "official_profile_url": "https://www.ufc.com/athlete/rizvan-kuniev",
+      "official_card_order": 4,
+      "observed_at_utc": "2026-10-19T19:48:17Z",
+      "observation_basis": "current_official_ufc_athlete_profile",
+      "reach_inches": 76.0,
+      "reach_cm": 193.04,
+      "reach_source_display": "76.00",
+      "reach_unit_basis": "Official UFC athlete profile imperial measurement convention; raw bio HTML provides a numeric Reach field without an explicit unit token. Centimeters converted at exactly2.54cm per inch.",
+      "stats": {
+        "significant_strikes_landed_per_minute": 4.32,
+        "significant_strikes_absorbed_per_minute": 2.22,
+        "significant_strike_defense_pct": 49.0,
+        "takedowns_average_per_15_minutes": 0.79,
+        "takedown_defense_pct": 94.0,
+        "submissions_average_per_15_minutes": 0.0,
+        "knockdowns_average_per_15_minutes": 0.52,
+        "average_fight_time_mm_ss": "11:26",
+        "significant_strikes_landed_total": 247,
+        "significant_strikes_attempted_total": 450,
+        "takedowns_landed_total": null,
+        "takedowns_attempted_total": 4,
+        "significant_strike_accuracy_display_pct": 55.0,
+        "takedown_accuracy_display_pct": null
+      },
+      "source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Makhachkala, Dagestan, Russia",
+          "Trains at": "Atletica Sports",
+          "Age": "34",
+          "Height": "76.00",
+          "Weight": "264.50",
+          "Octagon Debut": "Feb. 22, 2025",
+          "Reach": "76.00",
+          "Leg reach": "41.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "4.32",
+          "Sig. Str. Absorbed": "2.22",
+          "Takedown avg": "0.79",
+          "Submission avg": "0.00",
+          "Sig. Str. Defense": "49 %",
+          "Takedown Defense": "94 %",
+          "Knockdown Avg": "0.52",
+          "Average fight time": "11:26"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "247",
+          "Sig. Strikes Attempted": "450",
+          "Takedowns Landed": "",
+          "Takedowns Attempted": "4"
+        },
+        "accuracy_charts": [
+          "55%",
+          "0%"
+        ]
+      },
+      "source": {
+        "schema_version": 1,
+        "request_url": "https://www.ufc.com/athlete/rizvan-kuniev",
+        "response_url": "https://www.ufc.com/athlete/rizvan-kuniev",
+        "access_mode": "direct_public_https_curl",
+        "http_status": 200,
+        "fetched_at_utc": "2026-10-19T19:48:17Z",
+        "timestamp_basis": "UTC tool clock read after this complete response was received; timestamps for a parallel batch are shared post-batch observations",
+        "response_path": "data/raw/ufc333-fighter-stats-20261019/rizvan-kuniev.response",
+        "response_sha256": "1f8669b311b1439f7e08fde34ba76b56be967d87b0a66ad569592ae6fca89a2a",
+        "response_bytes": 132755,
+        "headers_path": "data/raw/ufc333-fighter-stats-20261019/rizvan-kuniev.headers",
+        "headers_sha256": "1ea0adfbf254bdc18bb34710ba58799de76874f5ae727015e15cf66914a7fdc5",
+        "receipt_path": "data/raw/ufc333-fighter-stats-20261019/rizvan-kuniev.receipt.json",
+        "receipt_sha256": "d44a47757fcade70a4160d1f899059858f46d48415f946e963940e29c7b11081"
+      },
+      "missing_stat_fields": [
+        "takedowns_landed_total",
+        "takedown_accuracy_display_pct"
+      ],
+      "historical_training_eligible": false,
+      "used_in_existing_v4_probability": false,
+      "data_quality_notes": [
+        "Official HTML publishes takedown accuracy 0% with an empty Takedowns Landed field, 4 attempts and 0.79 takedowns per 15 minutes. A blank numerator cannot establish zero success. No corrected percentage or count is inferred."
+      ],
+      "excluded_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "published_source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Makhachkala, Dagestan, Russia",
+          "Trains at": "Atletica Sports",
+          "Age": "34",
+          "Height": "76.00",
+          "Weight": "264.50",
+          "Octagon Debut": "Feb. 22, 2025",
+          "Reach": "76.00",
+          "Leg reach": "41.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "4.32",
+          "Sig. Str. Absorbed": "2.22",
+          "Takedown avg": "0.79",
+          "Submission avg": "0.00",
+          "Sig. Str. Defense": "49 %",
+          "Takedown Defense": "94 %",
+          "Knockdown Avg": "0.52",
+          "Average fight time": "11:26"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "247",
+          "Sig. Strikes Attempted": "450",
+          "Takedowns Landed": "",
+          "Takedowns Attempted": "4"
+        },
+        "accuracy_charts": [
+          "55%",
+          "0%"
+        ]
+      },
+      "published_questionable_fields": {
+        "takedown_accuracy_display_pct": 0.0,
+        "takedowns_landed_total": null,
+        "takedowns_attempted_total": 4
+      },
+      "archive_reach_comparison": {
+        "match_basis": "Unique exact fighter name in pinned archive; comparison only, no database identity merge.",
+        "archive_source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+        "archive_manifest_path": "data/raw/ufcstats-archive-20261019/manifest.json",
+        "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "archive_file_sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+        "archive_upstream_fighter_url": "http://ufcstats.com/fighter-details/739fd4fbb5d862f4",
+        "archive_reach_source_display": "76\"",
+        "archive_reach_inches": 76.0,
+        "archive_reach_cm": 193.04,
+        "official_minus_archive_reach_inches": 0.0,
+        "official_minus_archive_reach_cm": 0.0,
+        "agreement": true,
+        "treatment": "Preserve both published measurements and source labels. Do not silently replace the archive training value with the current official profile display."
+      }
+    },
+    {
+      "fighter_id": "wikipedia:44843191",
+      "name": "Aaron Pico",
+      "canonical_name": "Aaron Pico",
+      "official_profile_url": "https://www.ufc.com/athlete/aaron-pico",
+      "official_card_order": 5,
+      "observed_at_utc": "2026-10-19T19:48:17Z",
+      "observation_basis": "current_official_ufc_athlete_profile",
+      "reach_inches": 70.5,
+      "reach_cm": 179.07,
+      "reach_source_display": "70.50",
+      "reach_unit_basis": "Official UFC athlete profile imperial measurement convention; raw bio HTML provides a numeric Reach field without an explicit unit token. Centimeters converted at exactly2.54cm per inch.",
+      "stats": {
+        "significant_strikes_landed_per_minute": 6.16,
+        "significant_strikes_absorbed_per_minute": 3.11,
+        "significant_strike_defense_pct": 45.0,
+        "takedowns_average_per_15_minutes": 6.54,
+        "takedown_defense_pct": null,
+        "submissions_average_per_15_minutes": 0.0,
+        "knockdowns_average_per_15_minutes": 0.0,
+        "average_fight_time_mm_ss": "09:11",
+        "significant_strikes_landed_total": 113,
+        "significant_strikes_attempted_total": 210,
+        "takedowns_landed_total": 2,
+        "takedowns_attempted_total": 16,
+        "significant_strike_accuracy_display_pct": 54.0,
+        "takedown_accuracy_display_pct": null
+      },
+      "source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Whittier, United States",
+          "Trains at": "Jackson Wink MMA Academy - NM",
+          "Fighting style": "Boxing",
+          "Age": "29",
+          "Height": "68.00",
+          "Weight": "145.00",
+          "Octagon Debut": "Jul. 26, 2025",
+          "Reach": "70.50"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "6.16",
+          "Sig. Str. Absorbed": "3.11",
+          "Takedown avg": "6.54",
+          "Submission avg": "0.00",
+          "Sig. Str. Defense": "45 %",
+          "Takedown Defense": null,
+          "Knockdown Avg": "0.00",
+          "Average fight time": "09:11"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "113",
+          "Sig. Strikes Attempted": "210",
+          "Takedowns Landed": "2",
+          "Takedowns Attempted": "16"
+        },
+        "accuracy_charts": [
+          "54%",
+          "13%"
+        ]
+      },
+      "source": {
+        "schema_version": 1,
+        "request_url": "https://www.ufc.com/athlete/aaron-pico",
+        "response_url": "https://www.ufc.com/athlete/aaron-pico",
+        "access_mode": "direct_public_https_curl",
+        "http_status": 200,
+        "fetched_at_utc": "2026-10-19T19:48:17Z",
+        "timestamp_basis": "UTC tool clock read after this complete response was received; timestamps for a parallel batch are shared post-batch observations",
+        "response_path": "data/raw/ufc333-fighter-stats-20261019/aaron-pico.response",
+        "response_sha256": "82add15168f1e3cb6f65dba45683cac9494040ee6c9b6b759fdb7d40525b23bf",
+        "response_bytes": 133591,
+        "headers_path": "data/raw/ufc333-fighter-stats-20261019/aaron-pico.headers",
+        "headers_sha256": "4d73f8090cef74358c8162d795c6bfaad124022e122358e72fd181978a64becd",
+        "receipt_path": "data/raw/ufc333-fighter-stats-20261019/aaron-pico.receipt.json",
+        "receipt_sha256": "83d4b9f556e64e5a39a343d9054843170afd9f9f5967be1ed3a099ea0c1a465c"
+      },
+      "missing_stat_fields": [
+        "takedown_defense_pct",
+        "takedown_accuracy_display_pct"
+      ],
+      "historical_training_eligible": false,
+      "used_in_existing_v4_probability": false,
+      "data_quality_notes": [],
+      "excluded_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "published_source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Whittier, United States",
+          "Trains at": "Jackson Wink MMA Academy - NM",
+          "Fighting style": "Boxing",
+          "Age": "29",
+          "Height": "68.00",
+          "Weight": "145.00",
+          "Octagon Debut": "Jul. 26, 2025",
+          "Reach": "70.50"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "6.16",
+          "Sig. Str. Absorbed": "3.11",
+          "Takedown avg": "6.54",
+          "Submission avg": "0.00",
+          "Sig. Str. Defense": "45 %",
+          "Takedown Defense": null,
+          "Knockdown Avg": "0.00",
+          "Average fight time": "09:11"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "113",
+          "Sig. Strikes Attempted": "210",
+          "Takedowns Landed": "2",
+          "Takedowns Attempted": "16"
+        },
+        "accuracy_charts": [
+          "54%",
+          "13%"
+        ]
+      },
+      "archive_reach_comparison": {
+        "match_basis": "Unique exact fighter name in pinned archive; comparison only, no database identity merge.",
+        "archive_source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+        "archive_manifest_path": "data/raw/ufcstats-archive-20261019/manifest.json",
+        "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "archive_file_sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+        "archive_upstream_fighter_url": "http://ufcstats.com/fighter-details/5537efc6e496dd84",
+        "archive_reach_source_display": "70\"",
+        "archive_reach_inches": 70.0,
+        "archive_reach_cm": 177.8,
+        "official_minus_archive_reach_inches": 0.5,
+        "official_minus_archive_reach_cm": 1.27,
+        "agreement": false,
+        "treatment": "Preserve both published measurements and source labels. Do not silently replace the archive training value with the current official profile display."
+      }
+    },
+    {
+      "fighter_id": "wikipedia:78757319",
+      "name": "Losene Keita",
+      "canonical_name": "Losene Keita",
+      "official_profile_url": "https://www.ufc.com/athlete/losene-keita",
+      "official_card_order": 5,
+      "observed_at_utc": "2026-10-19T19:48:17Z",
+      "observation_basis": "current_official_ufc_athlete_profile",
+      "reach_inches": 71.5,
+      "reach_cm": 181.61,
+      "reach_source_display": "71.50",
+      "reach_unit_basis": "Official UFC athlete profile imperial measurement convention; raw bio HTML provides a numeric Reach field without an explicit unit token. Centimeters converted at exactly2.54cm per inch.",
+      "stats": {
+        "significant_strikes_landed_per_minute": 3.91,
+        "significant_strikes_absorbed_per_minute": 3.97,
+        "significant_strike_defense_pct": 65.0,
+        "takedowns_average_per_15_minutes": 0.0,
+        "takedown_defense_pct": 100.0,
+        "submissions_average_per_15_minutes": 0.0,
+        "knockdowns_average_per_15_minutes": 1.68,
+        "average_fight_time_mm_ss": "08:57",
+        "significant_strikes_landed_total": 70,
+        "significant_strikes_attempted_total": 149,
+        "takedowns_landed_total": null,
+        "takedowns_attempted_total": null,
+        "significant_strike_accuracy_display_pct": 47.0,
+        "takedown_accuracy_display_pct": null
+      },
+      "source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Guinea",
+          "Trains at": "Lamiro Fight Club",
+          "Fighting style": "MMA",
+          "Age": "28",
+          "Height": "69.00",
+          "Weight": "149.00",
+          "Octagon Debut": "Sep. 6, 2025",
+          "Reach": "71.50",
+          "Leg reach": "42.50"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "3.91",
+          "Sig. Str. Absorbed": "3.97",
+          "Takedown avg": "0.00",
+          "Submission avg": "0.00",
+          "Sig. Str. Defense": "65 %",
+          "Takedown Defense": "100 %",
+          "Knockdown Avg": "1.68",
+          "Average fight time": "08:57"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "70",
+          "Sig. Strikes Attempted": "149"
+        },
+        "accuracy_charts": [
+          "47%"
+        ]
+      },
+      "source": {
+        "schema_version": 1,
+        "request_url": "https://www.ufc.com/athlete/losene-keita",
+        "response_url": "https://www.ufc.com/athlete/losene-keita",
+        "access_mode": "direct_public_https_curl",
+        "http_status": 200,
+        "fetched_at_utc": "2026-10-19T19:48:17Z",
+        "timestamp_basis": "UTC tool clock read after this complete response was received; timestamps for a parallel batch are shared post-batch observations",
+        "response_path": "data/raw/ufc333-fighter-stats-20261019/losene-keita.response",
+        "response_sha256": "472594032d3a02ba5873a08b803600ece5d5111eef4833ee25494e29d60abee3",
+        "response_bytes": 120957,
+        "headers_path": "data/raw/ufc333-fighter-stats-20261019/losene-keita.headers",
+        "headers_sha256": "11266e0cf816a5c116be05e19c8bd3474fe9e76959a24b660dc8633fc52760c1",
+        "receipt_path": "data/raw/ufc333-fighter-stats-20261019/losene-keita.receipt.json",
+        "receipt_sha256": "c88c671284e82775c92b6518f0025ba494434b4e2f7c5d20ce4cfddf3ca30d54"
+      },
+      "missing_stat_fields": [
+        "takedowns_landed_total",
+        "takedowns_attempted_total",
+        "takedown_accuracy_display_pct"
+      ],
+      "historical_training_eligible": false,
+      "used_in_existing_v4_probability": false,
+      "data_quality_notes": [],
+      "excluded_stat_fields": [],
+      "published_source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Guinea",
+          "Trains at": "Lamiro Fight Club",
+          "Fighting style": "MMA",
+          "Age": "28",
+          "Height": "69.00",
+          "Weight": "149.00",
+          "Octagon Debut": "Sep. 6, 2025",
+          "Reach": "71.50",
+          "Leg reach": "42.50"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "3.91",
+          "Sig. Str. Absorbed": "3.97",
+          "Takedown avg": "0.00",
+          "Submission avg": "0.00",
+          "Sig. Str. Defense": "65 %",
+          "Takedown Defense": "100 %",
+          "Knockdown Avg": "1.68",
+          "Average fight time": "08:57"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "70",
+          "Sig. Strikes Attempted": "149"
+        },
+        "accuracy_charts": [
+          "47%"
+        ]
+      },
+      "archive_reach_comparison": {
+        "match_basis": "Unique exact fighter name in pinned archive; comparison only, no database identity merge.",
+        "archive_source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+        "archive_manifest_path": "data/raw/ufcstats-archive-20261019/manifest.json",
+        "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "archive_file_sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+        "archive_upstream_fighter_url": "http://ufcstats.com/fighter-details/5b43d68174b6e2ab",
+        "archive_reach_source_display": "72\"",
+        "archive_reach_inches": 72.0,
+        "archive_reach_cm": 182.88,
+        "official_minus_archive_reach_inches": -0.5,
+        "official_minus_archive_reach_cm": -1.27,
+        "agreement": false,
+        "treatment": "Preserve both published measurements and source labels. Do not silently replace the archive training value with the current official profile display."
+      }
+    },
+    {
+      "fighter_id": "wikipedia:56012507",
+      "name": "Azamat Murzakanov",
+      "canonical_name": "Azamat Murzakanov",
+      "official_profile_url": "https://www.ufc.com/athlete/azamat-murzakanov",
+      "official_card_order": 6,
+      "observed_at_utc": "2026-10-19T19:48:17Z",
+      "observation_basis": "current_official_ufc_athlete_profile",
+      "reach_inches": 71.5,
+      "reach_cm": 181.61,
+      "reach_source_display": "71.50",
+      "reach_unit_basis": "Official UFC athlete profile imperial measurement convention; raw bio HTML provides a numeric Reach field without an explicit unit token. Centimeters converted at exactly2.54cm per inch.",
+      "stats": {
+        "significant_strikes_landed_per_minute": 4.4,
+        "significant_strikes_absorbed_per_minute": 3.2,
+        "significant_strike_defense_pct": 56.0,
+        "takedowns_average_per_15_minutes": 0.68,
+        "takedown_defense_pct": 89.0,
+        "submissions_average_per_15_minutes": 0.23,
+        "knockdowns_average_per_15_minutes": 1.58,
+        "average_fight_time_mm_ss": "08:17",
+        "significant_strikes_landed_total": 292,
+        "significant_strikes_attempted_total": 518,
+        "takedowns_landed_total": 1,
+        "takedowns_attempted_total": 15,
+        "significant_strike_accuracy_display_pct": 56.0,
+        "takedown_accuracy_display_pct": null
+      },
+      "source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Nalchik, Russia",
+          "Trains at": "K Dojo Warrior Tribe",
+          "Fighting style": "MMA",
+          "Age": "37",
+          "Height": "70.00",
+          "Weight": "205.50",
+          "Octagon Debut": "Nov. 20, 2021",
+          "Reach": "71.50",
+          "Leg reach": "41.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "4.40",
+          "Sig. Str. Absorbed": "3.20",
+          "Takedown avg": "0.68",
+          "Submission avg": "0.23",
+          "Sig. Str. Defense": "56 %",
+          "Takedown Defense": "89 %",
+          "Knockdown Avg": "1.58",
+          "Average fight time": "08:17"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "292",
+          "Sig. Strikes Attempted": "518",
+          "Takedowns Landed": "1",
+          "Takedowns Attempted": "15"
+        },
+        "accuracy_charts": [
+          "56%",
+          "7%"
+        ]
+      },
+      "source": {
+        "schema_version": 1,
+        "request_url": "https://www.ufc.com/athlete/azamat-murzakanov",
+        "response_url": "https://www.ufc.com/athlete/azamat-murzakanov",
+        "access_mode": "direct_public_https_curl",
+        "http_status": 200,
+        "fetched_at_utc": "2026-10-19T19:48:17Z",
+        "timestamp_basis": "UTC tool clock read after this complete response was received; timestamps for a parallel batch are shared post-batch observations",
+        "response_path": "data/raw/ufc333-fighter-stats-20261019/azamat-murzakanov.response",
+        "response_sha256": "1ca6ed2c5b18ce5e4af2819fcd6f63c300c338c430b0144c61710b28106c9751",
+        "response_bytes": 139620,
+        "headers_path": "data/raw/ufc333-fighter-stats-20261019/azamat-murzakanov.headers",
+        "headers_sha256": "6cf6624c6a868b0d1224f8fa648848307e73939b691ddfdf5f91887fb91bbcf9",
+        "receipt_path": "data/raw/ufc333-fighter-stats-20261019/azamat-murzakanov.receipt.json",
+        "receipt_sha256": "20cb4ef9131206b8e67a52ca44808aebbf1310d018b754d87041afeebde09e0f"
+      },
+      "missing_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "historical_training_eligible": false,
+      "used_in_existing_v4_probability": false,
+      "data_quality_notes": [],
+      "excluded_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "published_source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Nalchik, Russia",
+          "Trains at": "K Dojo Warrior Tribe",
+          "Fighting style": "MMA",
+          "Age": "37",
+          "Height": "70.00",
+          "Weight": "205.50",
+          "Octagon Debut": "Nov. 20, 2021",
+          "Reach": "71.50",
+          "Leg reach": "41.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "4.40",
+          "Sig. Str. Absorbed": "3.20",
+          "Takedown avg": "0.68",
+          "Submission avg": "0.23",
+          "Sig. Str. Defense": "56 %",
+          "Takedown Defense": "89 %",
+          "Knockdown Avg": "1.58",
+          "Average fight time": "08:17"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "292",
+          "Sig. Strikes Attempted": "518",
+          "Takedowns Landed": "1",
+          "Takedowns Attempted": "15"
+        },
+        "accuracy_charts": [
+          "56%",
+          "7%"
+        ]
+      },
+      "archive_reach_comparison": {
+        "match_basis": "Unique exact fighter name in pinned archive; comparison only, no database identity merge.",
+        "archive_source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+        "archive_manifest_path": "data/raw/ufcstats-archive-20261019/manifest.json",
+        "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "archive_file_sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+        "archive_upstream_fighter_url": "http://ufcstats.com/fighter-details/e90a2f22417af68e",
+        "archive_reach_source_display": "71\"",
+        "archive_reach_inches": 71.0,
+        "archive_reach_cm": 180.34,
+        "official_minus_archive_reach_inches": 0.5,
+        "official_minus_archive_reach_cm": 1.27,
+        "agreement": false,
+        "treatment": "Preserve both published measurements and source labels. Do not silently replace the archive training value with the current official profile display."
+      }
+    },
+    {
+      "fighter_id": "wikipedia:54278252",
+      "name": "Dominick Reyes",
+      "canonical_name": "Dominick Reyes",
+      "official_profile_url": "https://www.ufc.com/athlete/dominick-reyes",
+      "official_card_order": 6,
+      "observed_at_utc": "2026-10-19T19:48:17Z",
+      "observation_basis": "current_official_ufc_athlete_profile",
+      "reach_inches": 77.0,
+      "reach_cm": 195.58,
+      "reach_source_display": "77.00",
+      "reach_unit_basis": "Official UFC athlete profile imperial measurement convention; raw bio HTML provides a numeric Reach field without an explicit unit token. Centimeters converted at exactly2.54cm per inch.",
+      "stats": {
+        "significant_strikes_landed_per_minute": 4.99,
+        "significant_strikes_absorbed_per_minute": 3.4,
+        "significant_strike_defense_pct": 50.0,
+        "takedowns_average_per_15_minutes": 0.25,
+        "takedown_defense_pct": 83.0,
+        "submissions_average_per_15_minutes": 0.25,
+        "knockdowns_average_per_15_minutes": 0.89,
+        "average_fight_time_mm_ss": "07:51",
+        "significant_strikes_landed_total": 588,
+        "significant_strikes_attempted_total": 1096,
+        "takedowns_landed_total": 1,
+        "takedowns_attempted_total": 7,
+        "significant_strike_accuracy_display_pct": 54.0,
+        "takedown_accuracy_display_pct": null
+      },
+      "source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Apple Valley, United States",
+          "Trains at": "Cobra Kai Victorville",
+          "Fighting style": "Kickboxer",
+          "Age": "36",
+          "Height": "76.00",
+          "Weight": "206.00",
+          "Octagon Debut": "Jun. 26, 2017",
+          "Reach": "77.00",
+          "Leg reach": "43.50"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "4.99",
+          "Sig. Str. Absorbed": "3.40",
+          "Takedown avg": "0.25",
+          "Submission avg": "0.25",
+          "Sig. Str. Defense": "50 %",
+          "Takedown Defense": "83 %",
+          "Knockdown Avg": "0.89",
+          "Average fight time": "07:51"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "588",
+          "Sig. Strikes Attempted": "1096",
+          "Takedowns Landed": "1",
+          "Takedowns Attempted": "7"
+        },
+        "accuracy_charts": [
+          "54%",
+          "14%"
+        ]
+      },
+      "source": {
+        "schema_version": 1,
+        "request_url": "https://www.ufc.com/athlete/dominick-reyes",
+        "response_url": "https://www.ufc.com/athlete/dominick-reyes",
+        "access_mode": "direct_public_https_curl",
+        "http_status": 200,
+        "fetched_at_utc": "2026-10-19T19:48:17Z",
+        "timestamp_basis": "UTC tool clock read after this complete response was received; timestamps for a parallel batch are shared post-batch observations",
+        "response_path": "data/raw/ufc333-fighter-stats-20261019/dominick-reyes.response",
+        "response_sha256": "1a4351a935b9ff88185b5b0ea0b81e9d3afa251c8b8850e94a4275ca11fa6437",
+        "response_bytes": 141270,
+        "headers_path": "data/raw/ufc333-fighter-stats-20261019/dominick-reyes.headers",
+        "headers_sha256": "b37dcb8020befa181626bf27698be7a70fe88c3164f55c760853129a902800a5",
+        "receipt_path": "data/raw/ufc333-fighter-stats-20261019/dominick-reyes.receipt.json",
+        "receipt_sha256": "b20c47e79ce2ff21863c7180469a33434115798198e8287994483c47795547f8"
+      },
+      "missing_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "historical_training_eligible": false,
+      "used_in_existing_v4_probability": false,
+      "data_quality_notes": [],
+      "excluded_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "published_source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Apple Valley, United States",
+          "Trains at": "Cobra Kai Victorville",
+          "Fighting style": "Kickboxer",
+          "Age": "36",
+          "Height": "76.00",
+          "Weight": "206.00",
+          "Octagon Debut": "Jun. 26, 2017",
+          "Reach": "77.00",
+          "Leg reach": "43.50"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "4.99",
+          "Sig. Str. Absorbed": "3.40",
+          "Takedown avg": "0.25",
+          "Submission avg": "0.25",
+          "Sig. Str. Defense": "50 %",
+          "Takedown Defense": "83 %",
+          "Knockdown Avg": "0.89",
+          "Average fight time": "07:51"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "588",
+          "Sig. Strikes Attempted": "1096",
+          "Takedowns Landed": "1",
+          "Takedowns Attempted": "7"
+        },
+        "accuracy_charts": [
+          "54%",
+          "14%"
+        ]
+      },
+      "archive_reach_comparison": {
+        "match_basis": "Unique exact fighter name in pinned archive; comparison only, no database identity merge.",
+        "archive_source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+        "archive_manifest_path": "data/raw/ufcstats-archive-20261019/manifest.json",
+        "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "archive_file_sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+        "archive_upstream_fighter_url": "http://ufcstats.com/fighter-details/2e19380f34871c6a",
+        "archive_reach_source_display": "77\"",
+        "archive_reach_inches": 77.0,
+        "archive_reach_cm": 195.58,
+        "official_minus_archive_reach_inches": 0.0,
+        "official_minus_archive_reach_cm": 0.0,
+        "agreement": true,
+        "treatment": "Preserve both published measurements and source labels. Do not silently replace the archive training value with the current official profile display."
+      }
+    },
+    {
+      "fighter_id": "wikipedia:63260298",
+      "name": "Grant Dawson",
+      "canonical_name": "Grant Dawson",
+      "official_profile_url": "https://www.ufc.com/athlete/grant-dawson",
+      "official_card_order": 9,
+      "observed_at_utc": "2026-10-19T19:48:47Z",
+      "observation_basis": "current_official_ufc_athlete_profile",
+      "reach_inches": 72.0,
+      "reach_cm": 182.88,
+      "reach_source_display": "72.00",
+      "reach_unit_basis": "Official UFC athlete profile imperial measurement convention; raw bio HTML provides a numeric Reach field without an explicit unit token. Centimeters converted at exactly2.54cm per inch.",
+      "stats": {
+        "significant_strikes_landed_per_minute": 3.14,
+        "significant_strikes_absorbed_per_minute": 2.14,
+        "significant_strike_defense_pct": 45.0,
+        "takedowns_average_per_15_minutes": 3.58,
+        "takedown_defense_pct": 67.0,
+        "submissions_average_per_15_minutes": 1.36,
+        "knockdowns_average_per_15_minutes": 0.09,
+        "average_fight_time_mm_ss": "11:00",
+        "significant_strikes_landed_total": 552,
+        "significant_strikes_attempted_total": 1081,
+        "takedowns_landed_total": null,
+        "takedowns_attempted_total": 106,
+        "significant_strike_accuracy_display_pct": 51.0,
+        "takedown_accuracy_display_pct": null
+      },
+      "source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Cambria, United States",
+          "Trains at": "American Top Team",
+          "Age": "32",
+          "Height": "70.00",
+          "Weight": "156.00",
+          "Octagon Debut": "Aug. 15, 2017",
+          "Reach": "72.00",
+          "Leg reach": "40.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "3.14",
+          "Sig. Str. Absorbed": "2.14",
+          "Takedown avg": "3.58",
+          "Submission avg": "1.36",
+          "Sig. Str. Defense": "45 %",
+          "Takedown Defense": "67 %",
+          "Knockdown Avg": "0.09",
+          "Average fight time": "11:00"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "552",
+          "Sig. Strikes Attempted": "1081",
+          "Takedowns Landed": "",
+          "Takedowns Attempted": "106"
+        },
+        "accuracy_charts": [
+          "51%",
+          "0%"
+        ]
+      },
+      "source": {
+        "schema_version": 1,
+        "request_url": "https://www.ufc.com/athlete/grant-dawson",
+        "response_url": "https://www.ufc.com/athlete/grant-dawson",
+        "access_mode": "direct_public_https_curl",
+        "http_status": 200,
+        "fetched_at_utc": "2026-10-19T19:48:47Z",
+        "timestamp_basis": "UTC tool clock read after this complete response was received; timestamps for a parallel batch are shared post-batch observations",
+        "response_path": "data/raw/ufc333-fighter-stats-20261019/grant-dawson.response",
+        "response_sha256": "37170c41f7d528a0ae50c7ea6e1dfb4117c0bad30cb03b628e1efd348e57e0f6",
+        "response_bytes": 140934,
+        "headers_path": "data/raw/ufc333-fighter-stats-20261019/grant-dawson-retry.headers",
+        "headers_sha256": "185bf8a7ae5db6999490633fb070b1ad3e567a96de97618a64512d4d19f6212d",
+        "receipt_path": "data/raw/ufc333-fighter-stats-20261019/grant-dawson.receipt.json",
+        "receipt_sha256": "b9bedd051686077a39460273197051ccfd03a91568a2caf5abc98bed1b9f6c3b"
+      },
+      "missing_stat_fields": [
+        "takedowns_landed_total",
+        "takedown_accuracy_display_pct"
+      ],
+      "historical_training_eligible": false,
+      "used_in_existing_v4_probability": false,
+      "data_quality_notes": [
+        "Official HTML publishes takedown accuracy 0% with an empty Takedowns Landed field, 106 attempts and 3.58 takedowns per 15 minutes. A blank numerator cannot establish zero success. No corrected percentage or count is inferred."
+      ],
+      "excluded_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "published_source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Cambria, United States",
+          "Trains at": "American Top Team",
+          "Age": "32",
+          "Height": "70.00",
+          "Weight": "156.00",
+          "Octagon Debut": "Aug. 15, 2017",
+          "Reach": "72.00",
+          "Leg reach": "40.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "3.14",
+          "Sig. Str. Absorbed": "2.14",
+          "Takedown avg": "3.58",
+          "Submission avg": "1.36",
+          "Sig. Str. Defense": "45 %",
+          "Takedown Defense": "67 %",
+          "Knockdown Avg": "0.09",
+          "Average fight time": "11:00"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "552",
+          "Sig. Strikes Attempted": "1081",
+          "Takedowns Landed": "",
+          "Takedowns Attempted": "106"
+        },
+        "accuracy_charts": [
+          "51%",
+          "0%"
+        ]
+      },
+      "published_questionable_fields": {
+        "takedown_accuracy_display_pct": 0.0,
+        "takedowns_landed_total": null,
+        "takedowns_attempted_total": 106
+      },
+      "archive_reach_comparison": {
+        "match_basis": "Unique exact fighter name in pinned archive; comparison only, no database identity merge.",
+        "archive_source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+        "archive_manifest_path": "data/raw/ufcstats-archive-20261019/manifest.json",
+        "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "archive_file_sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+        "archive_upstream_fighter_url": "http://ufcstats.com/fighter-details/99bd51917728c25d",
+        "archive_reach_source_display": "72\"",
+        "archive_reach_inches": 72.0,
+        "archive_reach_cm": 182.88,
+        "official_minus_archive_reach_inches": 0.0,
+        "official_minus_archive_reach_cm": 0.0,
+        "agreement": true,
+        "treatment": "Preserve both published measurements and source labels. Do not silently replace the archive training value with the current official profile display."
+      }
+    },
+    {
+      "fighter_id": "wikipedia:83479208",
+      "name": "Nurullo Aliev",
+      "canonical_name": "Nurullo Aliev",
+      "official_profile_url": "https://www.ufc.com/athlete/nurullo-aliev",
+      "official_card_order": 9,
+      "observed_at_utc": "2026-10-19T19:48:40Z",
+      "observation_basis": "current_official_ufc_athlete_profile",
+      "reach_inches": 72.0,
+      "reach_cm": 182.88,
+      "reach_source_display": "72.00",
+      "reach_unit_basis": "Official UFC athlete profile imperial measurement convention; raw bio HTML provides a numeric Reach field without an explicit unit token. Centimeters converted at exactly2.54cm per inch.",
+      "stats": {
+        "significant_strikes_landed_per_minute": 2.29,
+        "significant_strikes_absorbed_per_minute": 1.59,
+        "significant_strike_defense_pct": 55.0,
+        "takedowns_average_per_15_minutes": 3.48,
+        "takedown_defense_pct": 80.0,
+        "submissions_average_per_15_minutes": 0.46,
+        "knockdowns_average_per_15_minutes": 0.0,
+        "average_fight_time_mm_ss": "12:55",
+        "significant_strikes_landed_total": 148,
+        "significant_strikes_attempted_total": 335,
+        "takedowns_landed_total": 3,
+        "takedowns_attempted_total": 29,
+        "significant_strike_accuracy_display_pct": 44.0,
+        "takedown_accuracy_display_pct": null
+      },
+      "source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Dushanbe, Tajikistan",
+          "Fighting style": "Wrestling",
+          "Age": "25",
+          "Height": "70.00",
+          "Weight": "155.00",
+          "Octagon Debut": "Feb. 25, 2023",
+          "Reach": "72.00",
+          "Leg reach": "38.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "2.29",
+          "Sig. Str. Absorbed": "1.59",
+          "Takedown avg": "3.48",
+          "Submission avg": "0.46",
+          "Sig. Str. Defense": "55 %",
+          "Takedown Defense": "80 %",
+          "Knockdown Avg": "0.00",
+          "Average fight time": "12:55"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "148",
+          "Sig. Strikes Attempted": "335",
+          "Takedowns Landed": "3",
+          "Takedowns Attempted": "29"
+        },
+        "accuracy_charts": [
+          "44%",
+          "10%"
+        ]
+      },
+      "source": {
+        "schema_version": 1,
+        "request_url": "https://www.ufc.com/athlete/nurullo-aliev",
+        "response_url": "https://www.ufc.com/athlete/nurullo-aliev",
+        "access_mode": "direct_public_https_curl",
+        "http_status": 200,
+        "fetched_at_utc": "2026-10-19T19:48:40Z",
+        "timestamp_basis": "UTC tool clock read after this complete response was received; timestamps for a parallel batch are shared post-batch observations",
+        "response_path": "data/raw/ufc333-fighter-stats-20261019/nurullo-aliev.response",
+        "response_sha256": "31ac3fd1f651c122c78c54f5289caf1326966e94d6939e999cb986f56f11b982",
+        "response_bytes": 131517,
+        "headers_path": "data/raw/ufc333-fighter-stats-20261019/nurullo-aliev.headers",
+        "headers_sha256": "77b2ba4a512cb8190ba1afd2631c552909e01605302d26f75d364bbabd13c8dd",
+        "receipt_path": "data/raw/ufc333-fighter-stats-20261019/nurullo-aliev.receipt.json",
+        "receipt_sha256": "80053a8626d8ca12cdcc266221630f0a397ff4628fe107cd0bbd1254c6ae5d27"
+      },
+      "missing_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "historical_training_eligible": false,
+      "used_in_existing_v4_probability": false,
+      "data_quality_notes": [],
+      "excluded_stat_fields": [
+        "takedown_accuracy_display_pct"
+      ],
+      "published_source_display": {
+        "bio": {
+          "Status": "Active",
+          "Place of Birth": "Dushanbe, Tajikistan",
+          "Fighting style": "Wrestling",
+          "Age": "25",
+          "Height": "70.00",
+          "Weight": "155.00",
+          "Octagon Debut": "Feb. 25, 2023",
+          "Reach": "72.00",
+          "Leg reach": "38.00"
+        },
+        "rate_panels": {
+          "Sig. Str. Landed": "2.29",
+          "Sig. Str. Absorbed": "1.59",
+          "Takedown avg": "3.48",
+          "Submission avg": "0.46",
+          "Sig. Str. Defense": "55 %",
+          "Takedown Defense": "80 %",
+          "Knockdown Avg": "0.00",
+          "Average fight time": "12:55"
+        },
+        "count_panels": {
+          "Sig. Strikes Landed": "148",
+          "Sig. Strikes Attempted": "335",
+          "Takedowns Landed": "3",
+          "Takedowns Attempted": "29"
+        },
+        "accuracy_charts": [
+          "44%",
+          "10%"
+        ]
+      },
+      "archive_reach_comparison": {
+        "match_basis": "Unique exact fighter name in pinned archive; comparison only, no database identity merge.",
+        "archive_source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+        "archive_manifest_path": "data/raw/ufcstats-archive-20261019/manifest.json",
+        "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "archive_file_sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+        "archive_upstream_fighter_url": "http://ufcstats.com/fighter-details/ca28cdf526d6b6e9",
+        "archive_reach_source_display": "72\"",
+        "archive_reach_inches": 72.0,
+        "archive_reach_cm": 182.88,
+        "official_minus_archive_reach_inches": 0.0,
+        "official_minus_archive_reach_cm": 0.0,
+        "agreement": true,
+        "treatment": "Preserve both published measurements and source labels. Do not silently replace the archive training value with the current official profile display."
+      }
+    }
+  ],
+  "source_attempts": [
+    {
+      "request_url": "https://ufcstats.com/statistics/fighters?char=v&page=all",
+      "access_mode": "direct_public_https_curl",
+      "http_status": null,
+      "fetched_at_utc": "2026-10-19T19:48:57Z",
+      "curl_exit_code": 7,
+      "reason": "Could not connect to UFCStats port443; no response body obtained."
+    },
+    {
+      "request_url": "http://ufcstats.com/statistics/fighters?char=v&page=all",
+      "access_mode": "direct_public_http_curl",
+      "http_status": 200,
+      "fetched_at_utc": "2026-10-19T19:49:05Z",
+      "response_path": "data/raw/ufc333-fighter-stats-20261019/ufcstats-http-v-index.response",
+      "response_sha256": "23e75a7b0dc515804b06bda3b8c9a25a8a9fdcd1c3c8a71ca7f90152f94a65a0",
+      "response_bytes": 2998,
+      "data_available": false,
+      "reason": "Explicit JavaScript Checking your browser challenge; no fighter directory or fight statistics obtained. Challenge was not bypassed."
+    },
+    {
+      "request_url": "https://www.ufc.com/athlete/grant-dawson",
+      "fetched_at_utc": "2026-10-19T19:48:40Z",
+      "curl_exit_code": 28,
+      "reason": "First attempt timed out with no bytes; a regular retry succeeded and is separately retained."
+    }
+  ],
+  "limitations": [
+    "All data were actually observed October19,2026. These aggregates are suitable for current matchup context and cannot reconstruct what was available before historical fights.",
+    "Existing v4 was fitted without this reach/stat source; merely adding visible source facts does not make its probabilities use these statistics.",
+    "Historical model enrichment needs dated per-fight paired landed/attempted observations, stable identity/bout mapping and a new frozen evaluation. No current career average is backfilled as a historical feature.",
+    "Publisher total and rate panels are retained as separately reported fields; common coverage and exact cross-panel reconciliation are not assumed.",
+    "Aaron Pico takedown defense is absent from the captured official source, and stays null.",
+    "Official takedown accuracy chart percentages are omitted from normalized report facts. Exact published panels are retained for source audit; other current statistics are reported as supplied and do not establish common cross-panel coverage.",
+    "Current official reach and pinned UFCStats mirror reach differ by half an inch for five fighters. Both measurements are retained separately; any model uses its declared archive source and must not silently overwrite one with the other."
+  ],
+  "data_quality_notes": [
+    "Normalized takedown accuracy display is omitted for all12fighters because the official chart/count panels include incomplete or materially discordant values for5fighters and their common coverage is undocumented. The11published percentages and the1absent value remain exactly preserved under published_source_display; raw source files and receipts are unchanged. Other statistics remain source-reported descriptive context. No corrected percentages, takedown counts or historical inputs are inferred."
+  ],
+  "reach_source_discrepancies": [
+    {
+      "fighter_id": "wikipedia:54197580",
+      "name": "Alexander Volkanovski",
+      "official_reach_inches": 71.5,
+      "archive_reach_inches": 71.0,
+      "difference_cm": 1.27
+    },
+    {
+      "fighter_id": "wikipedia:64594369",
+      "name": "Movsar Evloev",
+      "official_reach_inches": 72.5,
+      "archive_reach_inches": 72.0,
+      "difference_cm": 1.27
+    },
+    {
+      "fighter_id": "wikipedia:44843191",
+      "name": "Aaron Pico",
+      "official_reach_inches": 70.5,
+      "archive_reach_inches": 70.0,
+      "difference_cm": 1.27
+    },
+    {
+      "fighter_id": "wikipedia:78757319",
+      "name": "Losene Keita",
+      "official_reach_inches": 71.5,
+      "archive_reach_inches": 72.0,
+      "difference_cm": -1.27
+    },
+    {
+      "fighter_id": "wikipedia:56012507",
+      "name": "Azamat Murzakanov",
+      "official_reach_inches": 71.5,
+      "archive_reach_inches": 71.0,
+      "difference_cm": 1.27
+    }
+  ]
+}

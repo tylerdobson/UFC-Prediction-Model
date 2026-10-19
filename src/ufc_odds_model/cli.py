@@ -155,7 +155,11 @@ def make_parser() -> argparse.ArgumentParser:
     scoring.add_argument("--model", choices=["elo", "logistic"], default="elo")
     scoring.add_argument("--model-dir", default="models")
     scoring.add_argument("--max-market-disagreement",type=float,default=.10)
-    scoring.add_argument('--training-history',help='Read-only complete research DB for explicitly labelled v3 forecasts; requires --model logistic')
+    scoring.add_argument('--training-history',help='Read-only research history; requires --model logistic')
+    scoring.add_argument('--statistics-db', help='Opt into the evaluated all-card statistics model')
+    scoring.add_argument('--statistics-archive', help='Retained archive manifest used by the statistics experiment')
+    scoring.add_argument('--statistics-selection', help='Frozen statistics-model selection manifest')
+    scoring.add_argument('--statistics-evaluation', help='Verified statistics-model evaluation report')
 
     backtest = subcommands.add_parser("backtest", help="Walk forward through past events")
     backtest.add_argument("--min-prior-results", type=int, default=0)
@@ -506,6 +510,10 @@ def main(argv: list[str] | None = None) -> int:
                     model_kind=args.model, model_dir=args.model_dir,
                     max_market_disagreement=args.max_market_disagreement,
                     training_history=args.training_history,
+                    statistics_db=args.statistics_db,
+                    statistics_archive=args.statistics_archive,
+                    statistics_selection=args.statistics_selection,
+                    statistics_evaluation=args.statistics_evaluation,
                 )
                 print(f"Wrote {len(rows)} bout predictions to {report}")
                 for row in rows:

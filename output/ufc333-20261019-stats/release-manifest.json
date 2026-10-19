@@ -1,0 +1,15 @@
+{
+  "forecast_id": "ead0b961b61f4a654795d9be89f7f827e1d84bb35bb4f3eeea6da92311ca151e",
+  "cutoff_at_utc": "2026-10-19T19:56:30Z",
+  "model_version": "logistic-prior-v5:research_retrospective:1b8479e2b299ed4a",
+  "scored_matchups": 6,
+  "unscored_matchups": 8,
+  "fighters_with_model_reach_and_prior_stats": 12,
+  "outputs": {
+    "output/ufc333-20261019-stats/forecast-receipt.json": "7cda7537ae5c9b45e7c08ff19be53c840b71930948a74336a0414be358436b03",
+    "output/ufc333-20261019-stats/prediction-report.csv": "02a9fc53ff3cd4d6f50158de9af41e324638cd8c4b3bac2c587a2cce031eab9e",
+    "output/ufc333-20261019-stats/prediction-report.html": "333ff63aa1011db1c0514ac49042966cc00b862b251627ad431d6c9204aa99b3",
+    "output/ufc333-20261019-stats/prediction-report.json": "ce04d53ef598c22881233ad9980ff6338e680f0ed145bdb68ef9b69403cfddd8",
+    "output/pdf/UFC-333-Prediction-Report-with-Stats.pdf": "3ee878510a02b827850af54c89c8a5c750bd83d19c767e972ce89704891df16b"
+  }
+}

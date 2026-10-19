@@ -1,0 +1,7 @@
+# Render exports as binary and preserve the bytes recorded in evidence hashes.
+*.pdf binary
+*.png binary
+*.jpg binary
+demo/fixtures/*.csv -text
+output/** -text
+reports/** -text

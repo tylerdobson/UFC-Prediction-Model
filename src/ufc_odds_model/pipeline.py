@@ -105,11 +105,23 @@ def score_event(
     required_snapshot_at_utc: str | None = None,
     max_market_disagreement: float = 0.10,
     training_history: str | Path | None = None,
+    statistics_db: str | Path | None = None,
+    statistics_archive: str | Path | None = None,
+    statistics_selection: str | Path | None = None,
+    statistics_evaluation: str | Path | None = None,
 ) -> tuple[Path, list[dict]]:
     from .market_guard import disagreement, validate_threshold, market_for_quote
     max_market_disagreement = validate_threshold(max_market_disagreement)
     if training_history is not None and model_kind != 'logistic':
         raise ValueError('--training-history requires --model logistic')
+    if statistics_db is not None and (training_history is None or model_kind != 'logistic'):
+        raise ValueError('--statistics-db requires --training-history and --model logistic')
+    if statistics_db is not None and any(value is None for value in
+                                          (statistics_archive, statistics_selection, statistics_evaluation)):
+        raise ValueError('Statistics scoring requires archive, selection and evaluation evidence')
+    if statistics_db is None and any(value is not None for value in
+                                     (statistics_archive, statistics_selection, statistics_evaluation)):
+        raise ValueError('Statistics evidence requires --statistics-db')
     if as_of.tzinfo is None or as_of.utcoffset() is None:
         raise ValueError("Prediction cutoff needs a timezone")
     as_of = as_of.astimezone(timezone.utc)
@@ -156,8 +168,15 @@ def score_event(
         from .features import FEATURE_NAMES
         from .live_logistic import prepare_live_logistic
         if training_history is not None:
-            from .research_training import prepare_research_logistic
-            run = prepare_research_logistic(connection, event_id, as_of, training_history)
+            if statistics_db is None:
+                from .research_training import prepare_research_logistic
+                run = prepare_research_logistic(connection, event_id, as_of, training_history)
+            else:
+                from .statistics_training import prepare_evaluated_statistics
+                run = prepare_evaluated_statistics(
+                    connection, event_id, as_of, training_history, stats_db=statistics_db,
+                    archive_manifest=statistics_archive, selection_path=statistics_selection,
+                    evaluation_path=statistics_evaluation)
             model_metadata_by_bout = run.metadata_by_bout
             artifact = run.artifact
         else:

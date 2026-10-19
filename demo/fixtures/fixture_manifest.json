@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "source": "synthetic_offline_portfolio_demo_not_real_ufc_data",
+  "repository_url": "https://example.invalid/synthetic-ufc-fixtures",
+  "repository_commit": "synthetic-fixture-v1",
+  "captured_at_utc": "2024-06-01T00:00:00Z",
+  "timestamp_basis": "fixed_logical_fixture_timestamp_not_real_http_capture",
+  "sample_event_id": "ufcstats:event:ffffffffffffff05",
+  "sample_as_of_utc": "2024-05-01T00:00:00Z",
+  "expected_quality": {
+    "events": 5,
+    "bouts": 6,
+    "usable_bouts": 5,
+    "held_bouts": 1,
+    "source_round_rows": 15,
+    "missing_reach_profiles": 1,
+    "missing_control_fighter_bouts": 1,
+    "unknown_duration_usable_bouts": 1
+  },
+  "files": [
+    {
+      "file": "ufc_event_details.csv",
+      "sha256": "033b523955aa208124f2e2f60cfde5b6cdbe1f49f295011a68c04df75e877f80",
+      "bytes": 462,
+      "source_url": "https://example.invalid/synthetic-ufc-fixtures/ufc_event_details.csv"
+    },
+    {
+      "file": "ufc_fight_results.csv",
+      "sha256": "ab2e54d560445718bf882003bd8cdc0214a158506800e716ae7407e3e3503740",
+      "bytes": 991,
+      "source_url": "https://example.invalid/synthetic-ufc-fixtures/ufc_fight_results.csv"
+    },
+    {
+      "file": "ufc_fight_stats.csv",
+      "sha256": "b87e44687df4689243a5ebd899cb358e36bb0beaf0205f0cb6a138ea29cfbfd9",
+      "bytes": 2507,
+      "source_url": "https://example.invalid/synthetic-ufc-fixtures/ufc_fight_stats.csv"
+    },
+    {
+      "file": "ufc_fighter_tott.csv",
+      "sha256": "f7d62376708855a04789cc9ce512b2d0dd7518948dcfb047bc70736832e78b5c",
+      "bytes": 319,
+      "source_url": "https://example.invalid/synthetic-ufc-fixtures/ufc_fighter_tott.csv"
+    }
+  ]
+}

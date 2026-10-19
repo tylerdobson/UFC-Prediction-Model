@@ -1,0 +1,310 @@
+{
+  "schema_version": 1,
+  "forecast_id": "0175dc76133d491acf71a4a146fa1e6ba4370049d517a5fd3924c6f652dc7770",
+  "cutoff_at_utc": "2026-10-19T20:21:24Z",
+  "research_only": true,
+  "promotion_eligible": false,
+  "card_manifest_sha256": "a7055dc3cc23447e2eeb099eaaa5430e87decbd42d650a8beb14fc1938399883",
+  "selection_manifest_sha256": "82e7e17c4c1de5ba3a0ffa715bcbfd9b7cbd422feb7bf75e8a54bd41d3a87538",
+  "evaluation_report_content_sha256": "d193841a653c9587b51c3463cc0277202eb33a111752dbb8061aca21fdc90b26",
+  "athlete_facts_sha256": "32c968bb783c8e1f2b836b199e28d4507d2e12df0c694925d798aaefca8fcfda",
+  "statistics_archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+  "statistics_database_sha256": "5935d396fde70c9d88ece734e93f1fc637ce1e5a1dfef5467288f06916be009e",
+  "training_artifact": {
+    "algorithm": "logistic-prior-v6",
+    "training_history": "research_retrospective",
+    "elo_k": 64,
+    "training_start_year": 2018,
+    "l2": 0.002,
+    "feature_names": [
+      "elo_difference_400",
+      "log_prior_bouts_difference",
+      "smoothed_win_rate_difference",
+      "rest_years_difference",
+      "known_rest_difference",
+      "recent_form_5_difference",
+      "age_years_difference_10",
+      "reach_cm_difference_20",
+      "opponent_adjusted_sig_strike_accuracy_difference",
+      "log_stat_bouts_difference",
+      "age_decline_32_difference",
+      "sig_landed_per_min_difference",
+      "sig_absorbed_per_min_difference",
+      "sig_accuracy_difference",
+      "sig_defense_difference",
+      "knockdowns_per_15_difference",
+      "takedowns_per_15_difference",
+      "takedown_accuracy_difference",
+      "takedown_defense_difference",
+      "submission_attempts_per_15_difference",
+      "control_share_difference"
+    ],
+    "history_before_date": "2026-10-19",
+    "training_rows_sha256": "59be0d3c402ec41fb20fa915490dc01acf2ba2573ffcbaad50082d019cd0708c",
+    "calibration_rows_sha256": "962b58dc634f8bed48156a91227a8992260c2a9c346f83816dac0365f058b42f",
+    "target_features_sha256": "1dc76ed1eda2973822a48bb6330aae7c5687f9327a919215c1ab87b83ea0894d",
+    "weights": [
+      0.8718904857954864,
+      0.003134589643888958,
+      0.36995629256727364,
+      -0.21665867821421467,
+      0.3516727456968036,
+      0.08166982276762039,
+      -0.50809450761873,
+      0.4175789165409586,
+      0.3915837902943577,
+      0.01095998929311473,
+      -0.21798629942978498,
+      0.2721214613585731,
+      -0.41285507052675074,
+      0.2788291767969749,
+      0.5308272742166369,
+      0.0754681603920435,
+      0.6070130311569966,
+      -0.2973636057022446,
+      0.10635701826066556,
+      0.16109454398541223,
+      -0.01824178386479091
+    ],
+    "calibration_scale": 1.1013946671166066,
+    "lookback_years": 8,
+    "training_window_lower_date": "2018-01-01",
+    "training_policy": {
+      "l2": 0.002,
+      "lookback_years": 8,
+      "earliest_year": 2010
+    },
+    "selection_manifest_sha256": "82e7e17c4c1de5ba3a0ffa715bcbfd9b7cbd422feb7bf75e8a54bd41d3a87538",
+    "statistics_overlay_sha256": "fa86f1558cccfec61c99a3bdac2cfa106355317da7d42ef53ab50ad40ada7ef9",
+    "statistics_source_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+    "statistics_captured_at_utc": "2026-10-19T19:49:25Z",
+    "statistics_repository_commit": "3e2f3db5751c14b5d4ea52e41921982ca23b9b23",
+    "statistics_history_rule": "paired_per_fight_counts_replayed_after_each_whole_event_date",
+    "current_career_averages_used": false,
+    "research_reach_rule": "current_archive_reach_applied_retrospectively_as_approximate_static_attribute",
+    "model_version": "logistic-prior-v6:research_retrospective:0e3f2d2c0b4223a5",
+    "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+    "training_history_path": "data/ufc_research_complete_profiles.sqlite",
+    "research_only": true,
+    "promotion_eligible": false,
+    "history_source_summary": {
+      "accepted_bouts_with_results": 8905,
+      "binary_bouts": 8748,
+      "feature_first_date": "1993-11-12",
+      "feature_last_date": "2026-09-19",
+      "retrospective_feature_rows_sha256": "422bdcada1eed2712bb6ad077524635236f0cd9caa20261421063ce187c105ce",
+      "overlay_inputs_sha256": "fa86f1558cccfec61c99a3bdac2cfa106355317da7d42ef53ab50ad40ada7ef9",
+      "statistics_archive": {
+        "source": "Greco1899/scrape_ufc_stats",
+        "repository_url": "https://github.com/Greco1899/scrape_ufc_stats",
+        "repository_commit": "3e2f3db5751c14b5d4ea52e41921982ca23b9b23",
+        "captured_at_utc": "2026-10-19T19:49:25Z",
+        "source_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "raw_files": [
+          {
+            "file": "ufc_event_details.csv",
+            "source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_event_details.csv",
+            "sha256": "beb80dd902d44446399bf1753c650beed2cbc0af2cb791848796a238313a247e",
+            "bytes": 102765
+          },
+          {
+            "file": "ufc_fight_results.csv",
+            "source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fight_results.csv",
+            "sha256": "da1d46420a13419f1afa28653e9b08c7aa1173005138e5f87fe7dea904cd98e2",
+            "bytes": 2107396
+          },
+          {
+            "file": "ufc_fight_stats.csv",
+            "source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fight_stats.csv",
+            "sha256": "bdbb8cd050ccf0a3ee329bf16d361e87997853ab21703682f720fe7aa013767b",
+            "bytes": 7671898
+          },
+          {
+            "file": "ufc_fighter_tott.csv",
+            "source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+            "sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+            "bytes": 508399
+          }
+        ],
+        "through_date": null,
+        "research_result_bouts": 8905,
+        "exact_pair_date_outcome_matches": 6611,
+        "paired_stat_bouts": 6595,
+        "fighter_profiles_with_reach": 1379,
+        "held": {
+          "missing_or_incomplete_paired_round_stats": 16,
+          "unknown_or_ambiguous_event_date": 27,
+          "unmatched_or_ambiguous_research_pair": 2294
+        },
+        "identity_rule": "exact_NFKC_casefold_whitespace_full_names_and_date_and_outcome_no_alias_merges",
+        "round_rule": "both_fighters_all_rounds_1_through_recorded_finish_round",
+        "reach_rule": "current_archive_reach_applied_retrospectively_as_approximate_static_attribute",
+        "historical_source_availability": "retrospective_capture_not_prefight_observation"
+      },
+      "rich_statistics": {
+        "statistics_database_sha256": "5935d396fde70c9d88ece734e93f1fc637ce1e5a1dfef5467288f06916be009e",
+        "store_metadata": {
+          "protocol": "canonical-ufc-statistics-history-v1",
+          "source_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+          "research_database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "builder_implementation_sha256": "3ef1a4c46f4bce79c82651dccefb371b0e5f2285864bc76e456bc71b72d636b7",
+          "history_database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+          "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+          "captured_at_utc": "2026-10-19T19:49:25Z",
+          "repository_commit": "3e2f3db5751c14b5d4ea52e41921982ca23b9b23",
+          "repository_url": "https://github.com/Greco1899/scrape_ufc_stats",
+          "historical_source_availability": "retrospective_capture_not_historical_prefight_observation",
+          "current_career_averages_used": false,
+          "archive_target_labels_added_to_research": false,
+          "counts": {
+            "canonical_archive_bouts": 8950,
+            "duplicate_fight_url_rows_removed": 25,
+            "missing_incomplete_or_conflicting_paired_rounds": 23,
+            "research_bouts_linked": 5398,
+            "research_bouts_with_usable_stats": 5394,
+            "research_fighter_links": 1667,
+            "research_near_date_pair_requires_explicit_exclusion": 264,
+            "research_result_bouts": 8905,
+            "research_unmatched_or_ambiguous_date_pair": 27,
+            "research_unresolved_stable_fighter_identity": 3216,
+            "source_event_rows": 793,
+            "source_fight_rows": 8975,
+            "source_profile_rows": 4629,
+            "source_round_rows": 42162,
+            "unknown_or_ambiguous_event": 2,
+            "unknown_or_ambiguous_fighter_identity": 107,
+            "usable_paired_bouts": 8818
+          },
+          "store_content_sha256": "1337cf7825ac2417bc1362b6abbdbbe199152c8168074d13d887ef7bb1edd81f"
+        },
+        "captured_at_utc": "2026-10-19T19:49:25Z",
+        "through_date": null,
+        "crosswalked_fighters": 1658,
+        "fighter_bout_records": 13830,
+        "inputs_sha256": "e2b84693407b85d4d0ac6aab360774874c10dcba7cb3eaaafd4ae8b24337c65c",
+        "identity_rule": "exact_unambiguous_persistent_source_crosswalk",
+        "history_rule": "all_validated_canonical_bouts_for_crosswalked_fighters_not_only_Wikipedia_matched_bouts"
+      },
+      "rich_feature_coverage": {
+        "both_fighter_metric_coverage": {
+          "sig_landed_per_min": 4496,
+          "sig_absorbed_per_min": 4496,
+          "sig_accuracy": 4488,
+          "sig_defense": 4491,
+          "knockdowns_per_15": 4496,
+          "takedowns_per_15": 4496,
+          "takedown_accuracy": 3719,
+          "takedown_defense": 3912,
+          "submission_attempts_per_15": 4496,
+          "control_share": 4448
+        },
+        "near_target_record_exclusions": 626
+      },
+      "rich_feature_rows_sha256": "39f5a4677dffa3c28eed075db41effb231328020fdc6efcd461c0ae66a015a32"
+    },
+    "training_bouts": 3477,
+    "training_event_dates": 295,
+    "training_last_date": "2025-02-01",
+    "calibration_bouts": 873,
+    "calibration_first_date": "2025-02-09",
+    "calibration_last_date": "2026-09-19",
+    "calibration_rule": "last_20pct_of_earlier_binary_bouts_on_whole_dates_min30",
+    "target_static_attribute_rule": "receipt_fetched_strictly_before_cutoff",
+    "selected_candidate_id": "balanced_recent5",
+    "selected_policy": {
+      "l2": 0.002,
+      "lookback_years": 8,
+      "earliest_year": 2010
+    },
+    "fit": {
+      "policy": {
+        "l2": 0.002,
+        "lookback_years": 8,
+        "earliest_year": 2010
+      },
+      "origin_date": "2026-10-19",
+      "training_window_lower_date": "2018-01-01",
+      "training": {
+        "binary_bouts": 3477,
+        "events": 295,
+        "event_dates": 295,
+        "first_date": "2018-01-14",
+        "last_date": "2025-02-01"
+      },
+      "calibration": {
+        "binary_bouts": 873,
+        "events": 71,
+        "event_dates": 71,
+        "first_date": "2025-02-09",
+        "last_date": "2026-09-19"
+      },
+      "training_rows_sha256": "59be0d3c402ec41fb20fa915490dc01acf2ba2573ffcbaad50082d019cd0708c",
+      "calibration_rows_sha256": "962b58dc634f8bed48156a91227a8992260c2a9c346f83816dac0365f058b42f",
+      "weights": [
+        0.8718904857954864,
+        0.003134589643888958,
+        0.36995629256727364,
+        -0.21665867821421467,
+        0.3516727456968036,
+        0.08166982276762039,
+        -0.50809450761873,
+        0.4175789165409586,
+        0.3915837902943577,
+        0.01095998929311473,
+        -0.21798629942978498,
+        0.2721214613585731,
+        -0.41285507052675074,
+        0.2788291767969749,
+        0.5308272742166369,
+        0.0754681603920435,
+        0.6070130311569966,
+        -0.2973636057022446,
+        0.10635701826066556,
+        0.16109454398541223,
+        -0.01824178386479091
+      ],
+      "weights_sha256": "8ba5971e6fc73141eb918369621d760619c5428b4261b033733335fb74cb1079",
+      "temperature_scale": 1.1013946671166066,
+      "calibration_rule": "temperature_on_later_calibration_only_min30_identity_fallback"
+    },
+    "rich_statistics_store_sha256": "5935d396fde70c9d88ece734e93f1fc637ce1e5a1dfef5467288f06916be009e",
+    "rich_inputs_sha256": "e2b84693407b85d4d0ac6aab360774874c10dcba7cb3eaaafd4ae8b24337c65c"
+  },
+  "stable_bout_identities": [
+    {
+      "bout_id": "report:ufc333:2026-10-24:1",
+      "fighter_a_id": "wikipedia:54197580",
+      "fighter_b_id": "wikipedia:64594369"
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:2",
+      "fighter_a_id": "wikipedia:57503647",
+      "fighter_b_id": "wikipedia:56012380"
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:4",
+      "fighter_a_id": "wikipedia:28754266",
+      "fighter_b_id": "wikipedia:80262047"
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:5",
+      "fighter_a_id": "wikipedia:44843191",
+      "fighter_b_id": "wikipedia:78757319"
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:6",
+      "fighter_a_id": "wikipedia:56012507",
+      "fighter_b_id": "wikipedia:54278252"
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:9",
+      "fighter_a_id": "wikipedia:63260298",
+      "fighter_b_id": "wikipedia:83479208"
+    }
+  ],
+  "outputs": {
+    "prediction-report.json": "b1d1ac9290bc9d90f0c510ca44e6d477ba682d595eda19e8a68ee424a5bce784",
+    "prediction-report.html": "0ee3568881ddd3481974ddd7c4a0e542c21abc84dc914a51dbcb010e8bbe4a96",
+    "prediction-report.csv": "4be705c6fdc316bea9753c8b8749c2d34d7cc52b390b22744f12cf2ebdc94d14"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "statistics_store_sha256": "5935d396fde70c9d88ece734e93f1fc637ce1e5a1dfef5467288f06916be009e",
+  "cards": 793,
+  "canonical_bouts": 8950,
+  "usable_paired_stat_bouts": 8818,
+  "outputs": {
+    "output/all-card-statistics/UFC-229-20181006/card-statistics.csv": "532d176fb1e23cb559a5ba6ea57ae37391c176a704039239f5126bfd65502fb4",
+    "output/all-card-statistics/UFC-229-20181006/card-statistics.html": "5593c82a24c9e0a7b9d62103e40dffbe7ec898f1ec3ea43b57cd4770390160ab",
+    "output/all-card-statistics/UFC-229-20181006/card-statistics.json": "7e55242788bd395e29850dd9278aff37063d6a4be82368477ebf3075996693a2",
+    "output/all-card-statistics/UFC-300-20240413/card-statistics.csv": "adaedc9c6b899808816338ba3e46d4f8d11313a557a294dacf87bf707ffb8bdd",
+    "output/all-card-statistics/UFC-300-20240413/card-statistics.html": "1c221a07d8aa093ddd50d5e1ee28c8fe0f8122ea035b7b0bd72dec2d5451b460",
+    "output/all-card-statistics/UFC-300-20240413/card-statistics.json": "21c48d7b587aae681d9339709e36859cbe67009a78a60cbe437acbc45c6038be",
+    "output/all-card-statistics/UFC-333-20261024/card-statistics.csv": "5315af9e821ed8d7413a7289d824461640731882624b224226d89af068eb0e7c",
+    "output/all-card-statistics/UFC-333-20261024/card-statistics.html": "0016807c8d82c8a52e0c8fb73556b13205ba4b1c2d3dc99ed5bea472d49ad190",
+    "output/all-card-statistics/UFC-333-20261024/card-statistics.json": "5e29351a0bcc4e9e61e3e207b281e8d66953a75b0ceee63479b6f8e3d28c6bdd"
+  }
+}

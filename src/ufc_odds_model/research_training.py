@@ -4,7 +4,7 @@ Research labels/features never become operating source-observation evidence.
 All labels precede the UTC decision date and the event date. Target profiles,
 including immutable birth dates, still need a verified pre-decision fetch.
 """
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta, timezone
 from itertools import groupby
 from pathlib import Path
@@ -15,6 +15,8 @@ from .logistic import V3_FEATURE_NAMES, fit_logistic, fit_temperature, v3_featur
 from .model_lab import file_sha256, lab_rows, read_only
 from .pipeline import parse_utc, utc_string
 from .research_evaluation import _digest_json, _source_results
+from .research_upgrade import TrainingPolicy, eligible_training_rows, fit_separated_policy
+from .research_stats import ResearchStatsOverlay, merge_reach_profiles, stats_feature_rows
 from .wikidata_profiles import static_profiles
 
 # Frozen Phase 3 selections: validation K and pre-test rolling-origin window.
@@ -61,10 +63,26 @@ class ResearchTrainingRun:
     artifact: dict
 
 
-def prepare_research_logistic(connection, event_id, as_of_datetime: datetime, training_history):
+def prepare_research_logistic(connection, event_id, as_of_datetime: datetime, training_history,
+                               *, model_policy: TrainingPolicy | None = None,
+                               selection_manifest_sha256: str | None = None,
+                               stats_overlay: ResearchStatsOverlay | None = None):
+    if model_policy is not None and not isinstance(model_policy, TrainingPolicy):
+        raise ValueError('Research model policy must be a TrainingPolicy')
+    if selection_manifest_sha256 is not None:
+        if model_policy is None:
+            raise ValueError('Selection manifest metadata requires an explicit model policy')
+        if (not isinstance(selection_manifest_sha256, str) or len(selection_manifest_sha256) != 64
+                or any(c not in '0123456789abcdef' for c in selection_manifest_sha256)):
+            raise ValueError('Selection manifest SHA256 must contain 64 lowercase hexadecimal characters')
     if as_of_datetime.tzinfo is None or as_of_datetime.utcoffset() is None:
         raise ValueError('Research training requires a timezone-aware cutoff')
     as_of = as_of_datetime.astimezone(timezone.utc)
+    if stats_overlay is not None:
+        if not isinstance(stats_overlay, ResearchStatsOverlay) or model_policy is None:
+            raise ValueError('Statistics overlay requires an explicit research training policy')
+        if parse_utc(stats_overlay.captured_at_utc) >= as_of:
+            raise ValueError('Statistics archive must be captured strictly before the forecast cutoff')
     event = connection.execute('SELECT * FROM events WHERE event_id=?', (event_id,)).fetchone()
     if event is None or event['status'] != 'scheduled':
         raise ValueError('Research-trained scoring requires a scheduled operating card')
@@ -88,28 +106,42 @@ def prepare_research_logistic(connection, event_id, as_of_datetime: datetime, tr
     before = min(event['event_date'], as_of.date().isoformat())
     through = (date.fromisoformat(before)-timedelta(days=1)).isoformat()
     database_hash = file_sha256(history_path)
+    if stats_overlay is not None and stats_overlay.database_sha256 != database_hash:
+        raise ValueError('Statistics overlay does not match the research history database')
     with read_only(history_path) as research:
-        rows, source, names = lab_rows(research, feature_set='age-hinge', elo_k=ELO_K, through_date=through)
+        if stats_overlay is None:
+            rows, source, names = lab_rows(research, feature_set='age-hinge', elo_k=ELO_K, through_date=through)
+        else:
+            rows, source, names = stats_feature_rows(research, stats_overlay, elo_k=ELO_K, through_date=through)
         # The live path keeps the existing minimum samples and separate tail
         # calibration. This 20% bout tail is recorded, not reselected on test.
-        eligible = [r for r in rows if int(r.event_date[:4]) >= TRAINING_START_YEAR]
+        eligible = ([r for r in rows if int(r.event_date[:4]) >= TRAINING_START_YEAR]
+                    if model_policy is None else eligible_training_rows(rows, before, model_policy))
         training, calibration = _split_for_live(eligible)
-        model = fit_logistic(training, feature_names=names)
-        calibrator = fit_temperature([model.predict_probability(r.features) for r in calibration],
-                                     [int(r.target) for r in calibration])
+        if model_policy is None:
+            model = fit_logistic(training, feature_names=names)
+            calibrator = fit_temperature([model.predict_probability(r.features) for r in calibration],
+                                         [int(r.target) for r in calibration])
+        else:
+            fitted = fit_separated_policy(training, calibration, names, before, model_policy)
+            model, calibrator = fitted.model, fitted.calibrator
+            training, calibration = list(fitted.training), list(fitted.calibration)
         builder = FeatureBuilder(elo_k=ELO_K)
         results = _source_results(research, include_restored=True, through_date=through)
         for _, group in groupby(results, key=lambda r: r['event_date']):
-            builder.update_group(list(group))
+            builder.update_group(list(group), stats_overlay.stats if stats_overlay else None)
         # Research admits immutable attributes retrospectively for fitting;
         # this prospective card requires they were fetched before its cutoff.
         profiles = static_profiles(research, cutoff_at_utc=utc_string(as_of))
+        if stats_overlay is not None:
+            profiles = merge_reach_profiles(profiles, stats_overlay)
         operating_profiles = _profiles_as_of(connection, utc_string(as_of), {})
         for fighter, profile in operating_profiles.items():
             existing = profiles.get(fighter, _Profile())
             if existing.birth_date and profile.birth_date and existing.birth_date != profile.birth_date:
                 raise ValueError(f'Conflicting research and operating birth dates for {fighter}')
-            profiles[fighter] = _Profile(profile.birth_date or existing.birth_date, profile.reach_cm)
+            reach = (profile.reach_cm if stats_overlay is None or profile.reach_cm is not None else existing.reach_cm)
+            profiles[fighter] = _Profile(profile.birth_date or existing.birth_date, reach)
         target_rows = []
         for bout in bouts:
             a, b = bout['fighter_a_id'], bout['fighter_b_id']
@@ -124,16 +156,39 @@ def prepare_research_logistic(connection, event_id, as_of_datetime: datetime, tr
                                           v3_features(values, hinge), coverage=coverage))
     if database_hash != file_sha256(history_path):
         raise ValueError('Research training database changed during read-only scoring')
+    algorithm = ('logistic-prior-v5' if stats_overlay is not None else
+                 'logistic-prior-v3' if model_policy is None else 'logistic-prior-v4')
+    start_year = (TRAINING_START_YEAR if model_policy is None
+                  else int(model_policy.lower_date(before)[:4]))
+    policy_metadata = {} if model_policy is None else {
+        'algorithm': algorithm, 'l2': model_policy.l2, 'lookback_years': model_policy.lookback_years,
+        'training_window_lower_date': model_policy.lower_date(before),
+        'training_policy': asdict(model_policy),
+    }
+    if selection_manifest_sha256 is not None:
+        policy_metadata['selection_manifest_sha256'] = selection_manifest_sha256
+    if stats_overlay is not None:
+        policy_metadata.update({
+            'statistics_overlay_sha256': stats_overlay.overlay_inputs_sha256,
+            'statistics_source_manifest_sha256': stats_overlay.source_summary['source_manifest_sha256'],
+            'statistics_captured_at_utc': stats_overlay.captured_at_utc,
+            'statistics_repository_commit': stats_overlay.source_summary['repository_commit'],
+            'statistics_history_rule': 'paired_per_fight_counts_replayed_after_each_whole_event_date',
+            'current_career_averages_used': False,
+            'research_reach_rule': stats_overlay.source_summary['reach_rule'],
+        })
     model_inputs = {
-        'algorithm': 'logistic-prior-v3', 'training_history': TRAINING_HISTORY,
-        'elo_k': ELO_K, 'training_start_year': TRAINING_START_YEAR, 'l2': .02,
+        'algorithm': algorithm, 'training_history': TRAINING_HISTORY,
+        'elo_k': ELO_K, 'training_start_year': start_year,
+        'l2': .02 if model_policy is None else model_policy.l2,
         'feature_names': names, 'history_before_date': before,
         'training_rows_sha256': _digest_json([(r.bout_id,r.event_date,r.features,r.target) for r in training]),
         'calibration_rows_sha256': _digest_json([(r.bout_id,r.event_date,r.features,r.target) for r in calibration]),
         'target_features_sha256': _digest_json([(r.bout_id,r.fighter_a_id,r.fighter_b_id,r.features) for r in target_rows]),
         'weights': model.weights, 'calibration_scale': calibrator.scale,
+        **policy_metadata,
     }
-    version = f"logistic-prior-v3:{TRAINING_HISTORY}:{_digest_json(model_inputs)[:16]}"
+    version = f"{algorithm}:{TRAINING_HISTORY}:{_digest_json(model_inputs)[:16]}"
     artifact = {**model_inputs, 'model_version': version, 'database_sha256': database_hash,
                 'training_history_path': str(history_path), 'research_only': True,
                 'promotion_eligible': False, 'history_source_summary': source,
@@ -152,7 +207,7 @@ def prepare_research_logistic(connection, event_id, as_of_datetime: datetime, tr
             'training_history_sha256': database_hash, 'history_before_date': before,
             'training_last_date': artifact['training_last_date'],
             'calibration_last_date': artifact['calibration_last_date'],
-            'elo_k': ELO_K, 'training_start_year': TRAINING_START_YEAR,
+            'elo_k': ELO_K, 'training_start_year': start_year, **policy_metadata,
             'promotion_eligible': False, 'feature_names': names, 'feature_values': row.features,
             'feature_contributions': contributions, 'top_feature_contributions': contributions[:3],
             'coverage_by_fighter': {
@@ -161,5 +216,16 @@ def prepare_research_logistic(connection, event_id, as_of_datetime: datetime, tr
                 'fighter_b': {'age': row.coverage[1], 'reach': row.coverage[3], 'fight_statistics': False,
                               'prior_ufc_bouts': builder.history.get(row.fighter_b_id).scored_bouts if row.fighter_b_id in builder.history else 0}},
         }
+        if stats_overlay is not None:
+            for side, fighter, stat_coverage in (('fighter_a',row.fighter_a_id,row.coverage[4]),
+                                                ('fighter_b',row.fighter_b_id,row.coverage[5])):
+                history = builder.history.get(fighter)
+                metadata[row.bout_id]['coverage_by_fighter'][side].update({
+                    'fight_statistics': stat_coverage,
+                    'prior_fights_with_stats': history.stat_bouts if history else 0,
+                    'reach_cm': profiles.get(fighter,_Profile()).reach_cm,
+                    'reach_source': ('dated_profile' if fighter in operating_profiles and operating_profiles[fighter].reach_cm is not None
+                                     else 'retrospective_archive'),
+                })
     predictions = {r.bout_id: calibrator.predict_probability(model.predict_probability(r.features)) for r in target_rows}
     return ResearchTrainingRun(model, calibrator, version, predictions, coverage_by_bout, metadata, artifact)

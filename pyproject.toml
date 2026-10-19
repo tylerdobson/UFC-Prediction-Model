@@ -12,9 +12,18 @@ dependencies = []
 
 [project.optional-dependencies]
 dashboard = ["streamlit==1.64.0"]
+reports = ["reportlab==5.0.1"]
+warehouse = [
+    "pymysql[rsa]==1.2.3",
+]
 
 [project.scripts]
 ufc-model = "ufc_odds_model.cli:main"
+ufc-model-report = "ufc_odds_model.forecast_report:main"
+ufc-statistics = "ufc_odds_model.statistics_workflow:main"
+ufc-pipeline = "ufc_odds_model.pipeline_ops:main"
+ufc-pipeline-demo = "ufc_odds_model.portfolio_demo:main"
+ufc-warehouse = "ufc_odds_model.mysql_warehouse:main"
 
 [tool.setuptools.packages.find]
 where = ["src", "."]

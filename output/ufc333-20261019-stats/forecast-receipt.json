@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "forecast_id": "ead0b961b61f4a654795d9be89f7f827e1d84bb35bb4f3eeea6da92311ca151e",
+  "cutoff_at_utc": "2026-10-19T19:56:30Z",
+  "research_only": true,
+  "promotion_eligible": false,
+  "card_manifest_sha256": "a7055dc3cc23447e2eeb099eaaa5430e87decbd42d650a8beb14fc1938399883",
+  "selection_manifest_sha256": "54d56ad1c945e7d6da56e27b52b9d4c052c758624e3f07ff45f09c60b1050342",
+  "evaluation_report_content_sha256": "ef3c82aa29e4db0fe88a75f4eb023cfa568dd439dadefab4ac3a6eb65bbe28d3",
+  "athlete_facts_sha256": "32c968bb783c8e1f2b836b199e28d4507d2e12df0c694925d798aaefca8fcfda",
+  "statistics_archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+  "training_artifact": {
+    "algorithm": "logistic-prior-v5",
+    "training_history": "research_retrospective",
+    "elo_k": 64,
+    "training_start_year": 2018,
+    "l2": 0.002,
+    "feature_names": [
+      "elo_difference_400",
+      "log_prior_bouts_difference",
+      "smoothed_win_rate_difference",
+      "rest_years_difference",
+      "known_rest_difference",
+      "recent_form_5_difference",
+      "age_years_difference_10",
+      "reach_cm_difference_20",
+      "opponent_adjusted_sig_strike_accuracy_difference",
+      "log_stat_bouts_difference",
+      "age_decline_32_difference"
+    ],
+    "history_before_date": "2026-10-19",
+    "training_rows_sha256": "92d8aa77e5bc7bcd2b79d6d1ecb790c7e366e43266d8110b977bab2b1c0ab86e",
+    "calibration_rows_sha256": "342744614eba275c719a1c08ee874b70fa91224136bd4d7e344c57f66331e24a",
+    "target_features_sha256": "cca9f35ac005c61250dced24bdcc2394a75dbcae8459a8f01f96c1ac27b92a93",
+    "weights": [
+      0.9139280001313975,
+      -0.03466436347374868,
+      0.5361153337744909,
+      -0.20179066675151267,
+      0.422339080200511,
+      0.46954081578903334,
+      -0.5448096045681557,
+      0.35916771028250555,
+      0.6253635799904138,
+      0.05527534141457904,
+      -0.1998057314690298
+    ],
+    "calibration_scale": 1.166950118375474,
+    "lookback_years": 8,
+    "training_window_lower_date": "2018-01-01",
+    "training_policy": {
+      "l2": 0.002,
+      "lookback_years": 8,
+      "earliest_year": 2010
+    },
+    "selection_manifest_sha256": "54d56ad1c945e7d6da56e27b52b9d4c052c758624e3f07ff45f09c60b1050342",
+    "statistics_overlay_sha256": "fa86f1558cccfec61c99a3bdac2cfa106355317da7d42ef53ab50ad40ada7ef9",
+    "statistics_source_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+    "statistics_captured_at_utc": "2026-10-19T19:49:25Z",
+    "statistics_repository_commit": "3e2f3db5751c14b5d4ea52e41921982ca23b9b23",
+    "statistics_history_rule": "paired_per_fight_counts_replayed_after_each_whole_event_date",
+    "current_career_averages_used": false,
+    "research_reach_rule": "current_archive_reach_applied_retrospectively_as_approximate_static_attribute",
+    "model_version": "logistic-prior-v5:research_retrospective:1b8479e2b299ed4a",
+    "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+    "training_history_path": "data/ufc_research_complete_profiles.sqlite",
+    "research_only": true,
+    "promotion_eligible": false,
+    "history_source_summary": {
+      "accepted_bouts_with_results": 8905,
+      "binary_bouts": 8748,
+      "feature_first_date": "1993-11-12",
+      "feature_last_date": "2026-09-19",
+      "retrospective_feature_rows_sha256": "422bdcada1eed2712bb6ad077524635236f0cd9caa20261421063ce187c105ce",
+      "overlay_inputs_sha256": "fa86f1558cccfec61c99a3bdac2cfa106355317da7d42ef53ab50ad40ada7ef9",
+      "statistics_archive": {
+        "source": "Greco1899/scrape_ufc_stats",
+        "repository_url": "https://github.com/Greco1899/scrape_ufc_stats",
+        "repository_commit": "3e2f3db5751c14b5d4ea52e41921982ca23b9b23",
+        "captured_at_utc": "2026-10-19T19:49:25Z",
+        "source_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+        "raw_files": [
+          {
+            "file": "ufc_event_details.csv",
+            "source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_event_details.csv",
+            "sha256": "beb80dd902d44446399bf1753c650beed2cbc0af2cb791848796a238313a247e",
+            "bytes": 102765
+          },
+          {
+            "file": "ufc_fight_results.csv",
+            "source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fight_results.csv",
+            "sha256": "da1d46420a13419f1afa28653e9b08c7aa1173005138e5f87fe7dea904cd98e2",
+            "bytes": 2107396
+          },
+          {
+            "file": "ufc_fight_stats.csv",
+            "source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fight_stats.csv",
+            "sha256": "bdbb8cd050ccf0a3ee329bf16d361e87997853ab21703682f720fe7aa013767b",
+            "bytes": 7671898
+          },
+          {
+            "file": "ufc_fighter_tott.csv",
+            "source_url": "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/3e2f3db5751c14b5d4ea52e41921982ca23b9b23/ufc_fighter_tott.csv",
+            "sha256": "3296e67941f984cd5484488226e5a5d94de3249c63fe289fbc66d98546311ea1",
+            "bytes": 508399
+          }
+        ],
+        "through_date": null,
+        "research_result_bouts": 8905,
+        "exact_pair_date_outcome_matches": 6611,
+        "paired_stat_bouts": 6595,
+        "fighter_profiles_with_reach": 1379,
+        "held": {
+          "missing_or_incomplete_paired_round_stats": 16,
+          "unknown_or_ambiguous_event_date": 27,
+          "unmatched_or_ambiguous_research_pair": 2294
+        },
+        "identity_rule": "exact_NFKC_casefold_whitespace_full_names_and_date_and_outcome_no_alias_merges",
+        "round_rule": "both_fighters_all_rounds_1_through_recorded_finish_round",
+        "reach_rule": "current_archive_reach_applied_retrospectively_as_approximate_static_attribute",
+        "historical_source_availability": "retrospective_capture_not_prefight_observation"
+      }
+    },
+    "training_bouts": 3477,
+    "training_event_dates": 295,
+    "training_last_date": "2025-02-01",
+    "calibration_bouts": 873,
+    "calibration_first_date": "2025-02-09",
+    "calibration_last_date": "2026-09-19",
+    "calibration_rule": "last_20pct_of_earlier_binary_bouts_on_whole_dates_min30",
+    "target_static_attribute_rule": "receipt_fetched_strictly_before_cutoff"
+  },
+  "stable_bout_identities": [
+    {
+      "bout_id": "report:ufc333:2026-10-24:1",
+      "fighter_a_id": "wikipedia:54197580",
+      "fighter_b_id": "wikipedia:64594369"
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:2",
+      "fighter_a_id": "wikipedia:57503647",
+      "fighter_b_id": "wikipedia:56012380"
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:4",
+      "fighter_a_id": "wikipedia:28754266",
+      "fighter_b_id": "wikipedia:80262047"
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:5",
+      "fighter_a_id": "wikipedia:44843191",
+      "fighter_b_id": "wikipedia:78757319"
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:6",
+      "fighter_a_id": "wikipedia:56012507",
+      "fighter_b_id": "wikipedia:54278252"
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:9",
+      "fighter_a_id": "wikipedia:63260298",
+      "fighter_b_id": "wikipedia:83479208"
+    }
+  ],
+  "outputs": {
+    "prediction-report.json": "ce04d53ef598c22881233ad9980ff6338e680f0ed145bdb68ef9b69403cfddd8",
+    "prediction-report.html": "333ff63aa1011db1c0514ac49042966cc00b862b251627ad431d6c9204aa99b3",
+    "prediction-report.csv": "02a9fc53ff3cd4d6f50158de9af41e324638cd8c4b3bac2c587a2cce031eab9e"
+  }
+}

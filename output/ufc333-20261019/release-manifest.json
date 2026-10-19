@@ -1,0 +1,14 @@
+{
+  "forecast_id": "676a83d2483df81069f4ae5c118d1cda3afe0cbed5055663d35e49796182d0fb",
+  "cutoff_at_utc": "2026-10-19T19:42:57Z",
+  "model_version": "logistic-prior-v4:research_retrospective:ade69972e8d4bcb4",
+  "scored_matchups": 6,
+  "unscored_matchups": 8,
+  "outputs": {
+    "output/ufc333-20261019/forecast-receipt.json": "98971e1c04de1f9091b49e1df2813a26bd9d023ca8c3c2c4dfc8ff6dab323a5b",
+    "output/ufc333-20261019/prediction-report.csv": "de797696415bf5fd216a3bca57aca602e6883db6d51c2100b02f78f24fb470e9",
+    "output/ufc333-20261019/prediction-report.html": "2ffeb5ba1ba2e561ece3b9b85d6fc20f5a72bf083bb309095dcef2df46cc1831",
+    "output/ufc333-20261019/prediction-report.json": "dad6b07ac30fdf6022341d46acb9dd12405bce7c23aef0bda2ec90a34bb08a05",
+    "output/pdf/UFC-333-Prediction-Report.pdf": "74dcb1e731c503940683b0723f0199f9b8504fc0ec804ab0e71c665306f27335"
+  }
+}

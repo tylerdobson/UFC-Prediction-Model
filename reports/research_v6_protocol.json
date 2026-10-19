@@ -1,0 +1,135 @@
+{
+  "acceptance_rule": "lower_pretest_and_fixed_all_bout_log_loss_and_fixed_accuracy_not_lower_than_V5_and_useful_coverage",
+  "baseline_model_version": "logistic-prior-v5",
+  "candidate_count": 3,
+  "candidate_model_version": "logistic-prior-v6",
+  "created_at_utc": "2026-10-19T20:19:20Z",
+  "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+  "definitions": {
+    "accuracy_pseudo_attempts": {
+      "significant_strikes": 50.0,
+      "takedowns": 10.0
+    },
+    "candidate_families": [
+      {
+        "candidate_id": "striking_career",
+        "metric_count": 5,
+        "recent_bouts": null
+      },
+      {
+        "candidate_id": "balanced_career",
+        "metric_count": 10,
+        "recent_bouts": null
+      },
+      {
+        "candidate_id": "balanced_recent5",
+        "metric_count": 10,
+        "recent_bouts": 5
+      }
+    ],
+    "current_career_averages_used": false,
+    "explicit_target_rule": "An explicitly linked target research bout is excluded regardless of its archive date.",
+    "metrics": [
+      {
+        "difference_divisor": 5.0,
+        "label": "Significant strikes landed per minute",
+        "metric": "sig_landed_per_min"
+      },
+      {
+        "difference_divisor": 5.0,
+        "label": "Significant strikes absorbed per minute",
+        "metric": "sig_absorbed_per_min"
+      },
+      {
+        "difference_divisor": 0.25,
+        "label": "Significant strike accuracy",
+        "metric": "sig_accuracy"
+      },
+      {
+        "difference_divisor": 0.25,
+        "label": "Significant strike defense",
+        "metric": "sig_defense"
+      },
+      {
+        "difference_divisor": 1.0,
+        "label": "Knockdowns per 15 minutes",
+        "metric": "knockdowns_per_15"
+      },
+      {
+        "difference_divisor": 3.0,
+        "label": "Takedowns landed per 15 minutes",
+        "metric": "takedowns_per_15"
+      },
+      {
+        "difference_divisor": 0.25,
+        "label": "Takedown accuracy",
+        "metric": "takedown_accuracy"
+      },
+      {
+        "difference_divisor": 0.25,
+        "label": "Takedown defense",
+        "metric": "takedown_defense"
+      },
+      {
+        "difference_divisor": 2.0,
+        "label": "Submission attempts per 15 minutes",
+        "metric": "submission_attempts_per_15"
+      },
+      {
+        "difference_divisor": 0.5,
+        "label": "Share of fight time in control",
+        "metric": "control_share"
+      }
+    ],
+    "missing_rule": "Missing fields skip their numerator and exposure; neutral shrinkage is not a recorded observation.",
+    "neutral_priors": {
+      "control_share": 0.25,
+      "knockdowns_per_15": 0.1,
+      "sig_absorbed_per_min": 3.0,
+      "sig_accuracy": 0.5,
+      "sig_defense": 0.5,
+      "sig_landed_per_min": 3.0,
+      "submission_attempts_per_15": 0.5,
+      "takedown_accuracy": 0.4,
+      "takedown_defense": 0.6,
+      "takedowns_per_15": 1.0
+    },
+    "pseudo_exposure_minutes": 30.0,
+    "recent_rule": "Last five statistic bouts, including all ties on the boundary UTC date.",
+    "timing_rule": "All records from target day and future are withheld; additionally embargo all records in the preceding two dates."
+  },
+  "fixed_test_rule": "evaluate_only_the_single_selected_candidate_once_on_reused_1447_bout_benchmark",
+  "implementation_sha256": "fc12a9f5754b9a077f8b33169bd8565fc6b5ed823dc9345fb5350b89b6b2e23b",
+  "limitations": [
+    "Pretest and fixed historical periods were previously reported; no fresh holdout is claimed.",
+    "Archive fighter crosswalk and reach are retrospective; historical source availability is not established.",
+    "Rich history includes unmatched canonical past bouts only for exact unambiguous fighter links.",
+    "A conservative two-date embargo prevents the known one-day event-date and tournament leakage cases."
+  ],
+  "minimum_complete_bouts": 100,
+  "minimum_complete_share": 0.25,
+  "promotion_eligible": false,
+  "protocol_manifest_sha256": "35a47faa4f214c6daed0042516dd44f98efb1137a1e9daffe2ff19121f8fd441",
+  "protocol_version": "research-v6-three-rich-families-v1",
+  "research_only": true,
+  "schema_version": 1,
+  "selected_policy": {
+    "earliest_year": 2010,
+    "l2": 0.002,
+    "lookback_years": 8
+  },
+  "selection_labels_through": "2023-12-02",
+  "selection_rule": "minimum_pooled_pretest_rolling_calibrated_log_loss_then_declared_candidate_order",
+  "selection_years": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "source_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+  "stats_db_sha256": "5935d396fde70c9d88ece734e93f1fc637ce1e5a1dfef5467288f06916be009e"
+}

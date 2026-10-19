@@ -1,0 +1,398 @@
+{
+  "schema_version": 1,
+  "event": {
+    "name": "UFC 333: Volkanovski vs. Evloev",
+    "event_date": "2026-10-24",
+    "start_time_utc": "2026-10-24T14:00:00Z",
+    "source_url": "https://www.ufc.com/event/ufc-333"
+  },
+  "generated_at_utc": "2026-10-19T19:42:57Z",
+  "forecast": {
+    "model_version": "logistic-prior-v4:research_retrospective:ade69972e8d4bcb4",
+    "model_label": "V4 - calibrated UFC history and age",
+    "cutoff_at_utc": "2026-10-19T19:42:57Z",
+    "research_only": true,
+    "status": "prospective_research",
+    "forecast_id": "676a83d2483df81069f4ae5c118d1cda3afe0cbed5055663d35e49796182d0fb"
+  },
+  "bouts": [
+    {
+      "bout_id": "report:ufc333:2026-10-24:1",
+      "fighter_a": "Alexander Volkanovski",
+      "fighter_b": "Movsar Evloev",
+      "p_fighter_a": 0.3126383865701994,
+      "p_fighter_b": 0.6873616134298006,
+      "coverage": {
+        "fighter_a": {
+          "prior_ufc_bouts": 18,
+          "age": true,
+          "reach": false,
+          "fight_statistics": false
+        },
+        "fighter_b": {
+          "prior_ufc_bouts": 10,
+          "age": true,
+          "reach": false,
+          "fight_statistics": false
+        }
+      },
+      "market": null,
+      "notes": [
+        "Model factors are associations in log-odds units, not causal explanations."
+      ],
+      "weight_class": "Featherweight",
+      "scheduled_rounds": 5,
+      "contributions": [
+        {
+          "feature": "age_years_difference_10",
+          "label": "Age gap",
+          "logit_contribution": -0.3470472519421869
+        },
+        {
+          "feature": "age_decline_32_difference",
+          "label": "Age above 32",
+          "logit_contribution": -0.2490936771762453
+        },
+        {
+          "feature": "recent_form_5_difference",
+          "label": "Recent results",
+          "logit_contribution": -0.15024505403019242
+        }
+      ]
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:2",
+      "fighter_a": "Petr Yan",
+      "fighter_b": "Merab Dvalishvili",
+      "p_fighter_a": 0.5140568660167796,
+      "p_fighter_b": 0.4859431339832204,
+      "coverage": {
+        "fighter_a": {
+          "prior_ufc_bouts": 16,
+          "age": true,
+          "reach": false,
+          "fight_statistics": false
+        },
+        "fighter_b": {
+          "prior_ufc_bouts": 17,
+          "age": true,
+          "reach": false,
+          "fight_statistics": false
+        }
+      },
+      "market": null,
+      "notes": [
+        "Model factors are associations in log-odds units, not causal explanations."
+      ],
+      "weight_class": "Bantamweight",
+      "scheduled_rounds": 5,
+      "contributions": [
+        {
+          "feature": "age_years_difference_10",
+          "label": "Age gap",
+          "logit_contribution": 0.13503164366745954
+        },
+        {
+          "feature": "elo_difference_400",
+          "label": "Elo history gap",
+          "logit_contribution": -0.13214844807766346
+        },
+        {
+          "feature": "age_decline_32_difference",
+          "label": "Age above 32",
+          "logit_contribution": 0.09691916149182808
+        }
+      ]
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:4",
+      "fighter_a": "Alexander Volkov",
+      "fighter_b": "Rizvan Kuniev",
+      "p_fighter_a": 0.5752536503825703,
+      "p_fighter_b": 0.42474634961742974,
+      "coverage": {
+        "fighter_a": {
+          "prior_ufc_bouts": 19,
+          "age": true,
+          "reach": false,
+          "fight_statistics": false
+        },
+        "fighter_b": {
+          "prior_ufc_bouts": 3,
+          "age": true,
+          "reach": false,
+          "fight_statistics": false
+        }
+      },
+      "market": null,
+      "notes": [
+        "Model factors are associations in log-odds units, not causal explanations."
+      ],
+      "weight_class": "Heavyweight",
+      "scheduled_rounds": 3,
+      "contributions": [
+        {
+          "feature": "elo_difference_400",
+          "label": "Elo history gap",
+          "logit_contribution": 0.5829889529451708
+        },
+        {
+          "feature": "age_years_difference_10",
+          "label": "Age gap",
+          "logit_contribution": -0.2182097203695642
+        },
+        {
+          "feature": "age_decline_32_difference",
+          "label": "Age above 32",
+          "logit_contribution": -0.15662034878037215
+        }
+      ]
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:5",
+      "fighter_a": "Aaron Pico",
+      "fighter_b": "Losene Keita",
+      "p_fighter_a": 0.45583296701689013,
+      "p_fighter_b": 0.5441670329831099,
+      "coverage": {
+        "fighter_a": {
+          "prior_ufc_bouts": 2,
+          "age": true,
+          "reach": false,
+          "fight_statistics": false
+        },
+        "fighter_b": {
+          "prior_ufc_bouts": 2,
+          "age": true,
+          "reach": false,
+          "fight_statistics": false
+        }
+      },
+      "market": null,
+      "notes": [
+        "Model factors are associations in log-odds units, not causal explanations."
+      ],
+      "weight_class": "Featherweight",
+      "scheduled_rounds": 3,
+      "contributions": [
+        {
+          "feature": "rest_years_difference",
+          "label": "Time since last fight",
+          "logit_contribution": -0.09627910701898028
+        },
+        {
+          "feature": "age_years_difference_10",
+          "label": "Age gap",
+          "logit_contribution": -0.08193925428313742
+        },
+        {
+          "feature": "elo_difference_400",
+          "label": "Elo history gap",
+          "logit_contribution": 0.001088557658743882
+        }
+      ]
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:6",
+      "fighter_a": "Azamat Murzakanov",
+      "fighter_b": "Dominick Reyes",
+      "p_fighter_a": 0.48149168013901,
+      "p_fighter_b": 0.51850831986099,
+      "coverage": {
+        "fighter_a": {
+          "prior_ufc_bouts": 7,
+          "age": true,
+          "reach": false,
+          "fight_statistics": false
+        },
+        "fighter_b": {
+          "prior_ufc_bouts": 15,
+          "age": true,
+          "reach": false,
+          "fight_statistics": false
+        }
+      },
+      "market": null,
+      "notes": [
+        "Model factors are associations in log-odds units, not causal explanations."
+      ],
+      "weight_class": "Light Heavyweight",
+      "scheduled_rounds": 3,
+      "contributions": [
+        {
+          "feature": "smoothed_win_rate_difference",
+          "label": "UFC win rate gap",
+          "logit_contribution": 0.08382664022746297
+        },
+        {
+          "feature": "elo_difference_400",
+          "label": "Elo history gap",
+          "logit_contribution": -0.07420555076036386
+        },
+        {
+          "feature": "age_years_difference_10",
+          "label": "Age gap",
+          "logit_contribution": -0.04565945487051709
+        }
+      ]
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:9",
+      "fighter_a": "Grant Dawson",
+      "fighter_b": "Nurullo Aliev",
+      "p_fighter_a": 0.4215044982407777,
+      "p_fighter_b": 0.5784955017592224,
+      "coverage": {
+        "fighter_a": {
+          "prior_ufc_bouts": 15,
+          "age": true,
+          "reach": false,
+          "fight_statistics": false
+        },
+        "fighter_b": {
+          "prior_ufc_bouts": 4,
+          "age": true,
+          "reach": false,
+          "fight_statistics": false
+        }
+      },
+      "market": null,
+      "notes": [
+        "Model factors are associations in log-odds units, not causal explanations."
+      ],
+      "weight_class": "Lightweight",
+      "scheduled_rounds": 3,
+      "contributions": [
+        {
+          "feature": "age_years_difference_10",
+          "label": "Age gap",
+          "logit_contribution": -0.4300483540130102
+        },
+        {
+          "feature": "elo_difference_400",
+          "label": "Elo history gap",
+          "logit_contribution": 0.2740874068165665
+        },
+        {
+          "feature": "recent_form_5_difference",
+          "label": "Recent results",
+          "logit_contribution": -0.06260210584591352
+        }
+      ]
+    }
+  ],
+  "unscored_bouts": [
+    {
+      "fighter_a": "Lone’er Kavanagh",
+      "fighter_b": "Ramazan Temirov",
+      "reason": "Stable research identity not established for Ramazan Temirov. Name-only or provisional history was not merged.",
+      "weight_class": "Flyweight"
+    },
+    {
+      "fighter_a": "Nikita Krylov",
+      "fighter_b": "Abdul Rakhman Yakhyaev",
+      "reason": "Stable research identity not established for Abdul Rakhman Yakhyaev. Name-only or provisional history was not merged.",
+      "weight_class": "Light Heavyweight"
+    },
+    {
+      "fighter_a": "Abus Magomedov",
+      "fighter_b": "Cam Rowston",
+      "reason": "Stable research identity not established for Cam Rowston. Name-only or provisional history was not merged.",
+      "weight_class": "Middleweight"
+    },
+    {
+      "fighter_a": "Colby Thicknesse",
+      "fighter_b": "Asaf Chopurov",
+      "reason": "Stable research identity not established for Colby Thicknesse and Asaf Chopurov. Name-only or provisional history was not merged.",
+      "weight_class": "Bantamweight"
+    },
+    {
+      "fighter_a": "Abubakar Vagaev",
+      "fighter_b": "Jacob Malkoun",
+      "reason": "Stable research identity not established for Abubakar Vagaev. Name-only or provisional history was not merged.",
+      "weight_class": "Middleweight"
+    },
+    {
+      "fighter_a": "Bolaji Oki",
+      "fighter_b": "Daniel Santos",
+      "reason": "Stable research identity not established for Bolaji Oki. Name-only or provisional history was not merged.",
+      "weight_class": "Featherweight"
+    },
+    {
+      "fighter_a": "Kody Steele",
+      "fighter_b": "Noah Gugnon",
+      "reason": "Stable research identity not established for Kody Steele and Noah Gugnon. Name-only or provisional history was not merged.",
+      "weight_class": "Lightweight"
+    },
+    {
+      "fighter_a": "Iasmin Lucindo",
+      "fighter_b": "Nicolle Caliari",
+      "reason": "Stable research identity not established for Nicolle Caliari. Name-only or provisional history was not merged.",
+      "weight_class": "Women's Strawweight"
+    }
+  ],
+  "source_notes": [
+    "Official card captured 2026-10-19T19:38:12Z. 6 of 14 listed matchups scored.",
+    "Research result history is complete only through 2026-09-19; later events are not included.",
+    "Earliest card start: 14:00 UTC; main card: 18:00 UTC on October 24, 2026.",
+    "Current card and identity links were checked by software; human roster and identity review remains pending.",
+    "No bookmaker API was queried. Quoted odds on public event pages were excluded because they have no verified bookmaker capture/update times."
+  ],
+  "limitations": [
+    "These are forecasts for an unstarted event using retrospectively assembled research history; they do not establish operating readiness or a wagering edge.",
+    "8 matchups are not scored because stable research identities are unresolved. Provisional identities were not silently merged.",
+    "No reach or fight-statistics inputs are available. Injuries, training camps, matchup style, non-UFC records and later results are not modeled.",
+    "Probabilities describe model estimates, not certainty. A 60% favorite can lose four times in ten even under perfect calibration. The latest yearly benchmark is weaker than the full-history result.",
+    "The card can change before fight night. This frozen edition does not update automatically."
+  ],
+  "sources": [
+    {
+      "label": "Official Event",
+      "url": "https://www.ufc.com/event/ufc-333"
+    },
+    {
+      "label": "Official Start Guide",
+      "url": "https://www.ufc.com/ufc-333-fight-week-guide"
+    },
+    {
+      "label": "Wikipedia Event",
+      "url": "https://en.wikipedia.org/w/index.php?title=UFC_333&oldid=1380245887"
+    },
+    {
+      "label": "Fighter Lookup",
+      "url": "https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&redirects=1&titles=Aaron+Pico%7CAbusupiyan+Magomedov%7CAlexander+Volkanovski%7CAlexander+Volkov+%28fighter%29%7CAzamat+Murzakanov%7CColby+Thicknesse%7CDaniel+Santos+%28fighter%29%7CDominick+Reyes%7CGrant+Dawson%7CIasmin+Lucindo%7CJacob+Malkoun%7CLone%27er+Kavanagh%7CLosene+Keita%7CMerab+Dvalishvili%7CMovsar+Evloev%7CNikita+Krylov%7CNurullo+Aliev%7CPetr+Yan%7CRamazan+Temirov%7CRizvan+Kuniev&maxlag=5&prop=pageprops&ppprop=disambiguation"
+    },
+    {
+      "label": "Magomedov Alias",
+      "url": "https://en.wikipedia.org/w/rest.php/v1/page/Abusupiyan_Magomedov"
+    }
+  ],
+  "evaluation": {
+    "label": "Reused historical benchmark",
+    "bouts": 1447,
+    "accuracy": 0.5922598479612993,
+    "log_loss": 0.6627176935800163,
+    "brier_score": 0.23537390321913368,
+    "period": "2023-12-09 to 2026-09-19",
+    "baseline_label": "V3",
+    "note": "The fixed benchmark was reported previously and is not a fresh holdout. The 2016-2026 rolling summary includes the 2016-2023 development years used to select settings. Bootstrap intervals exclude data and selection uncertainty.",
+    "baseline_log_loss": 0.6712275033466752,
+    "baseline_accuracy": 0.5742916378714582,
+    "paired_log_loss_interval": [
+      -0.011699861720599905,
+      -0.005459259665861968
+    ],
+    "rolling": {
+      "bouts": 5278,
+      "accuracy": 0.5935960591133005,
+      "log_loss": 0.660792689937904,
+      "baseline_log_loss": 0.6659108908903089
+    },
+    "recent_year": {
+      "bouts": 398,
+      "accuracy": 0.5678391959798995,
+      "log_loss": 0.6757986930549907,
+      "year": 2026
+    }
+  }
+}

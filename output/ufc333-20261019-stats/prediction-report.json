@@ -1,0 +1,1144 @@
+{
+  "schema_version": 1,
+  "event": {
+    "name": "UFC 333: Volkanovski vs. Evloev",
+    "event_date": "2026-10-24",
+    "start_time_utc": "2026-10-24T14:00:00Z",
+    "source_url": "https://www.ufc.com/event/ufc-333"
+  },
+  "generated_at_utc": "2026-10-19T19:56:30Z",
+  "forecast": {
+    "model_version": "logistic-prior-v5:research_retrospective:1b8479e2b299ed4a",
+    "model_label": "V5 - history, age, reach and earlier-fight statistics",
+    "cutoff_at_utc": "2026-10-19T19:56:30Z",
+    "research_only": true,
+    "status": "prospective_research",
+    "forecast_id": "ead0b961b61f4a654795d9be89f7f827e1d84bb35bb4f3eeea6da92311ca151e"
+  },
+  "bouts": [
+    {
+      "bout_id": "report:ufc333:2026-10-24:1",
+      "fighter_a": "Alexander Volkanovski",
+      "fighter_b": "Movsar Evloev",
+      "p_fighter_a": 0.31027089436693944,
+      "p_fighter_b": 0.6897291056330606,
+      "coverage": {
+        "fighter_a": {
+          "prior_ufc_bouts": 18,
+          "prior_fights_with_stats": 9,
+          "reach_cm": 181.61,
+          "reach_source": "dated_profile",
+          "age": true,
+          "reach": true,
+          "fight_statistics": true
+        },
+        "fighter_b": {
+          "prior_ufc_bouts": 10,
+          "prior_fights_with_stats": 8,
+          "reach_cm": 184.15,
+          "reach_source": "dated_profile",
+          "age": true,
+          "reach": true,
+          "fight_statistics": true
+        }
+      },
+      "market": null,
+      "notes": [
+        "Model factors are associations in log-odds units, not causal explanations."
+      ],
+      "weight_class": "Featherweight",
+      "scheduled_rounds": 5,
+      "measurements": {
+        "fighter_a": {
+          "source_url": "https://www.ufc.com/athlete/alexander-volkanovski",
+          "source_label": "Official UFC athlete profile",
+          "captured_at_utc": "2026-10-19T19:48:17Z",
+          "source_verified": true,
+          "facts": [
+            {
+              "key": "reach_cm",
+              "value": 181.61,
+              "used_by_model": true
+            },
+            {
+              "key": "significant_strikes_landed_per_minute",
+              "value": 5.99,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strikes_absorbed_per_minute",
+              "value": 3.31,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_accuracy_display_pct",
+              "value": 57.0,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_defense_pct",
+              "value": 59.0,
+              "used_by_model": false
+            },
+            {
+              "key": "takedowns_average_per_15_minutes",
+              "value": 1.63,
+              "used_by_model": false
+            },
+            {
+              "key": "takedown_defense_pct",
+              "value": 69.0,
+              "used_by_model": false
+            },
+            {
+              "key": "submissions_average_per_15_minutes",
+              "value": 0.2,
+              "used_by_model": false
+            },
+            {
+              "key": "knockdowns_average_per_15_minutes",
+              "value": 0.3,
+              "used_by_model": false
+            }
+          ],
+          "observed_after_forecast": false
+        },
+        "fighter_b": {
+          "source_url": "https://www.ufc.com/athlete/movsar-evloev",
+          "source_label": "Official UFC athlete profile",
+          "captured_at_utc": "2026-10-19T19:48:17Z",
+          "source_verified": true,
+          "facts": [
+            {
+              "key": "reach_cm",
+              "value": 184.15,
+              "used_by_model": true
+            },
+            {
+              "key": "significant_strikes_landed_per_minute",
+              "value": 3.91,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strikes_absorbed_per_minute",
+              "value": 2.8,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_accuracy_display_pct",
+              "value": 48.0,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_defense_pct",
+              "value": 61.0,
+              "used_by_model": false
+            },
+            {
+              "key": "takedowns_average_per_15_minutes",
+              "value": 4.78,
+              "used_by_model": false
+            },
+            {
+              "key": "takedown_defense_pct",
+              "value": 61.0,
+              "used_by_model": false
+            },
+            {
+              "key": "submissions_average_per_15_minutes",
+              "value": 0.19,
+              "used_by_model": false
+            },
+            {
+              "key": "knockdowns_average_per_15_minutes",
+              "value": 0.0,
+              "used_by_model": false
+            }
+          ],
+          "observed_after_forecast": false
+        }
+      },
+      "contributions": [
+        {
+          "feature": "age_years_difference_10",
+          "label": "Age gap",
+          "logit_contribution": -0.34134483402578747
+        },
+        {
+          "feature": "age_decline_32_difference",
+          "label": "Age above 32",
+          "logit_contribution": -0.2503724371737462
+        },
+        {
+          "feature": "recent_form_5_difference",
+          "label": "Recent results",
+          "logit_contribution": -0.1565516315906083
+        }
+      ]
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:2",
+      "fighter_a": "Petr Yan",
+      "fighter_b": "Merab Dvalishvili",
+      "p_fighter_a": 0.5245698049114093,
+      "p_fighter_b": 0.47543019508859075,
+      "coverage": {
+        "fighter_a": {
+          "prior_ufc_bouts": 16,
+          "prior_fights_with_stats": 15,
+          "reach_cm": 170.18,
+          "reach_source": "dated_profile",
+          "age": true,
+          "reach": true,
+          "fight_statistics": true
+        },
+        "fighter_b": {
+          "prior_ufc_bouts": 17,
+          "prior_fights_with_stats": 15,
+          "reach_cm": 172.72,
+          "reach_source": "dated_profile",
+          "age": true,
+          "reach": true,
+          "fight_statistics": true
+        }
+      },
+      "market": null,
+      "notes": [
+        "Model factors are associations in log-odds units, not causal explanations."
+      ],
+      "weight_class": "Bantamweight",
+      "scheduled_rounds": 5,
+      "measurements": {
+        "fighter_a": {
+          "source_url": "https://www.ufc.com/athlete/petr-yan",
+          "source_label": "Official UFC athlete profile",
+          "captured_at_utc": "2026-10-19T19:48:17Z",
+          "source_verified": true,
+          "facts": [
+            {
+              "key": "reach_cm",
+              "value": 170.18,
+              "used_by_model": true
+            },
+            {
+              "key": "significant_strikes_landed_per_minute",
+              "value": 5.16,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strikes_absorbed_per_minute",
+              "value": 4.24,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_accuracy_display_pct",
+              "value": 55.0,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_defense_pct",
+              "value": 60.0,
+              "used_by_model": false
+            },
+            {
+              "key": "takedowns_average_per_15_minutes",
+              "value": 1.7,
+              "used_by_model": false
+            },
+            {
+              "key": "takedown_defense_pct",
+              "value": 86.0,
+              "used_by_model": false
+            },
+            {
+              "key": "submissions_average_per_15_minutes",
+              "value": 0.11,
+              "used_by_model": false
+            },
+            {
+              "key": "knockdowns_average_per_15_minutes",
+              "value": 0.53,
+              "used_by_model": false
+            }
+          ],
+          "observed_after_forecast": false
+        },
+        "fighter_b": {
+          "source_url": "https://www.ufc.com/athlete/merab-dvalishvili",
+          "source_label": "Official UFC athlete profile",
+          "captured_at_utc": "2026-10-19T19:48:17Z",
+          "source_verified": true,
+          "facts": [
+            {
+              "key": "reach_cm",
+              "value": 172.72,
+              "used_by_model": true
+            },
+            {
+              "key": "significant_strikes_landed_per_minute",
+              "value": 4.42,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strikes_absorbed_per_minute",
+              "value": 2.8,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_accuracy_display_pct",
+              "value": 42.0,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_defense_pct",
+              "value": 54.0,
+              "used_by_model": false
+            },
+            {
+              "key": "takedowns_average_per_15_minutes",
+              "value": 5.97,
+              "used_by_model": false
+            },
+            {
+              "key": "takedown_defense_pct",
+              "value": 76.0,
+              "used_by_model": false
+            },
+            {
+              "key": "submissions_average_per_15_minutes",
+              "value": 0.35,
+              "used_by_model": false
+            },
+            {
+              "key": "knockdowns_average_per_15_minutes",
+              "value": 0.05,
+              "used_by_model": false
+            }
+          ],
+          "observed_after_forecast": false
+        }
+      },
+      "contributions": [
+        {
+          "feature": "age_years_difference_10",
+          "label": "Age gap",
+          "logit_contribution": 0.13281290584481154
+        },
+        {
+          "feature": "elo_difference_400",
+          "label": "Elo history gap",
+          "logit_contribution": -0.12579066456997307
+        },
+        {
+          "feature": "age_decline_32_difference",
+          "label": "Age above 32",
+          "logit_contribution": 0.09741671063924938
+        }
+      ]
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:4",
+      "fighter_a": "Alexander Volkov",
+      "fighter_b": "Rizvan Kuniev",
+      "p_fighter_a": 0.6448930611053394,
+      "p_fighter_b": 0.3551069388946606,
+      "coverage": {
+        "fighter_a": {
+          "prior_ufc_bouts": 19,
+          "prior_fights_with_stats": 15,
+          "reach_cm": 203.2,
+          "reach_source": "dated_profile",
+          "age": true,
+          "reach": true,
+          "fight_statistics": true
+        },
+        "fighter_b": {
+          "prior_ufc_bouts": 3,
+          "prior_fights_with_stats": 3,
+          "reach_cm": 193.04,
+          "reach_source": "dated_profile",
+          "age": true,
+          "reach": true,
+          "fight_statistics": true
+        }
+      },
+      "market": null,
+      "notes": [
+        "Model factors are associations in log-odds units, not causal explanations."
+      ],
+      "weight_class": "Heavyweight",
+      "scheduled_rounds": 3,
+      "measurements": {
+        "fighter_a": {
+          "source_url": "https://www.ufc.com/athlete/alexander-volkov",
+          "source_label": "Official UFC athlete profile",
+          "captured_at_utc": "2026-10-19T19:48:17Z",
+          "source_verified": true,
+          "facts": [
+            {
+              "key": "reach_cm",
+              "value": 203.2,
+              "used_by_model": true
+            },
+            {
+              "key": "significant_strikes_landed_per_minute",
+              "value": 4.84,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strikes_absorbed_per_minute",
+              "value": 2.9,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_accuracy_display_pct",
+              "value": 58.0,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_defense_pct",
+              "value": 54.0,
+              "used_by_model": false
+            },
+            {
+              "key": "takedowns_average_per_15_minutes",
+              "value": 0.54,
+              "used_by_model": false
+            },
+            {
+              "key": "takedown_defense_pct",
+              "value": 69.0,
+              "used_by_model": false
+            },
+            {
+              "key": "submissions_average_per_15_minutes",
+              "value": 0.22,
+              "used_by_model": false
+            },
+            {
+              "key": "knockdowns_average_per_15_minutes",
+              "value": 0.22,
+              "used_by_model": false
+            }
+          ],
+          "observed_after_forecast": false
+        },
+        "fighter_b": {
+          "source_url": "https://www.ufc.com/athlete/rizvan-kuniev",
+          "source_label": "Official UFC athlete profile",
+          "captured_at_utc": "2026-10-19T19:48:17Z",
+          "source_verified": true,
+          "facts": [
+            {
+              "key": "reach_cm",
+              "value": 193.04,
+              "used_by_model": true
+            },
+            {
+              "key": "significant_strikes_landed_per_minute",
+              "value": 4.32,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strikes_absorbed_per_minute",
+              "value": 2.22,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_accuracy_display_pct",
+              "value": 55.0,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_defense_pct",
+              "value": 49.0,
+              "used_by_model": false
+            },
+            {
+              "key": "takedowns_average_per_15_minutes",
+              "value": 0.79,
+              "used_by_model": false
+            },
+            {
+              "key": "takedown_defense_pct",
+              "value": 94.0,
+              "used_by_model": false
+            },
+            {
+              "key": "submissions_average_per_15_minutes",
+              "value": 0.0,
+              "used_by_model": false
+            },
+            {
+              "key": "knockdowns_average_per_15_minutes",
+              "value": 0.52,
+              "used_by_model": false
+            }
+          ],
+          "observed_after_forecast": false
+        }
+      },
+      "contributions": [
+        {
+          "feature": "elo_difference_400",
+          "label": "Elo history gap",
+          "logit_contribution": 0.5549408176540005
+        },
+        {
+          "feature": "age_years_difference_10",
+          "label": "Age gap",
+          "logit_contribution": -0.21462426331147116
+        },
+        {
+          "feature": "reach_cm_difference_20",
+          "label": "Reach gap",
+          "logit_contribution": 0.21291844743165536
+        }
+      ]
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:5",
+      "fighter_a": "Aaron Pico",
+      "fighter_b": "Losene Keita",
+      "p_fighter_a": 0.43841088515424576,
+      "p_fighter_b": 0.5615891148457542,
+      "coverage": {
+        "fighter_a": {
+          "prior_ufc_bouts": 2,
+          "prior_fights_with_stats": 1,
+          "reach_cm": 179.07,
+          "reach_source": "dated_profile",
+          "age": true,
+          "reach": true,
+          "fight_statistics": true
+        },
+        "fighter_b": {
+          "prior_ufc_bouts": 2,
+          "prior_fights_with_stats": 2,
+          "reach_cm": 181.61,
+          "reach_source": "dated_profile",
+          "age": true,
+          "reach": true,
+          "fight_statistics": true
+        }
+      },
+      "market": null,
+      "notes": [
+        "Model factors are associations in log-odds units, not causal explanations."
+      ],
+      "weight_class": "Featherweight",
+      "scheduled_rounds": 3,
+      "measurements": {
+        "fighter_a": {
+          "source_url": "https://www.ufc.com/athlete/aaron-pico",
+          "source_label": "Official UFC athlete profile",
+          "captured_at_utc": "2026-10-19T19:48:17Z",
+          "source_verified": true,
+          "facts": [
+            {
+              "key": "reach_cm",
+              "value": 179.07,
+              "used_by_model": true
+            },
+            {
+              "key": "significant_strikes_landed_per_minute",
+              "value": 6.16,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strikes_absorbed_per_minute",
+              "value": 3.11,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_accuracy_display_pct",
+              "value": 54.0,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_defense_pct",
+              "value": 45.0,
+              "used_by_model": false
+            },
+            {
+              "key": "takedowns_average_per_15_minutes",
+              "value": 6.54,
+              "used_by_model": false
+            },
+            {
+              "key": "submissions_average_per_15_minutes",
+              "value": 0.0,
+              "used_by_model": false
+            },
+            {
+              "key": "knockdowns_average_per_15_minutes",
+              "value": 0.0,
+              "used_by_model": false
+            }
+          ],
+          "observed_after_forecast": false
+        },
+        "fighter_b": {
+          "source_url": "https://www.ufc.com/athlete/losene-keita",
+          "source_label": "Official UFC athlete profile",
+          "captured_at_utc": "2026-10-19T19:48:17Z",
+          "source_verified": true,
+          "facts": [
+            {
+              "key": "reach_cm",
+              "value": 181.61,
+              "used_by_model": true
+            },
+            {
+              "key": "significant_strikes_landed_per_minute",
+              "value": 3.91,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strikes_absorbed_per_minute",
+              "value": 3.97,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_accuracy_display_pct",
+              "value": 47.0,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_defense_pct",
+              "value": 65.0,
+              "used_by_model": false
+            },
+            {
+              "key": "takedowns_average_per_15_minutes",
+              "value": 0.0,
+              "used_by_model": false
+            },
+            {
+              "key": "takedown_defense_pct",
+              "value": 100.0,
+              "used_by_model": false
+            },
+            {
+              "key": "submissions_average_per_15_minutes",
+              "value": 0.0,
+              "used_by_model": false
+            },
+            {
+              "key": "knockdowns_average_per_15_minutes",
+              "value": 1.68,
+              "used_by_model": false
+            }
+          ],
+          "observed_after_forecast": false
+        }
+      },
+      "contributions": [
+        {
+          "feature": "rest_years_difference",
+          "label": "Time since last fight",
+          "logit_contribution": -0.0948370066864474
+        },
+        {
+          "feature": "age_years_difference_10",
+          "label": "Age gap",
+          "logit_contribution": -0.08059289044056071
+        },
+        {
+          "feature": "reach_cm_difference_20",
+          "label": "Reach gap",
+          "logit_contribution": -0.05322961185791429
+        }
+      ]
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:6",
+      "fighter_a": "Azamat Murzakanov",
+      "fighter_b": "Dominick Reyes",
+      "p_fighter_a": 0.40883103918170177,
+      "p_fighter_b": 0.5911689608182982,
+      "coverage": {
+        "fighter_a": {
+          "prior_ufc_bouts": 7,
+          "prior_fights_with_stats": 6,
+          "reach_cm": 181.61,
+          "reach_source": "dated_profile",
+          "age": true,
+          "reach": true,
+          "fight_statistics": true
+        },
+        "fighter_b": {
+          "prior_ufc_bouts": 15,
+          "prior_fights_with_stats": 12,
+          "reach_cm": 195.58,
+          "reach_source": "dated_profile",
+          "age": true,
+          "reach": true,
+          "fight_statistics": true
+        }
+      },
+      "market": null,
+      "notes": [
+        "Model factors are associations in log-odds units, not causal explanations."
+      ],
+      "weight_class": "Light Heavyweight",
+      "scheduled_rounds": 3,
+      "measurements": {
+        "fighter_a": {
+          "source_url": "https://www.ufc.com/athlete/azamat-murzakanov",
+          "source_label": "Official UFC athlete profile",
+          "captured_at_utc": "2026-10-19T19:48:17Z",
+          "source_verified": true,
+          "facts": [
+            {
+              "key": "reach_cm",
+              "value": 181.61,
+              "used_by_model": true
+            },
+            {
+              "key": "significant_strikes_landed_per_minute",
+              "value": 4.4,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strikes_absorbed_per_minute",
+              "value": 3.2,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_accuracy_display_pct",
+              "value": 56.0,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_defense_pct",
+              "value": 56.0,
+              "used_by_model": false
+            },
+            {
+              "key": "takedowns_average_per_15_minutes",
+              "value": 0.68,
+              "used_by_model": false
+            },
+            {
+              "key": "takedown_defense_pct",
+              "value": 89.0,
+              "used_by_model": false
+            },
+            {
+              "key": "submissions_average_per_15_minutes",
+              "value": 0.23,
+              "used_by_model": false
+            },
+            {
+              "key": "knockdowns_average_per_15_minutes",
+              "value": 1.58,
+              "used_by_model": false
+            }
+          ],
+          "observed_after_forecast": false
+        },
+        "fighter_b": {
+          "source_url": "https://www.ufc.com/athlete/dominick-reyes",
+          "source_label": "Official UFC athlete profile",
+          "captured_at_utc": "2026-10-19T19:48:17Z",
+          "source_verified": true,
+          "facts": [
+            {
+              "key": "reach_cm",
+              "value": 195.58,
+              "used_by_model": true
+            },
+            {
+              "key": "significant_strikes_landed_per_minute",
+              "value": 4.99,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strikes_absorbed_per_minute",
+              "value": 3.4,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_accuracy_display_pct",
+              "value": 54.0,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_defense_pct",
+              "value": 50.0,
+              "used_by_model": false
+            },
+            {
+              "key": "takedowns_average_per_15_minutes",
+              "value": 0.25,
+              "used_by_model": false
+            },
+            {
+              "key": "takedown_defense_pct",
+              "value": 83.0,
+              "used_by_model": false
+            },
+            {
+              "key": "submissions_average_per_15_minutes",
+              "value": 0.25,
+              "used_by_model": false
+            },
+            {
+              "key": "knockdowns_average_per_15_minutes",
+              "value": 0.89,
+              "used_by_model": false
+            }
+          ],
+          "observed_after_forecast": false
+        }
+      },
+      "contributions": [
+        {
+          "feature": "reach_cm_difference_20",
+          "label": "Reach gap",
+          "logit_contribution": -0.2927628652185262
+        },
+        {
+          "feature": "smoothed_win_rate_difference",
+          "label": "UFC win rate gap",
+          "logit_contribution": 0.08178037283804561
+        },
+        {
+          "feature": "elo_difference_400",
+          "label": "Elo history gap",
+          "logit_contribution": -0.07063545339133492
+        }
+      ]
+    },
+    {
+      "bout_id": "report:ufc333:2026-10-24:9",
+      "fighter_a": "Grant Dawson",
+      "fighter_b": "Nurullo Aliev",
+      "p_fighter_a": 0.44655655607238376,
+      "p_fighter_b": 0.5534434439276162,
+      "coverage": {
+        "fighter_a": {
+          "prior_ufc_bouts": 15,
+          "prior_fights_with_stats": 10,
+          "reach_cm": 182.88,
+          "reach_source": "dated_profile",
+          "age": true,
+          "reach": true,
+          "fight_statistics": true
+        },
+        "fighter_b": {
+          "prior_ufc_bouts": 4,
+          "prior_fights_with_stats": 3,
+          "reach_cm": 182.88,
+          "reach_source": "dated_profile",
+          "age": true,
+          "reach": true,
+          "fight_statistics": true
+        }
+      },
+      "market": null,
+      "notes": [
+        "Model factors are associations in log-odds units, not causal explanations."
+      ],
+      "weight_class": "Lightweight",
+      "scheduled_rounds": 3,
+      "measurements": {
+        "fighter_a": {
+          "source_url": "https://www.ufc.com/athlete/grant-dawson",
+          "source_label": "Official UFC athlete profile",
+          "captured_at_utc": "2026-10-19T19:48:47Z",
+          "source_verified": true,
+          "facts": [
+            {
+              "key": "reach_cm",
+              "value": 182.88,
+              "used_by_model": true
+            },
+            {
+              "key": "significant_strikes_landed_per_minute",
+              "value": 3.14,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strikes_absorbed_per_minute",
+              "value": 2.14,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_accuracy_display_pct",
+              "value": 51.0,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_defense_pct",
+              "value": 45.0,
+              "used_by_model": false
+            },
+            {
+              "key": "takedowns_average_per_15_minutes",
+              "value": 3.58,
+              "used_by_model": false
+            },
+            {
+              "key": "takedown_defense_pct",
+              "value": 67.0,
+              "used_by_model": false
+            },
+            {
+              "key": "submissions_average_per_15_minutes",
+              "value": 1.36,
+              "used_by_model": false
+            },
+            {
+              "key": "knockdowns_average_per_15_minutes",
+              "value": 0.09,
+              "used_by_model": false
+            }
+          ],
+          "observed_after_forecast": false
+        },
+        "fighter_b": {
+          "source_url": "https://www.ufc.com/athlete/nurullo-aliev",
+          "source_label": "Official UFC athlete profile",
+          "captured_at_utc": "2026-10-19T19:48:40Z",
+          "source_verified": true,
+          "facts": [
+            {
+              "key": "reach_cm",
+              "value": 182.88,
+              "used_by_model": true
+            },
+            {
+              "key": "significant_strikes_landed_per_minute",
+              "value": 2.29,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strikes_absorbed_per_minute",
+              "value": 1.59,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_accuracy_display_pct",
+              "value": 44.0,
+              "used_by_model": false
+            },
+            {
+              "key": "significant_strike_defense_pct",
+              "value": 55.0,
+              "used_by_model": false
+            },
+            {
+              "key": "takedowns_average_per_15_minutes",
+              "value": 3.48,
+              "used_by_model": false
+            },
+            {
+              "key": "takedown_defense_pct",
+              "value": 80.0,
+              "used_by_model": false
+            },
+            {
+              "key": "submissions_average_per_15_minutes",
+              "value": 0.46,
+              "used_by_model": false
+            },
+            {
+              "key": "knockdowns_average_per_15_minutes",
+              "value": 0.0,
+              "used_by_model": false
+            }
+          ],
+          "observed_after_forecast": false
+        }
+      },
+      "contributions": [
+        {
+          "feature": "age_years_difference_10",
+          "label": "Age gap",
+          "logit_contribution": -0.42298212477443264
+        },
+        {
+          "feature": "elo_difference_400",
+          "label": "Elo history gap",
+          "logit_contribution": 0.2609008093190319
+        },
+        {
+          "feature": "opponent_adjusted_sig_strike_accuracy_difference",
+          "label": "Adjusted strike accuracy",
+          "logit_contribution": 0.10016662929549558
+        }
+      ]
+    }
+  ],
+  "unscored_bouts": [
+    {
+      "fighter_a": "Lone’er Kavanagh",
+      "fighter_b": "Ramazan Temirov",
+      "reason": "Stable research identity not established for Ramazan Temirov. Name-only or provisional history was not merged.",
+      "weight_class": "Flyweight"
+    },
+    {
+      "fighter_a": "Nikita Krylov",
+      "fighter_b": "Abdul Rakhman Yakhyaev",
+      "reason": "Stable research identity not established for Abdul Rakhman Yakhyaev. Name-only or provisional history was not merged.",
+      "weight_class": "Light Heavyweight"
+    },
+    {
+      "fighter_a": "Abus Magomedov",
+      "fighter_b": "Cam Rowston",
+      "reason": "Stable research identity not established for Cam Rowston. Name-only or provisional history was not merged.",
+      "weight_class": "Middleweight"
+    },
+    {
+      "fighter_a": "Colby Thicknesse",
+      "fighter_b": "Asaf Chopurov",
+      "reason": "Stable research identity not established for Colby Thicknesse and Asaf Chopurov. Name-only or provisional history was not merged.",
+      "weight_class": "Bantamweight"
+    },
+    {
+      "fighter_a": "Abubakar Vagaev",
+      "fighter_b": "Jacob Malkoun",
+      "reason": "Stable research identity not established for Abubakar Vagaev. Name-only or provisional history was not merged.",
+      "weight_class": "Middleweight"
+    },
+    {
+      "fighter_a": "Bolaji Oki",
+      "fighter_b": "Daniel Santos",
+      "reason": "Stable research identity not established for Bolaji Oki. Name-only or provisional history was not merged.",
+      "weight_class": "Featherweight"
+    },
+    {
+      "fighter_a": "Kody Steele",
+      "fighter_b": "Noah Gugnon",
+      "reason": "Stable research identity not established for Kody Steele and Noah Gugnon. Name-only or provisional history was not merged.",
+      "weight_class": "Lightweight"
+    },
+    {
+      "fighter_a": "Iasmin Lucindo",
+      "fighter_b": "Nicolle Caliari",
+      "reason": "Stable research identity not established for Nicolle Caliari. Name-only or provisional history was not merged.",
+      "weight_class": "Women's Strawweight"
+    }
+  ],
+  "source_notes": [
+    "Official card captured 2026-10-19T19:38:12Z. 6 of 14 listed matchups scored.",
+    "Research result history is complete only through 2026-09-19; later events are not included.",
+    "Earliest card start: 2026-10-24T14:00:00Z; main card: 2026-10-24T18:00:00Z.",
+    "Current card and identity links were checked by software; human roster and identity review remains pending.",
+    "No bookmaker API was queried. Quoted odds on public event pages were excluded because they have no verified bookmaker capture/update times.",
+    "Historical archive supplies 6,595 exactly matched paired-stat bouts. Both-fighter reach and earlier-stat coverage in the benchmark: 525/1,447 (36.3%). Missing historical evidence remains neutral; the 12 scored current fighters all have reach and earlier-fight statistics.",
+    "Current official UFC profile rates are shown for context and never replace earlier-fight model inputs. Official numeric reach is interpreted as inches and converted by 2.54; archived values differ by up to 1.27 cm for five fighters. Dated official reach supplies the current V5 forecasts.",
+    "Takedown accuracy is omitted because official profile panels contain inconsistent or incomplete counts for several fighters. Other published current rates are displayed as source-reported context."
+  ],
+  "limitations": [
+    "These are forecasts for an unstarted event using retrospectively assembled research history; they do not establish operating readiness or a wagering edge.",
+    "8 matchups are not scored because stable research identities are unresolved. Provisional identities were not silently merged.",
+    "Reach and earlier-fight paired strike counts enter V5. Archive reach is treated as an approximate static adult attribute in historical replay; historical measurement dates are unknown. Current career averages are descriptive only. Injuries, camps, non-UFC records and later results are not modeled.",
+    "Probabilities describe model estimates, not certainty. A 60% favorite can lose four times in ten even under perfect calibration. The latest yearly benchmark is weaker than the full-history result.",
+    "The card can change before fight night. This frozen edition does not update automatically."
+  ],
+  "sources": [
+    {
+      "label": "Official Event",
+      "url": "https://www.ufc.com/event/ufc-333"
+    },
+    {
+      "label": "Official Start Guide",
+      "url": "https://www.ufc.com/ufc-333-fight-week-guide"
+    },
+    {
+      "label": "Wikipedia Event",
+      "url": "https://en.wikipedia.org/w/index.php?title=UFC_333&oldid=1380245887"
+    },
+    {
+      "label": "Fighter Lookup",
+      "url": "https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&redirects=1&titles=Aaron+Pico%7CAbusupiyan+Magomedov%7CAlexander+Volkanovski%7CAlexander+Volkov+%28fighter%29%7CAzamat+Murzakanov%7CColby+Thicknesse%7CDaniel+Santos+%28fighter%29%7CDominick+Reyes%7CGrant+Dawson%7CIasmin+Lucindo%7CJacob+Malkoun%7CLone%27er+Kavanagh%7CLosene+Keita%7CMerab+Dvalishvili%7CMovsar+Evloev%7CNikita+Krylov%7CNurullo+Aliev%7CPetr+Yan%7CRamazan+Temirov%7CRizvan+Kuniev&maxlag=5&prop=pageprops&ppprop=disambiguation"
+    },
+    {
+      "label": "Magomedov Alias",
+      "url": "https://en.wikipedia.org/w/rest.php/v1/page/Abusupiyan_Magomedov"
+    },
+    {
+      "label": "Version-pinned UFCStats research archive",
+      "url": "https://github.com/Greco1899/scrape_ufc_stats/tree/3e2f3db5751c14b5d4ea52e41921982ca23b9b23"
+    },
+    {
+      "label": "Alexander Volkanovski - official athlete profile",
+      "url": "https://www.ufc.com/athlete/alexander-volkanovski"
+    },
+    {
+      "label": "Movsar Evloev - official athlete profile",
+      "url": "https://www.ufc.com/athlete/movsar-evloev"
+    },
+    {
+      "label": "Petr Yan - official athlete profile",
+      "url": "https://www.ufc.com/athlete/petr-yan"
+    },
+    {
+      "label": "Merab Dvalishvili - official athlete profile",
+      "url": "https://www.ufc.com/athlete/merab-dvalishvili"
+    },
+    {
+      "label": "Alexander Volkov - official athlete profile",
+      "url": "https://www.ufc.com/athlete/alexander-volkov"
+    },
+    {
+      "label": "Rizvan Kuniev - official athlete profile",
+      "url": "https://www.ufc.com/athlete/rizvan-kuniev"
+    },
+    {
+      "label": "Aaron Pico - official athlete profile",
+      "url": "https://www.ufc.com/athlete/aaron-pico"
+    },
+    {
+      "label": "Losene Keita - official athlete profile",
+      "url": "https://www.ufc.com/athlete/losene-keita"
+    },
+    {
+      "label": "Azamat Murzakanov - official athlete profile",
+      "url": "https://www.ufc.com/athlete/azamat-murzakanov"
+    },
+    {
+      "label": "Dominick Reyes - official athlete profile",
+      "url": "https://www.ufc.com/athlete/dominick-reyes"
+    },
+    {
+      "label": "Grant Dawson - official athlete profile",
+      "url": "https://www.ufc.com/athlete/grant-dawson"
+    },
+    {
+      "label": "Nurullo Aliev - official athlete profile",
+      "url": "https://www.ufc.com/athlete/nurullo-aliev"
+    }
+  ],
+  "evaluation": {
+    "label": "Reused historical benchmark",
+    "bouts": 1447,
+    "accuracy": 0.5915687629578438,
+    "log_loss": 0.661441207988853,
+    "brier_score": 0.23469797571237042,
+    "period": "2023-12-09 to 2026-09-19",
+    "baseline_label": "V4",
+    "note": "The fixed benchmark was reported previously and is not a fresh holdout. The 2016-2026 rolling summary includes the 2016-2023 development years used to select settings. Bootstrap intervals exclude data and selection uncertainty. The V5 loss gain is small and its paired interval includes zero; fixed-benchmark winner accuracy is one correct pick lower than V4. This does not establish a reliable improvement.",
+    "baseline_log_loss": 0.6627176935800163,
+    "baseline_accuracy": 0.5922598479612993,
+    "paired_log_loss_interval": [
+      -0.005387453952160707,
+      0.00261842101588738
+    ],
+    "rolling": {
+      "bouts": 5278,
+      "accuracy": 0.5998484274346343,
+      "log_loss": 0.6595169463594435,
+      "baseline_log_loss": 0.660792689937904
+    },
+    "recent_year": {
+      "bouts": 398,
+      "accuracy": 0.5728643216080402,
+      "log_loss": 0.6736553634718037,
+      "year": 2026
+    }
+  }
+}

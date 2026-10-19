@@ -1,0 +1,3499 @@
+{
+  "schema_version": 1,
+  "report_type": "earlier_fight_card_statistics",
+  "research_only": true,
+  "event": {
+    "event_id": "ufcstats:event:1ef0eae31904e534",
+    "name": "UFC 229: Khabib vs. McGregor",
+    "event_date": "2018-10-06",
+    "source_url": "http://ufcstats.com/event-details/1ef0eae31904e534",
+    "roster_basis": "retained_statistics_store"
+  },
+  "generated_at_utc": "2026-10-19T20:19:36Z",
+  "as_of_utc": "2026-10-19T20:19:36Z",
+  "prior_fight_date_exclusive": "2018-10-06",
+  "temporal_guard": "canonical_whole_date_exclusion",
+  "summary": {
+    "bouts": 12,
+    "fighters": 24,
+    "fighters_with_prior_stats": 23,
+    "unresolved_identities": 0,
+    "resolved_without_prior_stats": 1
+  },
+  "source_context": {
+    "source_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+    "store_content_sha256": "1337cf7825ac2417bc1362b6abbdbbe199152c8168074d13d887ef7bb1edd81f",
+    "captured_at_utc": "2026-10-19T19:49:25Z",
+    "history_database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+    "protocol": "canonical-ufc-statistics-history-v1",
+    "repository_url": "https://github.com/Greco1899/scrape_ufc_stats",
+    "repository_commit": "3e2f3db5751c14b5d4ea52e41921982ca23b9b23"
+  },
+  "bouts": [
+    {
+      "bout_id": "ufcstats:fight:3eea92e7f26fb05b",
+      "weight_class": "UFC Lightweight Title Bout",
+      "scheduled_rounds": 5,
+      "fighter_a": {
+        "fighter_id": "ufcstats:fighter:032cc3922d871c7f",
+        "canonical_fighter_id": "ufcstats:fighter:032cc3922d871c7f",
+        "name": "Khabib Nurmagomedov",
+        "canonical_name": "Khabib Nurmagomedov",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 10,
+        "known_duration_bouts": 10,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 135.2,
+        "reach_cm": 177.8,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/032cc3922d871c7f",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 4.341715976331361,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 1.5458579881656804,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 48.754152823920265,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 70.35460992907801,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.22189349112426035,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 5.436390532544379,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 44.95412844036697,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 1
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 84.61538461538461,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 4
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.5547337278106509,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 53.759861932938854,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:8360accf6f70ebc4",
+            "event_date": "2012-01-20",
+            "source_url": "http://ufcstats.com/fight-details/8360accf6f70ebc4"
+          },
+          {
+            "bout_id": "ufcstats:fight:ded18af0e4eae2f7",
+            "event_date": "2012-07-07",
+            "source_url": "http://ufcstats.com/fight-details/ded18af0e4eae2f7"
+          },
+          {
+            "bout_id": "ufcstats:fight:7651b2e09ea2c420",
+            "event_date": "2013-01-19",
+            "source_url": "http://ufcstats.com/fight-details/7651b2e09ea2c420"
+          },
+          {
+            "bout_id": "ufcstats:fight:e1d33aa47b35d021",
+            "event_date": "2013-05-25",
+            "source_url": "http://ufcstats.com/fight-details/e1d33aa47b35d021"
+          },
+          {
+            "bout_id": "ufcstats:fight:ca2b48fd007126e0",
+            "event_date": "2013-09-21",
+            "source_url": "http://ufcstats.com/fight-details/ca2b48fd007126e0"
+          },
+          {
+            "bout_id": "ufcstats:fight:9d1722fb8b83a92a",
+            "event_date": "2014-04-19",
+            "source_url": "http://ufcstats.com/fight-details/9d1722fb8b83a92a"
+          },
+          {
+            "bout_id": "ufcstats:fight:781b4b6951df64fe",
+            "event_date": "2016-04-16",
+            "source_url": "http://ufcstats.com/fight-details/781b4b6951df64fe"
+          },
+          {
+            "bout_id": "ufcstats:fight:c26806c2d554e50c",
+            "event_date": "2016-11-12",
+            "source_url": "http://ufcstats.com/fight-details/c26806c2d554e50c"
+          },
+          {
+            "bout_id": "ufcstats:fight:a88a4c126d585320",
+            "event_date": "2017-12-30",
+            "source_url": "http://ufcstats.com/fight-details/a88a4c126d585320"
+          },
+          {
+            "bout_id": "ufcstats:fight:eab7b76e177e1903",
+            "event_date": "2018-04-07",
+            "source_url": "http://ufcstats.com/fight-details/eab7b76e177e1903"
+          }
+        ]
+      },
+      "fighter_b": {
+        "fighter_id": "ufcstats:fighter:f4c49976c75c5ab2",
+        "canonical_fighter_id": "ufcstats:fighter:f4c49976c75c5ab2",
+        "name": "Conor McGregor",
+        "canonical_name": "Conor McGregor",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 10,
+        "known_duration_bouts": 10,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 81.3,
+        "reach_cm": 187.96,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/f4c49976c75c5ab2",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 5.817958179581796,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 4.551045510455104,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 47.63343403826787,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 57.274826789838336,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 2.2140221402214024,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 0.922509225092251,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 62.5,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 6
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 73.91304347826087,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 4
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 15.395653956539565,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 10,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:24393bea0c4cf49a",
+            "event_date": "2013-04-06",
+            "source_url": "http://ufcstats.com/fight-details/24393bea0c4cf49a"
+          },
+          {
+            "bout_id": "ufcstats:fight:5d839e4eda09d6e4",
+            "event_date": "2013-08-17",
+            "source_url": "http://ufcstats.com/fight-details/5d839e4eda09d6e4"
+          },
+          {
+            "bout_id": "ufcstats:fight:1e603e6aa6d1a750",
+            "event_date": "2014-07-19",
+            "source_url": "http://ufcstats.com/fight-details/1e603e6aa6d1a750"
+          },
+          {
+            "bout_id": "ufcstats:fight:6bcea00473e43a59",
+            "event_date": "2014-09-27",
+            "source_url": "http://ufcstats.com/fight-details/6bcea00473e43a59"
+          },
+          {
+            "bout_id": "ufcstats:fight:3d468536e8904b93",
+            "event_date": "2015-01-18",
+            "source_url": "http://ufcstats.com/fight-details/3d468536e8904b93"
+          },
+          {
+            "bout_id": "ufcstats:fight:70290140b6a8e038",
+            "event_date": "2015-07-11",
+            "source_url": "http://ufcstats.com/fight-details/70290140b6a8e038"
+          },
+          {
+            "bout_id": "ufcstats:fight:b302e12550278ffd",
+            "event_date": "2015-12-12",
+            "source_url": "http://ufcstats.com/fight-details/b302e12550278ffd"
+          },
+          {
+            "bout_id": "ufcstats:fight:4ace70bff9debdfb",
+            "event_date": "2016-03-05",
+            "source_url": "http://ufcstats.com/fight-details/4ace70bff9debdfb"
+          },
+          {
+            "bout_id": "ufcstats:fight:648396cc751c730d",
+            "event_date": "2016-08-20",
+            "source_url": "http://ufcstats.com/fight-details/648396cc751c730d"
+          },
+          {
+            "bout_id": "ufcstats:fight:1d7015553debd1c8",
+            "event_date": "2016-11-12",
+            "source_url": "http://ufcstats.com/fight-details/1d7015553debd1c8"
+          }
+        ]
+      }
+    },
+    {
+      "bout_id": "ufcstats:fight:8f6dda53ea3b09c7",
+      "weight_class": "Lightweight Bout",
+      "scheduled_rounds": 3,
+      "fighter_a": {
+        "fighter_id": "ufcstats:fighter:22a92d7f62195791",
+        "canonical_fighter_id": "ufcstats:fighter:22a92d7f62195791",
+        "name": "Tony Ferguson",
+        "canonical_name": "Tony Ferguson",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 14,
+        "known_duration_bouts": 14,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 141.1,
+        "reach_cm": 193.04,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/22a92d7f62195791",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 5.088589652728562,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 3.479801559177888,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 42.96828246558947,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 64.47178002894356,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.3189227498228207,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 0.6378454996456414,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 42.857142857142854,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 5
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 76.74418604651163,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 3
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 1.5946137491141035,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 5.256319395227971,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:cd0bc692a7bce9e7",
+            "event_date": "2011-06-04",
+            "source_url": "http://ufcstats.com/fight-details/cd0bc692a7bce9e7"
+          },
+          {
+            "bout_id": "ufcstats:fight:3f7c7917a57d2782",
+            "event_date": "2011-09-24",
+            "source_url": "http://ufcstats.com/fight-details/3f7c7917a57d2782"
+          },
+          {
+            "bout_id": "ufcstats:fight:381b2df85ac06615",
+            "event_date": "2011-12-03",
+            "source_url": "http://ufcstats.com/fight-details/381b2df85ac06615"
+          },
+          {
+            "bout_id": "ufcstats:fight:1f290005cc147afb",
+            "event_date": "2012-05-05",
+            "source_url": "http://ufcstats.com/fight-details/1f290005cc147afb"
+          },
+          {
+            "bout_id": "ufcstats:fight:58b7b23b46f4ccd6",
+            "event_date": "2013-10-19",
+            "source_url": "http://ufcstats.com/fight-details/58b7b23b46f4ccd6"
+          },
+          {
+            "bout_id": "ufcstats:fight:002c1562708ac307",
+            "event_date": "2014-05-24",
+            "source_url": "http://ufcstats.com/fight-details/002c1562708ac307"
+          },
+          {
+            "bout_id": "ufcstats:fight:ae0b5ab5bc4bb6a7",
+            "event_date": "2014-08-30",
+            "source_url": "http://ufcstats.com/fight-details/ae0b5ab5bc4bb6a7"
+          },
+          {
+            "bout_id": "ufcstats:fight:7e8f4240725316a4",
+            "event_date": "2014-12-06",
+            "source_url": "http://ufcstats.com/fight-details/7e8f4240725316a4"
+          },
+          {
+            "bout_id": "ufcstats:fight:ffea776913451b6d",
+            "event_date": "2015-02-28",
+            "source_url": "http://ufcstats.com/fight-details/ffea776913451b6d"
+          },
+          {
+            "bout_id": "ufcstats:fight:c0e8095c91c39b06",
+            "event_date": "2015-07-15",
+            "source_url": "http://ufcstats.com/fight-details/c0e8095c91c39b06"
+          },
+          {
+            "bout_id": "ufcstats:fight:c64c2ca5d4d2c7b8",
+            "event_date": "2015-12-11",
+            "source_url": "http://ufcstats.com/fight-details/c64c2ca5d4d2c7b8"
+          },
+          {
+            "bout_id": "ufcstats:fight:824fb74f5fc34218",
+            "event_date": "2016-07-13",
+            "source_url": "http://ufcstats.com/fight-details/824fb74f5fc34218"
+          },
+          {
+            "bout_id": "ufcstats:fight:9220acccebf14a46",
+            "event_date": "2016-11-05",
+            "source_url": "http://ufcstats.com/fight-details/9220acccebf14a46"
+          },
+          {
+            "bout_id": "ufcstats:fight:03aec9073946907f",
+            "event_date": "2017-10-07",
+            "source_url": "http://ufcstats.com/fight-details/03aec9073946907f"
+          }
+        ]
+      },
+      "fighter_b": {
+        "fighter_id": "ufcstats:fighter:cbb682f5fcc44bfc",
+        "canonical_fighter_id": "ufcstats:fighter:cbb682f5fcc44bfc",
+        "name": "Anthony Pettis",
+        "canonical_name": "Anthony Pettis",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 14,
+        "known_duration_bouts": 14,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 160.15,
+        "reach_cm": 182.88,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/cbb682f5fcc44bfc",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 3.0471433031532937,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 3.3156415860131125,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 45.86466165413534,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 55.038103302286196,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.18732438339057134,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 0.7492975335622853,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 44.44444444444444,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 8
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 53.08641975308642,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 3
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.9366219169528567,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 12.134457279633677,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:e9fc9dcc549c7f3b",
+            "event_date": "2011-06-04",
+            "source_url": "http://ufcstats.com/fight-details/e9fc9dcc549c7f3b"
+          },
+          {
+            "bout_id": "ufcstats:fight:24d92c89c893db42",
+            "event_date": "2011-10-08",
+            "source_url": "http://ufcstats.com/fight-details/24d92c89c893db42"
+          },
+          {
+            "bout_id": "ufcstats:fight:9b4bff38430a01eb",
+            "event_date": "2012-02-25",
+            "source_url": "http://ufcstats.com/fight-details/9b4bff38430a01eb"
+          },
+          {
+            "bout_id": "ufcstats:fight:bddf441908777c0c",
+            "event_date": "2013-01-26",
+            "source_url": "http://ufcstats.com/fight-details/bddf441908777c0c"
+          },
+          {
+            "bout_id": "ufcstats:fight:fa084335b5f87627",
+            "event_date": "2013-08-31",
+            "source_url": "http://ufcstats.com/fight-details/fa084335b5f87627"
+          },
+          {
+            "bout_id": "ufcstats:fight:93b7ae1e0f79d100",
+            "event_date": "2014-12-06",
+            "source_url": "http://ufcstats.com/fight-details/93b7ae1e0f79d100"
+          },
+          {
+            "bout_id": "ufcstats:fight:39e6cba2480c6d82",
+            "event_date": "2015-03-14",
+            "source_url": "http://ufcstats.com/fight-details/39e6cba2480c6d82"
+          },
+          {
+            "bout_id": "ufcstats:fight:3ce6f9eb59a1e149",
+            "event_date": "2016-01-17",
+            "source_url": "http://ufcstats.com/fight-details/3ce6f9eb59a1e149"
+          },
+          {
+            "bout_id": "ufcstats:fight:8b52a32f3644f493",
+            "event_date": "2016-04-23",
+            "source_url": "http://ufcstats.com/fight-details/8b52a32f3644f493"
+          },
+          {
+            "bout_id": "ufcstats:fight:51d3be5e8aee5cd9",
+            "event_date": "2016-08-27",
+            "source_url": "http://ufcstats.com/fight-details/51d3be5e8aee5cd9"
+          },
+          {
+            "bout_id": "ufcstats:fight:977a758d869f9e7a",
+            "event_date": "2016-12-10",
+            "source_url": "http://ufcstats.com/fight-details/977a758d869f9e7a"
+          },
+          {
+            "bout_id": "ufcstats:fight:1f49b59e4058568f",
+            "event_date": "2017-07-08",
+            "source_url": "http://ufcstats.com/fight-details/1f49b59e4058568f"
+          },
+          {
+            "bout_id": "ufcstats:fight:b55605791a4d72b9",
+            "event_date": "2017-11-11",
+            "source_url": "http://ufcstats.com/fight-details/b55605791a4d72b9"
+          },
+          {
+            "bout_id": "ufcstats:fight:d3f26e0fbf694375",
+            "event_date": "2018-07-07",
+            "source_url": "http://ufcstats.com/fight-details/d3f26e0fbf694375"
+          }
+        ]
+      }
+    },
+    {
+      "bout_id": "ufcstats:fight:3c5442bb62ca1505",
+      "weight_class": "Light Heavyweight Bout",
+      "scheduled_rounds": 3,
+      "fighter_a": {
+        "fighter_id": "ufcstats:fighter:50db8711c70196cd",
+        "canonical_fighter_id": "ufcstats:fighter:50db8711c70196cd",
+        "name": "Ovince Saint Preux",
+        "canonical_name": "Ovince Saint Preux",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 17,
+        "known_duration_bouts": 17,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 154.71666666666667,
+        "reach_cm": 203.2,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/50db8711c70196cd",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 2.6112248195626413,
+            "contributing_bouts": 17,
+            "eligible_prior_bouts": 17,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 2.953786491435958,
+            "contributing_bouts": 17,
+            "eligible_prior_bouts": 17,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 42.706131078224104,
+            "contributing_bouts": 16,
+            "eligible_prior_bouts": 17,
+            "excluded_for_missing_inputs": 1
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 44.67312348668281,
+            "contributing_bouts": 16,
+            "eligible_prior_bouts": 17,
+            "excluded_for_missing_inputs": 1
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.29085424970375956,
+            "contributing_bouts": 17,
+            "eligible_prior_bouts": 17,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 0.8725627491112787,
+            "contributing_bouts": 17,
+            "eligible_prior_bouts": 17,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 36.0,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 17,
+            "excluded_for_missing_inputs": 6
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 66.66666666666667,
+            "contributing_bouts": 13,
+            "eligible_prior_bouts": 17,
+            "excluded_for_missing_inputs": 4
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.4847570828395993,
+            "contributing_bouts": 17,
+            "eligible_prior_bouts": 17,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 14.230313476246902,
+            "contributing_bouts": 17,
+            "eligible_prior_bouts": 17,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:523e8ca343a0becc",
+            "event_date": "2013-04-27",
+            "source_url": "http://ufcstats.com/fight-details/523e8ca343a0becc"
+          },
+          {
+            "bout_id": "ufcstats:fight:5135e078b807f9a2",
+            "event_date": "2013-08-17",
+            "source_url": "http://ufcstats.com/fight-details/5135e078b807f9a2"
+          },
+          {
+            "bout_id": "ufcstats:fight:2d050cb1f7d8789a",
+            "event_date": "2014-03-15",
+            "source_url": "http://ufcstats.com/fight-details/2d050cb1f7d8789a"
+          },
+          {
+            "bout_id": "ufcstats:fight:db747a157e1f264b",
+            "event_date": "2014-06-14",
+            "source_url": "http://ufcstats.com/fight-details/db747a157e1f264b"
+          },
+          {
+            "bout_id": "ufcstats:fight:db209b782f35e0e6",
+            "event_date": "2014-08-16",
+            "source_url": "http://ufcstats.com/fight-details/db209b782f35e0e6"
+          },
+          {
+            "bout_id": "ufcstats:fight:e8907b881151b79d",
+            "event_date": "2014-11-08",
+            "source_url": "http://ufcstats.com/fight-details/e8907b881151b79d"
+          },
+          {
+            "bout_id": "ufcstats:fight:c19f394f3c237789",
+            "event_date": "2015-04-18",
+            "source_url": "http://ufcstats.com/fight-details/c19f394f3c237789"
+          },
+          {
+            "bout_id": "ufcstats:fight:2ef16a5ff3710c92",
+            "event_date": "2015-08-08",
+            "source_url": "http://ufcstats.com/fight-details/2ef16a5ff3710c92"
+          },
+          {
+            "bout_id": "ufcstats:fight:37008594c087470c",
+            "event_date": "2016-02-06",
+            "source_url": "http://ufcstats.com/fight-details/37008594c087470c"
+          },
+          {
+            "bout_id": "ufcstats:fight:05c8aeb2806be99c",
+            "event_date": "2016-04-23",
+            "source_url": "http://ufcstats.com/fight-details/05c8aeb2806be99c"
+          },
+          {
+            "bout_id": "ufcstats:fight:451d7d8c2a6bacb3",
+            "event_date": "2016-10-08",
+            "source_url": "http://ufcstats.com/fight-details/451d7d8c2a6bacb3"
+          },
+          {
+            "bout_id": "ufcstats:fight:36220644401d85e1",
+            "event_date": "2017-02-04",
+            "source_url": "http://ufcstats.com/fight-details/36220644401d85e1"
+          },
+          {
+            "bout_id": "ufcstats:fight:53c96668bf850809",
+            "event_date": "2017-04-22",
+            "source_url": "http://ufcstats.com/fight-details/53c96668bf850809"
+          },
+          {
+            "bout_id": "ufcstats:fight:d1bee15e60ee6721",
+            "event_date": "2017-09-22",
+            "source_url": "http://ufcstats.com/fight-details/d1bee15e60ee6721"
+          },
+          {
+            "bout_id": "ufcstats:fight:5cab50839f4a0d94",
+            "event_date": "2017-11-04",
+            "source_url": "http://ufcstats.com/fight-details/5cab50839f4a0d94"
+          },
+          {
+            "bout_id": "ufcstats:fight:9c79433a4686f3fc",
+            "event_date": "2018-02-24",
+            "source_url": "http://ufcstats.com/fight-details/9c79433a4686f3fc"
+          },
+          {
+            "bout_id": "ufcstats:fight:bb4755924dfafaea",
+            "event_date": "2018-06-23",
+            "source_url": "http://ufcstats.com/fight-details/bb4755924dfafaea"
+          }
+        ]
+      },
+      "fighter_b": {
+        "fighter_id": "ufcstats:fighter:2e19380f34871c6a",
+        "canonical_fighter_id": "ufcstats:fighter:2e19380f34871c6a",
+        "name": "Dominick Reyes",
+        "canonical_name": "Dominick Reyes",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 3,
+        "known_duration_bouts": 3,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 7.05,
+        "reach_cm": 195.58,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/2e19380f34871c6a",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 6.950354609929078,
+            "contributing_bouts": 3,
+            "eligible_prior_bouts": 3,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 1.5602836879432624,
+            "contributing_bouts": 3,
+            "eligible_prior_bouts": 3,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 51.041666666666664,
+            "contributing_bouts": 3,
+            "eligible_prior_bouts": 3,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 63.333333333333336,
+            "contributing_bouts": 3,
+            "eligible_prior_bouts": 3,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 4.25531914893617,
+            "contributing_bouts": 3,
+            "eligible_prior_bouts": 3,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 2.127659574468085,
+            "contributing_bouts": 3,
+            "eligible_prior_bouts": 3,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 50.0,
+            "contributing_bouts": 2,
+            "eligible_prior_bouts": 3,
+            "excluded_for_missing_inputs": 1
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 80.0,
+            "contributing_bouts": 2,
+            "eligible_prior_bouts": 3,
+            "excluded_for_missing_inputs": 1
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 2.127659574468085,
+            "contributing_bouts": 3,
+            "eligible_prior_bouts": 3,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 31.914893617021278,
+            "contributing_bouts": 3,
+            "eligible_prior_bouts": 3,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:ae5c7517d9f2516c",
+            "event_date": "2017-06-25",
+            "source_url": "http://ufcstats.com/fight-details/ae5c7517d9f2516c"
+          },
+          {
+            "bout_id": "ufcstats:fight:a3b7cbdb6d2607f4",
+            "event_date": "2017-12-02",
+            "source_url": "http://ufcstats.com/fight-details/a3b7cbdb6d2607f4"
+          },
+          {
+            "bout_id": "ufcstats:fight:1290d7eb0fefd3f3",
+            "event_date": "2018-05-19",
+            "source_url": "http://ufcstats.com/fight-details/1290d7eb0fefd3f3"
+          }
+        ]
+      }
+    },
+    {
+      "bout_id": "ufcstats:fight:397ace87deeb8697",
+      "weight_class": "Heavyweight Bout",
+      "scheduled_rounds": 3,
+      "fighter_a": {
+        "fighter_id": "ufcstats:fighter:d3df1add9d9a7efb",
+        "canonical_fighter_id": "ufcstats:fighter:d3df1add9d9a7efb",
+        "name": "Derrick Lewis",
+        "canonical_name": "Derrick Lewis",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 14,
+        "known_duration_bouts": 14,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 129.55,
+        "reach_cm": 200.66,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/d3df1add9d9a7efb",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 2.902354303357777,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 1.6132767271323813,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 50.87956698240866,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 51.16822429906542,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.46314164415283676,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 0.5789270551910459,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 26.31578947368421,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 5
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 57.407407407407405,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 4
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 13.624083365495947,
+            "contributing_bouts": 14,
+            "eligible_prior_bouts": 14,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:a283975bf9355757",
+            "event_date": "2014-04-19",
+            "source_url": "http://ufcstats.com/fight-details/a283975bf9355757"
+          },
+          {
+            "bout_id": "ufcstats:fight:e7081f3a0a982f9d",
+            "event_date": "2014-07-06",
+            "source_url": "http://ufcstats.com/fight-details/e7081f3a0a982f9d"
+          },
+          {
+            "bout_id": "ufcstats:fight:fd4d5685c2e207b5",
+            "event_date": "2014-09-05",
+            "source_url": "http://ufcstats.com/fight-details/fd4d5685c2e207b5"
+          },
+          {
+            "bout_id": "ufcstats:fight:f3e1c02ce14bccfe",
+            "event_date": "2015-02-28",
+            "source_url": "http://ufcstats.com/fight-details/f3e1c02ce14bccfe"
+          },
+          {
+            "bout_id": "ufcstats:fight:5b0fcecc55bebd5c",
+            "event_date": "2015-06-06",
+            "source_url": "http://ufcstats.com/fight-details/5b0fcecc55bebd5c"
+          },
+          {
+            "bout_id": "ufcstats:fight:2b3b6e96cea0f757",
+            "event_date": "2015-10-03",
+            "source_url": "http://ufcstats.com/fight-details/2b3b6e96cea0f757"
+          },
+          {
+            "bout_id": "ufcstats:fight:640dbb5a89c0aad6",
+            "event_date": "2016-02-06",
+            "source_url": "http://ufcstats.com/fight-details/640dbb5a89c0aad6"
+          },
+          {
+            "bout_id": "ufcstats:fight:f4d9138ba502b7ec",
+            "event_date": "2016-04-10",
+            "source_url": "http://ufcstats.com/fight-details/f4d9138ba502b7ec"
+          },
+          {
+            "bout_id": "ufcstats:fight:9a984ea967886979",
+            "event_date": "2016-07-07",
+            "source_url": "http://ufcstats.com/fight-details/9a984ea967886979"
+          },
+          {
+            "bout_id": "ufcstats:fight:cb1e57b5f8c92922",
+            "event_date": "2016-12-09",
+            "source_url": "http://ufcstats.com/fight-details/cb1e57b5f8c92922"
+          },
+          {
+            "bout_id": "ufcstats:fight:ab14dbff9d2ae41a",
+            "event_date": "2017-02-19",
+            "source_url": "http://ufcstats.com/fight-details/ab14dbff9d2ae41a"
+          },
+          {
+            "bout_id": "ufcstats:fight:cd96998e837b0da1",
+            "event_date": "2017-06-10",
+            "source_url": "http://ufcstats.com/fight-details/cd96998e837b0da1"
+          },
+          {
+            "bout_id": "ufcstats:fight:f73dfeb48b09e6a6",
+            "event_date": "2018-02-18",
+            "source_url": "http://ufcstats.com/fight-details/f73dfeb48b09e6a6"
+          },
+          {
+            "bout_id": "ufcstats:fight:9bd9a8127b55fbf7",
+            "event_date": "2018-07-07",
+            "source_url": "http://ufcstats.com/fight-details/9bd9a8127b55fbf7"
+          }
+        ]
+      },
+      "fighter_b": {
+        "fighter_id": "ufcstats:fighter:279566840aa55bf2",
+        "canonical_fighter_id": "ufcstats:fighter:279566840aa55bf2",
+        "name": "Alexander Volkov",
+        "canonical_name": "Alexander Volkov",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 4,
+        "known_duration_bouts": 4,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 60.13333333333333,
+        "reach_cm": 203.2,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/279566840aa55bf2",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 5.82039911308204,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 2.727272727272727,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 57.47126436781609,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 60.0,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.49889135254988914,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 1.247228381374723,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 83.33333333333333,
+            "contributing_bouts": 3,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 1
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 80.0,
+            "contributing_bouts": 3,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 1
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 11.502217294900221,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:689116759885e4a5",
+            "event_date": "2016-11-19",
+            "source_url": "http://ufcstats.com/fight-details/689116759885e4a5"
+          },
+          {
+            "bout_id": "ufcstats:fight:b0552b065ca7f401",
+            "event_date": "2017-04-15",
+            "source_url": "http://ufcstats.com/fight-details/b0552b065ca7f401"
+          },
+          {
+            "bout_id": "ufcstats:fight:cfc550960a7ec353",
+            "event_date": "2017-09-02",
+            "source_url": "http://ufcstats.com/fight-details/cfc550960a7ec353"
+          },
+          {
+            "bout_id": "ufcstats:fight:e835e9a4564db497",
+            "event_date": "2018-03-17",
+            "source_url": "http://ufcstats.com/fight-details/e835e9a4564db497"
+          }
+        ]
+      }
+    },
+    {
+      "bout_id": "ufcstats:fight:adee1fc200ed1a12",
+      "weight_class": "Women's Strawweight Bout",
+      "scheduled_rounds": 3,
+      "fighter_a": {
+        "fighter_id": "ufcstats:fighter:eb04b9d31e938edb",
+        "canonical_fighter_id": "ufcstats:fighter:eb04b9d31e938edb",
+        "name": "Michelle Waterson-Gomez",
+        "canonical_name": "Michelle Waterson-Gomez",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 5,
+        "known_duration_bouts": 5,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 53.766666666666666,
+        "reach_cm": 157.48,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/eb04b9d31e938edb",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 3.6825790452572846,
+            "contributing_bouts": 5,
+            "eligible_prior_bouts": 5,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 3.552386856788593,
+            "contributing_bouts": 5,
+            "eligible_prior_bouts": 5,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 59.63855421686747,
+            "contributing_bouts": 5,
+            "eligible_prior_bouts": 5,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 49.3368700265252,
+            "contributing_bouts": 5,
+            "eligible_prior_bouts": 5,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 5,
+            "eligible_prior_bouts": 5,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 2.789832610043397,
+            "contributing_bouts": 5,
+            "eligible_prior_bouts": 5,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 83.33333333333333,
+            "contributing_bouts": 5,
+            "eligible_prior_bouts": 5,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 50.0,
+            "contributing_bouts": 5,
+            "eligible_prior_bouts": 5,
+            "excluded_for_missing_inputs": 0
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 1.6738995660260385,
+            "contributing_bouts": 5,
+            "eligible_prior_bouts": 5,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 28.208307501549907,
+            "contributing_bouts": 5,
+            "eligible_prior_bouts": 5,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:95233ca23cdb02e6",
+            "event_date": "2015-07-12",
+            "source_url": "http://ufcstats.com/fight-details/95233ca23cdb02e6"
+          },
+          {
+            "bout_id": "ufcstats:fight:5840527835a8ffb2",
+            "event_date": "2016-12-17",
+            "source_url": "http://ufcstats.com/fight-details/5840527835a8ffb2"
+          },
+          {
+            "bout_id": "ufcstats:fight:e52318719d839d2d",
+            "event_date": "2017-04-15",
+            "source_url": "http://ufcstats.com/fight-details/e52318719d839d2d"
+          },
+          {
+            "bout_id": "ufcstats:fight:ea674e0285fb77f5",
+            "event_date": "2017-12-02",
+            "source_url": "http://ufcstats.com/fight-details/ea674e0285fb77f5"
+          },
+          {
+            "bout_id": "ufcstats:fight:57d05d28e3fbee4f",
+            "event_date": "2018-04-14",
+            "source_url": "http://ufcstats.com/fight-details/57d05d28e3fbee4f"
+          }
+        ]
+      },
+      "fighter_b": {
+        "fighter_id": "ufcstats:fighter:b6850671a008bf9a",
+        "canonical_fighter_id": "ufcstats:fighter:b6850671a008bf9a",
+        "name": "Felice Herrig",
+        "canonical_name": "Felice Herrig",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 7,
+        "known_duration_bouts": 7,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 85.06666666666666,
+        "reach_cm": 165.1,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/b6850671a008bf9a",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 3.738244514106583,
+            "contributing_bouts": 7,
+            "eligible_prior_bouts": 7,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 4.855015673981192,
+            "contributing_bouts": 7,
+            "eligible_prior_bouts": 7,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 35.02202643171806,
+            "contributing_bouts": 7,
+            "eligible_prior_bouts": 7,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 52.69186712485681,
+            "contributing_bouts": 7,
+            "eligible_prior_bouts": 7,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 7,
+            "eligible_prior_bouts": 7,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 1.2343260188087775,
+            "contributing_bouts": 7,
+            "eligible_prior_bouts": 7,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 31.818181818181817,
+            "contributing_bouts": 7,
+            "eligible_prior_bouts": 7,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 69.23076923076923,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 7,
+            "excluded_for_missing_inputs": 3
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 1.0579937304075235,
+            "contributing_bouts": 7,
+            "eligible_prior_bouts": 7,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 25.842476489028215,
+            "contributing_bouts": 7,
+            "eligible_prior_bouts": 7,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:e1cfe75b3a8fe709",
+            "event_date": "2014-12-12",
+            "source_url": "http://ufcstats.com/fight-details/e1cfe75b3a8fe709"
+          },
+          {
+            "bout_id": "ufcstats:fight:e2b4130c7b1ff8bc",
+            "event_date": "2015-04-18",
+            "source_url": "http://ufcstats.com/fight-details/e2b4130c7b1ff8bc"
+          },
+          {
+            "bout_id": "ufcstats:fight:5a09a7a3f2792d1a",
+            "event_date": "2016-07-23",
+            "source_url": "http://ufcstats.com/fight-details/5a09a7a3f2792d1a"
+          },
+          {
+            "bout_id": "ufcstats:fight:4a2e7e2c8cfdaf5f",
+            "event_date": "2017-02-04",
+            "source_url": "http://ufcstats.com/fight-details/4a2e7e2c8cfdaf5f"
+          },
+          {
+            "bout_id": "ufcstats:fight:bd59c07a106d331b",
+            "event_date": "2017-06-25",
+            "source_url": "http://ufcstats.com/fight-details/bd59c07a106d331b"
+          },
+          {
+            "bout_id": "ufcstats:fight:1a502852b706f674",
+            "event_date": "2017-12-02",
+            "source_url": "http://ufcstats.com/fight-details/1a502852b706f674"
+          },
+          {
+            "bout_id": "ufcstats:fight:5315bd4542b21c4b",
+            "event_date": "2018-04-07",
+            "source_url": "http://ufcstats.com/fight-details/5315bd4542b21c4b"
+          }
+        ]
+      }
+    },
+    {
+      "bout_id": "ufcstats:fight:8f5482992dad74d2",
+      "weight_class": "Flyweight Bout",
+      "scheduled_rounds": 3,
+      "fighter_a": {
+        "fighter_id": "ufcstats:fighter:de75d1c45a39e221",
+        "canonical_fighter_id": "ufcstats:fighter:de75d1c45a39e221",
+        "name": "Sergio Pettis",
+        "canonical_name": "Sergio Pettis",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 11,
+        "known_duration_bouts": 11,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 166.21666666666667,
+        "reach_cm": 175.26,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/de75d1c45a39e221",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 3.742103679935827,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 2.6832447608543064,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 37.628554143980644,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 66.33962264150944,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.09024365787626591,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 0.9926802366389251,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 39.285714285714285,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 2
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 69.23076923076923,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.4512182893813296,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 10.75904943347037,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:55f4c3598797ce6f",
+            "event_date": "2013-11-16",
+            "source_url": "http://ufcstats.com/fight-details/55f4c3598797ce6f"
+          },
+          {
+            "bout_id": "ufcstats:fight:6a7f68feb5c0755d",
+            "event_date": "2014-01-25",
+            "source_url": "http://ufcstats.com/fight-details/6a7f68feb5c0755d"
+          },
+          {
+            "bout_id": "ufcstats:fight:6eee347f75f223f0",
+            "event_date": "2014-06-07",
+            "source_url": "http://ufcstats.com/fight-details/6eee347f75f223f0"
+          },
+          {
+            "bout_id": "ufcstats:fight:2417f4130d707978",
+            "event_date": "2014-12-06",
+            "source_url": "http://ufcstats.com/fight-details/2417f4130d707978"
+          },
+          {
+            "bout_id": "ufcstats:fight:875304f54becda0e",
+            "event_date": "2015-03-14",
+            "source_url": "http://ufcstats.com/fight-details/875304f54becda0e"
+          },
+          {
+            "bout_id": "ufcstats:fight:278cd1803ccc004f",
+            "event_date": "2015-10-03",
+            "source_url": "http://ufcstats.com/fight-details/278cd1803ccc004f"
+          },
+          {
+            "bout_id": "ufcstats:fight:e3a45f48dbda99c3",
+            "event_date": "2016-04-23",
+            "source_url": "http://ufcstats.com/fight-details/e3a45f48dbda99c3"
+          },
+          {
+            "bout_id": "ufcstats:fight:7685701c382cd49a",
+            "event_date": "2017-01-15",
+            "source_url": "http://ufcstats.com/fight-details/7685701c382cd49a"
+          },
+          {
+            "bout_id": "ufcstats:fight:253e42894852b26a",
+            "event_date": "2017-08-05",
+            "source_url": "http://ufcstats.com/fight-details/253e42894852b26a"
+          },
+          {
+            "bout_id": "ufcstats:fight:cc2809e10315a6b5",
+            "event_date": "2017-12-02",
+            "source_url": "http://ufcstats.com/fight-details/cc2809e10315a6b5"
+          },
+          {
+            "bout_id": "ufcstats:fight:5e2f2f5d9a756de9",
+            "event_date": "2018-06-09",
+            "source_url": "http://ufcstats.com/fight-details/5e2f2f5d9a756de9"
+          }
+        ]
+      },
+      "fighter_b": {
+        "fighter_id": "ufcstats:fighter:b102c26727306ab6",
+        "canonical_fighter_id": "ufcstats:fighter:b102c26727306ab6",
+        "name": "Jussier Formiga",
+        "canonical_name": "Jussier Formiga",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 11,
+        "known_duration_bouts": 11,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 122.03333333333333,
+        "reach_cm": 170.18,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/b102c26727306ab6",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 1.352089593007375,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 2.1879267959573885,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 37.5,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 65.45924967658473,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.24583447145588638,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 1.8437585359191477,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 37.5,
+            "contributing_bouts": 10,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 1
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 85.18518518518519,
+            "contributing_bouts": 7,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 4
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.7375034143676591,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 27.7929527451516,
+            "contributing_bouts": 11,
+            "eligible_prior_bouts": 11,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:dc5e46b2ee0898ec",
+            "event_date": "2012-10-05",
+            "source_url": "http://ufcstats.com/fight-details/dc5e46b2ee0898ec"
+          },
+          {
+            "bout_id": "ufcstats:fight:caa56c26127bf7e8",
+            "event_date": "2013-05-18",
+            "source_url": "http://ufcstats.com/fight-details/caa56c26127bf7e8"
+          },
+          {
+            "bout_id": "ufcstats:fight:bbcb7b5ca439bebb",
+            "event_date": "2013-09-04",
+            "source_url": "http://ufcstats.com/fight-details/bbcb7b5ca439bebb"
+          },
+          {
+            "bout_id": "ufcstats:fight:a5827bfce19e63ea",
+            "event_date": "2014-03-23",
+            "source_url": "http://ufcstats.com/fight-details/a5827bfce19e63ea"
+          },
+          {
+            "bout_id": "ufcstats:fight:a0e4f43827aa81c4",
+            "event_date": "2014-08-16",
+            "source_url": "http://ufcstats.com/fight-details/a0e4f43827aa81c4"
+          },
+          {
+            "bout_id": "ufcstats:fight:d6c02b4bb64ff795",
+            "event_date": "2015-05-30",
+            "source_url": "http://ufcstats.com/fight-details/d6c02b4bb64ff795"
+          },
+          {
+            "bout_id": "ufcstats:fight:e8d087f822be7b02",
+            "event_date": "2015-11-21",
+            "source_url": "http://ufcstats.com/fight-details/e8d087f822be7b02"
+          },
+          {
+            "bout_id": "ufcstats:fight:39c16381a9722735",
+            "event_date": "2016-09-24",
+            "source_url": "http://ufcstats.com/fight-details/39c16381a9722735"
+          },
+          {
+            "bout_id": "ufcstats:fight:74d4e37b97866514",
+            "event_date": "2017-03-11",
+            "source_url": "http://ufcstats.com/fight-details/74d4e37b97866514"
+          },
+          {
+            "bout_id": "ufcstats:fight:3b89556b3f177b7b",
+            "event_date": "2017-09-22",
+            "source_url": "http://ufcstats.com/fight-details/3b89556b3f177b7b"
+          },
+          {
+            "bout_id": "ufcstats:fight:f8fce67abe0ab922",
+            "event_date": "2018-02-10",
+            "source_url": "http://ufcstats.com/fight-details/f8fce67abe0ab922"
+          }
+        ]
+      }
+    },
+    {
+      "bout_id": "ufcstats:fight:48ea8a30f7b88cfc",
+      "weight_class": "Welterweight Bout",
+      "scheduled_rounds": 3,
+      "fighter_a": {
+        "fighter_id": "ufcstats:fighter:6d4b63c767106d3a",
+        "canonical_fighter_id": "ufcstats:fighter:6d4b63c767106d3a",
+        "name": "Vicente Luque",
+        "canonical_name": "Vicente Luque",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 8,
+        "known_duration_bouts": 8,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 56.8,
+        "reach_cm": 190.5,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/6d4b63c767106d3a",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 3.23943661971831,
+            "contributing_bouts": 8,
+            "eligible_prior_bouts": 8,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 2.693661971830986,
+            "contributing_bouts": 8,
+            "eligible_prior_bouts": 8,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 49.46236559139785,
+            "contributing_bouts": 8,
+            "eligible_prior_bouts": 8,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 57.02247191011236,
+            "contributing_bouts": 8,
+            "eligible_prior_bouts": 8,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 1.056338028169014,
+            "contributing_bouts": 8,
+            "eligible_prior_bouts": 8,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 1.5845070422535212,
+            "contributing_bouts": 8,
+            "eligible_prior_bouts": 8,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 50.0,
+            "contributing_bouts": 2,
+            "eligible_prior_bouts": 8,
+            "excluded_for_missing_inputs": 6
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 61.53846153846154,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 8,
+            "excluded_for_missing_inputs": 2
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 1.056338028169014,
+            "contributing_bouts": 8,
+            "eligible_prior_bouts": 8,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 26.555164319248828,
+            "contributing_bouts": 8,
+            "eligible_prior_bouts": 8,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:43b9e58ebf4a75ea",
+            "event_date": "2015-07-12",
+            "source_url": "http://ufcstats.com/fight-details/43b9e58ebf4a75ea"
+          },
+          {
+            "bout_id": "ufcstats:fight:e1ec8774466db669",
+            "event_date": "2015-12-19",
+            "source_url": "http://ufcstats.com/fight-details/e1ec8774466db669"
+          },
+          {
+            "bout_id": "ufcstats:fight:caf3ca7fc0195412",
+            "event_date": "2016-07-07",
+            "source_url": "http://ufcstats.com/fight-details/caf3ca7fc0195412"
+          },
+          {
+            "bout_id": "ufcstats:fight:5948876f1d80c21a",
+            "event_date": "2016-09-24",
+            "source_url": "http://ufcstats.com/fight-details/5948876f1d80c21a"
+          },
+          {
+            "bout_id": "ufcstats:fight:14477908199435e1",
+            "event_date": "2016-11-12",
+            "source_url": "http://ufcstats.com/fight-details/14477908199435e1"
+          },
+          {
+            "bout_id": "ufcstats:fight:88ce808e4e604180",
+            "event_date": "2017-03-18",
+            "source_url": "http://ufcstats.com/fight-details/88ce808e4e604180"
+          },
+          {
+            "bout_id": "ufcstats:fight:4838bf4ca76c1c6b",
+            "event_date": "2017-10-28",
+            "source_url": "http://ufcstats.com/fight-details/4838bf4ca76c1c6b"
+          },
+          {
+            "bout_id": "ufcstats:fight:47c140debc977214",
+            "event_date": "2018-05-19",
+            "source_url": "http://ufcstats.com/fight-details/47c140debc977214"
+          }
+        ]
+      },
+      "fighter_b": {
+        "fighter_id": "ufcstats:fighter:4d8fa64202cee4c1",
+        "canonical_fighter_id": "ufcstats:fighter:4d8fa64202cee4c1",
+        "name": "Jalin Turner",
+        "canonical_name": "Jalin Turner",
+        "status": "no_prior_statistics",
+        "reason": "No earlier-date per-fight statistics are retained for this fighter.",
+        "prior_stat_bouts": 0,
+        "known_duration_bouts": 0,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 0.0,
+        "reach_cm": 195.58,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/4d8fa64202cee4c1",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": null,
+            "contributing_bouts": 0,
+            "eligible_prior_bouts": 0,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": null,
+            "contributing_bouts": 0,
+            "eligible_prior_bouts": 0,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": null,
+            "contributing_bouts": 0,
+            "eligible_prior_bouts": 0,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": null,
+            "contributing_bouts": 0,
+            "eligible_prior_bouts": 0,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": null,
+            "contributing_bouts": 0,
+            "eligible_prior_bouts": 0,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": null,
+            "contributing_bouts": 0,
+            "eligible_prior_bouts": 0,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": null,
+            "contributing_bouts": 0,
+            "eligible_prior_bouts": 0,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": null,
+            "contributing_bouts": 0,
+            "eligible_prior_bouts": 0,
+            "excluded_for_missing_inputs": 0
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": null,
+            "contributing_bouts": 0,
+            "eligible_prior_bouts": 0,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": null,
+            "contributing_bouts": 0,
+            "eligible_prior_bouts": 0,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": []
+      }
+    },
+    {
+      "bout_id": "ufcstats:fight:e2e524bb5392a3ea",
+      "weight_class": "Women's Bantamweight Bout",
+      "scheduled_rounds": 3,
+      "fighter_a": {
+        "fighter_id": "ufcstats:fighter:d4691518d012b9e7",
+        "canonical_fighter_id": "ufcstats:fighter:d4691518d012b9e7",
+        "name": "Aspen Ladd",
+        "canonical_name": "Aspen Ladd",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 1,
+        "known_duration_bouts": 1,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 7.55,
+        "reach_cm": 167.64000000000001,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/d4691518d012b9e7",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 3.443708609271523,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 5.430463576158941,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 43.333333333333336,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 35.9375,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 1.9867549668874172,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 100.0,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": null,
+            "contributing_bouts": 0,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 1
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 45.033112582781456,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:f3f252b9810cff0d",
+            "event_date": "2017-10-21",
+            "source_url": "http://ufcstats.com/fight-details/f3f252b9810cff0d"
+          }
+        ]
+      },
+      "fighter_b": {
+        "fighter_id": "ufcstats:fighter:b12a1d19ee383b7c",
+        "canonical_fighter_id": "ufcstats:fighter:b12a1d19ee383b7c",
+        "name": "Tonya Evinger",
+        "canonical_name": "Tonya Evinger",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 1,
+        "known_duration_bouts": 1,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 11.933333333333334,
+        "reach_cm": 177.8,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/b12a1d19ee383b7c",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 2.6815642458100557,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 6.201117318435754,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 37.64705882352941,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 48.25174825174825,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 1.2569832402234637,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 25.0,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 100.0,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 6.70391061452514,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:79817ab0129c5598",
+            "event_date": "2017-07-29",
+            "source_url": "http://ufcstats.com/fight-details/79817ab0129c5598"
+          }
+        ]
+      }
+    },
+    {
+      "bout_id": "ufcstats:fight:c835ccffa472970e",
+      "weight_class": "Lightweight Bout",
+      "scheduled_rounds": 3,
+      "fighter_a": {
+        "fighter_id": "ufcstats:fighter:df1eb4354d18a906",
+        "canonical_fighter_id": "ufcstats:fighter:df1eb4354d18a906",
+        "name": "Scott Holtzman",
+        "canonical_name": "Scott Holtzman",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 6,
+        "known_duration_bouts": 6,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 87.66666666666667,
+        "reach_cm": 175.26,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/df1eb4354d18a906",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 4.334600760456274,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 3.4334600760456273,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 50.19815059445178,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 56.25,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.34220532319391633,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 3.079847908745247,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 60.0,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 57.142857142857146,
+            "contributing_bouts": 5,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 1
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.34220532319391633,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 39.20152091254753,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:503a9ac5679c9cf7",
+            "event_date": "2015-08-08",
+            "source_url": "http://ufcstats.com/fight-details/503a9ac5679c9cf7"
+          },
+          {
+            "bout_id": "ufcstats:fight:99a7172fb7438244",
+            "event_date": "2016-01-02",
+            "source_url": "http://ufcstats.com/fight-details/99a7172fb7438244"
+          },
+          {
+            "bout_id": "ufcstats:fight:5b6451f3f83c719c",
+            "event_date": "2016-07-13",
+            "source_url": "http://ufcstats.com/fight-details/5b6451f3f83c719c"
+          },
+          {
+            "bout_id": "ufcstats:fight:7979888b1fb5eb39",
+            "event_date": "2016-12-17",
+            "source_url": "http://ufcstats.com/fight-details/7979888b1fb5eb39"
+          },
+          {
+            "bout_id": "ufcstats:fight:cf18911df2052826",
+            "event_date": "2017-04-22",
+            "source_url": "http://ufcstats.com/fight-details/cf18911df2052826"
+          },
+          {
+            "bout_id": "ufcstats:fight:6fe21a4cb2d839fd",
+            "event_date": "2017-12-09",
+            "source_url": "http://ufcstats.com/fight-details/6fe21a4cb2d839fd"
+          }
+        ]
+      },
+      "fighter_b": {
+        "fighter_id": "ufcstats:fighter:cd7763bcadb5d4c8",
+        "canonical_fighter_id": "ufcstats:fighter:cd7763bcadb5d4c8",
+        "name": "Alan Patrick",
+        "canonical_name": "Alan Patrick",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 6,
+        "known_duration_bouts": 6,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 70.4,
+        "reach_cm": 187.96,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/cd7763bcadb5d4c8",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 1.8892045454545454,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 1.8181818181818181,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 43.8943894389439,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 50.57915057915058,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.21306818181818182,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 4.6875,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 44.0,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 75.0,
+            "contributing_bouts": 2,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 4
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.42613636363636365,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 56.84185606060606,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 6,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:79e7b986601fdd2a",
+            "event_date": "2013-10-09",
+            "source_url": "http://ufcstats.com/fight-details/79e7b986601fdd2a"
+          },
+          {
+            "bout_id": "ufcstats:fight:b9be2e52d02886e2",
+            "event_date": "2014-02-01",
+            "source_url": "http://ufcstats.com/fight-details/b9be2e52d02886e2"
+          },
+          {
+            "bout_id": "ufcstats:fight:0b98d84a2795f7f8",
+            "event_date": "2015-06-20",
+            "source_url": "http://ufcstats.com/fight-details/0b98d84a2795f7f8"
+          },
+          {
+            "bout_id": "ufcstats:fight:95d46f7a7e72f91c",
+            "event_date": "2016-03-19",
+            "source_url": "http://ufcstats.com/fight-details/95d46f7a7e72f91c"
+          },
+          {
+            "bout_id": "ufcstats:fight:1afa8d6ae4d8a5b2",
+            "event_date": "2016-09-24",
+            "source_url": "http://ufcstats.com/fight-details/1afa8d6ae4d8a5b2"
+          },
+          {
+            "bout_id": "ufcstats:fight:59b384dcc3ab49b2",
+            "event_date": "2018-02-03",
+            "source_url": "http://ufcstats.com/fight-details/59b384dcc3ab49b2"
+          }
+        ]
+      }
+    },
+    {
+      "bout_id": "ufcstats:fight:21be9181725ab599",
+      "weight_class": "Women's Bantamweight Bout",
+      "scheduled_rounds": 3,
+      "fighter_a": {
+        "fighter_id": "ufcstats:fighter:2eeaefbfc7f9fcff",
+        "canonical_fighter_id": "ufcstats:fighter:2eeaefbfc7f9fcff",
+        "name": "Lina Lansberg",
+        "canonical_name": "Lina Lansberg",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 4,
+        "known_duration_bouts": 4,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 45.03333333333333,
+        "reach_cm": 165.1,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/2eeaefbfc7f9fcff",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 3.8860103626943006,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 5.484826054774241,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 57.189542483660134,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 48.541666666666664,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 0.6661732050333087,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 22.22222222222222,
+            "contributing_bouts": 3,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 1
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 28.571428571428573,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 36.67653589933383,
+            "contributing_bouts": 4,
+            "eligible_prior_bouts": 4,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:76c5f66afe6ab192",
+            "event_date": "2016-09-24",
+            "source_url": "http://ufcstats.com/fight-details/76c5f66afe6ab192"
+          },
+          {
+            "bout_id": "ufcstats:fight:0bb419537705fb04",
+            "event_date": "2017-03-18",
+            "source_url": "http://ufcstats.com/fight-details/0bb419537705fb04"
+          },
+          {
+            "bout_id": "ufcstats:fight:f3f252b9810cff0d",
+            "event_date": "2017-10-21",
+            "source_url": "http://ufcstats.com/fight-details/f3f252b9810cff0d"
+          },
+          {
+            "bout_id": "ufcstats:fight:b3096e8dd4e90718",
+            "event_date": "2018-05-27",
+            "source_url": "http://ufcstats.com/fight-details/b3096e8dd4e90718"
+          }
+        ]
+      },
+      "fighter_b": {
+        "fighter_id": "ufcstats:fighter:3143bf892608139a",
+        "canonical_fighter_id": "ufcstats:fighter:3143bf892608139a",
+        "name": "Yana Santos",
+        "canonical_name": "Yana Santos",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 1,
+        "known_duration_bouts": 1,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 3.4166666666666665,
+        "reach_cm": 172.72,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/3143bf892608139a",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 1.4634146341463414,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 9.658536585365853,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 45.45454545454545,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 23.25581395348837,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 4.390243902439025,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 25.0,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 0.0,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 68.78048780487805,
+            "contributing_bouts": 1,
+            "eligible_prior_bouts": 1,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:4960379abe6ed525",
+            "event_date": "2018-03-03",
+            "source_url": "http://ufcstats.com/fight-details/4960379abe6ed525"
+          }
+        ]
+      }
+    },
+    {
+      "bout_id": "ufcstats:fight:9bc042a700d9a531",
+      "weight_class": "Lightweight Bout",
+      "scheduled_rounds": 3,
+      "fighter_a": {
+        "fighter_id": "ufcstats:fighter:7d96bc577e5178b2",
+        "canonical_fighter_id": "ufcstats:fighter:7d96bc577e5178b2",
+        "name": "Gray Maynard",
+        "canonical_name": "Gray Maynard",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 19,
+        "known_duration_bouts": 19,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 251.03333333333333,
+        "reach_cm": 177.8,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/7d96bc577e5178b2",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 1.9120966671092816,
+            "contributing_bouts": 19,
+            "eligible_prior_bouts": 19,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 2.4060549727791796,
+            "contributing_bouts": 19,
+            "eligible_prior_bouts": 19,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 32.25806451612903,
+            "contributing_bouts": 19,
+            "eligible_prior_bouts": 19,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 68.80165289256199,
+            "contributing_bouts": 18,
+            "eligible_prior_bouts": 19,
+            "excluded_for_missing_inputs": 1
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.3585181250829903,
+            "contributing_bouts": 19,
+            "eligible_prior_bouts": 19,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 2.9876510423582525,
+            "contributing_bouts": 19,
+            "eligible_prior_bouts": 19,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 47.61904761904762,
+            "contributing_bouts": 15,
+            "eligible_prior_bouts": 19,
+            "excluded_for_missing_inputs": 4
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 83.05084745762711,
+            "contributing_bouts": 12,
+            "eligible_prior_bouts": 19,
+            "excluded_for_missing_inputs": 7
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.7170362501659806,
+            "contributing_bouts": 19,
+            "eligible_prior_bouts": 19,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 29.68397291196388,
+            "contributing_bouts": 19,
+            "eligible_prior_bouts": 19,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:53343bd123bcf651",
+            "event_date": "2007-06-23",
+            "source_url": "http://ufcstats.com/fight-details/53343bd123bcf651"
+          },
+          {
+            "bout_id": "ufcstats:fight:c86702c01c4cfee2",
+            "event_date": "2007-09-19",
+            "source_url": "http://ufcstats.com/fight-details/c86702c01c4cfee2"
+          },
+          {
+            "bout_id": "ufcstats:fight:804eff79a58ad250",
+            "event_date": "2008-01-23",
+            "source_url": "http://ufcstats.com/fight-details/804eff79a58ad250"
+          },
+          {
+            "bout_id": "ufcstats:fight:190c61d5a67018b5",
+            "event_date": "2008-04-02",
+            "source_url": "http://ufcstats.com/fight-details/190c61d5a67018b5"
+          },
+          {
+            "bout_id": "ufcstats:fight:27868eac1d141498",
+            "event_date": "2008-10-25",
+            "source_url": "http://ufcstats.com/fight-details/27868eac1d141498"
+          },
+          {
+            "bout_id": "ufcstats:fight:789a8911fcd6de13",
+            "event_date": "2009-03-07",
+            "source_url": "http://ufcstats.com/fight-details/789a8911fcd6de13"
+          },
+          {
+            "bout_id": "ufcstats:fight:b4a81d7eb4e42c1c",
+            "event_date": "2009-09-16",
+            "source_url": "http://ufcstats.com/fight-details/b4a81d7eb4e42c1c"
+          },
+          {
+            "bout_id": "ufcstats:fight:5355fd4a2598f679",
+            "event_date": "2010-01-11",
+            "source_url": "http://ufcstats.com/fight-details/5355fd4a2598f679"
+          },
+          {
+            "bout_id": "ufcstats:fight:f484290346cfcf73",
+            "event_date": "2010-08-28",
+            "source_url": "http://ufcstats.com/fight-details/f484290346cfcf73"
+          },
+          {
+            "bout_id": "ufcstats:fight:91bb64656e13a1d4",
+            "event_date": "2011-01-01",
+            "source_url": "http://ufcstats.com/fight-details/91bb64656e13a1d4"
+          },
+          {
+            "bout_id": "ufcstats:fight:8a660069ae42edc2",
+            "event_date": "2011-10-08",
+            "source_url": "http://ufcstats.com/fight-details/8a660069ae42edc2"
+          },
+          {
+            "bout_id": "ufcstats:fight:18efcec3c51750e9",
+            "event_date": "2012-06-22",
+            "source_url": "http://ufcstats.com/fight-details/18efcec3c51750e9"
+          },
+          {
+            "bout_id": "ufcstats:fight:9dd931fd20d6c886",
+            "event_date": "2013-05-25",
+            "source_url": "http://ufcstats.com/fight-details/9dd931fd20d6c886"
+          },
+          {
+            "bout_id": "ufcstats:fight:f0815638f558968d",
+            "event_date": "2013-11-30",
+            "source_url": "http://ufcstats.com/fight-details/f0815638f558968d"
+          },
+          {
+            "bout_id": "ufcstats:fight:efa3f3c8945cad0a",
+            "event_date": "2014-08-16",
+            "source_url": "http://ufcstats.com/fight-details/efa3f3c8945cad0a"
+          },
+          {
+            "bout_id": "ufcstats:fight:85dcf9425d3c4e56",
+            "event_date": "2015-04-04",
+            "source_url": "http://ufcstats.com/fight-details/85dcf9425d3c4e56"
+          },
+          {
+            "bout_id": "ufcstats:fight:36388dce4a8cc18f",
+            "event_date": "2016-07-08",
+            "source_url": "http://ufcstats.com/fight-details/36388dce4a8cc18f"
+          },
+          {
+            "bout_id": "ufcstats:fight:019983faebec6d64",
+            "event_date": "2016-12-03",
+            "source_url": "http://ufcstats.com/fight-details/019983faebec6d64"
+          },
+          {
+            "bout_id": "ufcstats:fight:88c2da7b33cca8d4",
+            "event_date": "2017-07-07",
+            "source_url": "http://ufcstats.com/fight-details/88c2da7b33cca8d4"
+          }
+        ]
+      },
+      "fighter_b": {
+        "fighter_id": "ufcstats:fighter:6fb1ba67bef41b37",
+        "canonical_fighter_id": "ufcstats:fighter:6fb1ba67bef41b37",
+        "name": "Nik Lentz",
+        "canonical_name": "Nik Lentz",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 20,
+        "known_duration_bouts": 20,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 255.48333333333332,
+        "reach_cm": 172.72,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/6fb1ba67bef41b37",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 3.209602713810425,
+            "contributing_bouts": 20,
+            "eligible_prior_bouts": 20,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 3.0217235305629853,
+            "contributing_bouts": 20,
+            "eligible_prior_bouts": 20,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 48.34905660377358,
+            "contributing_bouts": 20,
+            "eligible_prior_bouts": 20,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 49.837556855100715,
+            "contributing_bouts": 20,
+            "eligible_prior_bouts": 20,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.05871224476482484,
+            "contributing_bouts": 20,
+            "eligible_prior_bouts": 20,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 3.4640224411246656,
+            "contributing_bouts": 20,
+            "eligible_prior_bouts": 20,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 35.11904761904762,
+            "contributing_bouts": 19,
+            "eligible_prior_bouts": 20,
+            "excluded_for_missing_inputs": 1
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 44.30379746835443,
+            "contributing_bouts": 17,
+            "eligible_prior_bouts": 20,
+            "excluded_for_missing_inputs": 3
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 1.2916693848261465,
+            "contributing_bouts": 20,
+            "eligible_prior_bouts": 20,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 32.86580990279862,
+            "contributing_bouts": 20,
+            "eligible_prior_bouts": 20,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:92ea4999f99f55fd",
+            "event_date": "2009-09-19",
+            "source_url": "http://ufcstats.com/fight-details/92ea4999f99f55fd"
+          },
+          {
+            "bout_id": "ufcstats:fight:bad1f36202e2c7d7",
+            "event_date": "2010-01-11",
+            "source_url": "http://ufcstats.com/fight-details/bad1f36202e2c7d7"
+          },
+          {
+            "bout_id": "ufcstats:fight:b32acf1c70321321",
+            "event_date": "2010-03-31",
+            "source_url": "http://ufcstats.com/fight-details/b32acf1c70321321"
+          },
+          {
+            "bout_id": "ufcstats:fight:65290fc5216c2a73",
+            "event_date": "2010-08-28",
+            "source_url": "http://ufcstats.com/fight-details/65290fc5216c2a73"
+          },
+          {
+            "bout_id": "ufcstats:fight:83ea3c36a6f91cb8",
+            "event_date": "2010-11-20",
+            "source_url": "http://ufcstats.com/fight-details/83ea3c36a6f91cb8"
+          },
+          {
+            "bout_id": "ufcstats:fight:04d97700dbdaef5e",
+            "event_date": "2011-03-26",
+            "source_url": "http://ufcstats.com/fight-details/04d97700dbdaef5e"
+          },
+          {
+            "bout_id": "ufcstats:fight:91daeeeea0a83e49",
+            "event_date": "2011-06-26",
+            "source_url": "http://ufcstats.com/fight-details/91daeeeea0a83e49"
+          },
+          {
+            "bout_id": "ufcstats:fight:70995170c27c4143",
+            "event_date": "2011-12-10",
+            "source_url": "http://ufcstats.com/fight-details/70995170c27c4143"
+          },
+          {
+            "bout_id": "ufcstats:fight:e7861d4e2b29193f",
+            "event_date": "2012-01-28",
+            "source_url": "http://ufcstats.com/fight-details/e7861d4e2b29193f"
+          },
+          {
+            "bout_id": "ufcstats:fight:4af9088a165c7751",
+            "event_date": "2012-08-11",
+            "source_url": "http://ufcstats.com/fight-details/4af9088a165c7751"
+          },
+          {
+            "bout_id": "ufcstats:fight:302ce74d8b0d12a6",
+            "event_date": "2013-01-19",
+            "source_url": "http://ufcstats.com/fight-details/302ce74d8b0d12a6"
+          },
+          {
+            "bout_id": "ufcstats:fight:cf5f9da861c5e63f",
+            "event_date": "2013-05-18",
+            "source_url": "http://ufcstats.com/fight-details/cf5f9da861c5e63f"
+          },
+          {
+            "bout_id": "ufcstats:fight:631f0721b3fc56dc",
+            "event_date": "2013-12-14",
+            "source_url": "http://ufcstats.com/fight-details/631f0721b3fc56dc"
+          },
+          {
+            "bout_id": "ufcstats:fight:687b9b2c11667531",
+            "event_date": "2014-05-10",
+            "source_url": "http://ufcstats.com/fight-details/687b9b2c11667531"
+          },
+          {
+            "bout_id": "ufcstats:fight:ff64fc34065565d0",
+            "event_date": "2015-05-30",
+            "source_url": "http://ufcstats.com/fight-details/ff64fc34065565d0"
+          },
+          {
+            "bout_id": "ufcstats:fight:0ad5c6752e679de5",
+            "event_date": "2015-12-19",
+            "source_url": "http://ufcstats.com/fight-details/0ad5c6752e679de5"
+          },
+          {
+            "bout_id": "ufcstats:fight:9b1386a28b81bcd5",
+            "event_date": "2016-09-10",
+            "source_url": "http://ufcstats.com/fight-details/9b1386a28b81bcd5"
+          },
+          {
+            "bout_id": "ufcstats:fight:ddd9e64d97b095f9",
+            "event_date": "2017-02-11",
+            "source_url": "http://ufcstats.com/fight-details/ddd9e64d97b095f9"
+          },
+          {
+            "bout_id": "ufcstats:fight:fd2c018aade60a14",
+            "event_date": "2017-11-18",
+            "source_url": "http://ufcstats.com/fight-details/fd2c018aade60a14"
+          },
+          {
+            "bout_id": "ufcstats:fight:a25633b1494f1360",
+            "event_date": "2018-06-01",
+            "source_url": "http://ufcstats.com/fight-details/a25633b1494f1360"
+          }
+        ]
+      }
+    },
+    {
+      "bout_id": "ufcstats:fight:68ba4aca75b02496",
+      "weight_class": "Welterweight Bout",
+      "scheduled_rounds": 3,
+      "fighter_a": {
+        "fighter_id": "ufcstats:fighter:4c7781da8c6cae93",
+        "canonical_fighter_id": "ufcstats:fighter:4c7781da8c6cae93",
+        "name": "Ryan LaFlare",
+        "canonical_name": "Ryan LaFlare",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 9,
+        "known_duration_bouts": 9,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 136.83333333333334,
+        "reach_cm": 187.96,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/4c7781da8c6cae93",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 2.864799025578563,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 1.7466504263093787,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 39.3574297188755,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 64.32835820895522,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.2192448233861145,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 2.302070645554202,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 45.65217391304348,
+            "contributing_bouts": 8,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 1
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 58.97435897435897,
+            "contributing_bouts": 8,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 1
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 0.2192448233861145,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 30.56029232643118,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:8b0ff8defc1a14f4",
+            "event_date": "2013-04-06",
+            "source_url": "http://ufcstats.com/fight-details/8b0ff8defc1a14f4"
+          },
+          {
+            "bout_id": "ufcstats:fight:389c844a1a56177c",
+            "event_date": "2013-11-09",
+            "source_url": "http://ufcstats.com/fight-details/389c844a1a56177c"
+          },
+          {
+            "bout_id": "ufcstats:fight:c1d2ce95229cdbd9",
+            "event_date": "2013-12-14",
+            "source_url": "http://ufcstats.com/fight-details/c1d2ce95229cdbd9"
+          },
+          {
+            "bout_id": "ufcstats:fight:8c47c4b9503dd5b4",
+            "event_date": "2014-04-11",
+            "source_url": "http://ufcstats.com/fight-details/8c47c4b9503dd5b4"
+          },
+          {
+            "bout_id": "ufcstats:fight:bc096e8ae14582ec",
+            "event_date": "2015-03-21",
+            "source_url": "http://ufcstats.com/fight-details/bc096e8ae14582ec"
+          },
+          {
+            "bout_id": "ufcstats:fight:465707233fa9cf7c",
+            "event_date": "2015-12-11",
+            "source_url": "http://ufcstats.com/fight-details/465707233fa9cf7c"
+          },
+          {
+            "bout_id": "ufcstats:fight:1f9ac1648b8e501e",
+            "event_date": "2017-02-11",
+            "source_url": "http://ufcstats.com/fight-details/1f9ac1648b8e501e"
+          },
+          {
+            "bout_id": "ufcstats:fight:d0e5487f55c57ad2",
+            "event_date": "2017-07-22",
+            "source_url": "http://ufcstats.com/fight-details/d0e5487f55c57ad2"
+          },
+          {
+            "bout_id": "ufcstats:fight:ef86720364837f68",
+            "event_date": "2018-04-21",
+            "source_url": "http://ufcstats.com/fight-details/ef86720364837f68"
+          }
+        ]
+      },
+      "fighter_b": {
+        "fighter_id": "ufcstats:fighter:5331b25a60417ffb",
+        "canonical_fighter_id": "ufcstats:fighter:5331b25a60417ffb",
+        "name": "Anthony Rocco Martin",
+        "canonical_name": "Anthony Rocco Martin",
+        "status": "available",
+        "reason": null,
+        "prior_stat_bouts": 9,
+        "known_duration_bouts": 9,
+        "excluded_target_overlap_bouts": 0,
+        "known_minutes": 108.41666666666667,
+        "reach_cm": 185.42000000000002,
+        "reach_basis": "approximate_static_retrospective_archive",
+        "reach_source_url": "http://ufcstats.com/fighter-details/5331b25a60417ffb",
+        "metrics": {
+          "significant_strikes_landed_per_minute": {
+            "label": "Sig. strikes landed",
+            "unit": "/ min",
+            "value": 2.7671022290545735,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strikes_absorbed_per_minute": {
+            "label": "Sig. strikes absorbed",
+            "unit": "/ min",
+            "value": 2.9423520368946963,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_accuracy_pct": {
+            "label": "Striking accuracy",
+            "unit": "%",
+            "value": 40.43126684636118,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "significant_strike_defense_pct": {
+            "label": "Striking defense",
+            "unit": "%",
+            "value": 57.123655913978496,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "knockdowns_per_15_minutes": {
+            "label": "Knockdowns",
+            "unit": "/ 15 min",
+            "value": 0.0,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedowns_per_15_minutes": {
+            "label": "Takedowns landed",
+            "unit": "/ 15 min",
+            "value": 1.1068408916218293,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "takedown_accuracy_pct": {
+            "label": "Takedown accuracy",
+            "unit": "%",
+            "value": 25.806451612903224,
+            "contributing_bouts": 7,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 2
+          },
+          "takedown_defense_pct": {
+            "label": "Takedown defense",
+            "unit": "%",
+            "value": 52.63157894736842,
+            "contributing_bouts": 6,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 3
+          },
+          "submissions_per_15_minutes": {
+            "label": "Submission attempts",
+            "unit": "/ 15 min",
+            "value": 1.2451960030745581,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          },
+          "control_share_pct": {
+            "label": "Control time",
+            "unit": "% of fight",
+            "value": 32.48270561106841,
+            "contributing_bouts": 9,
+            "eligible_prior_bouts": 9,
+            "excluded_for_missing_inputs": 0
+          }
+        },
+        "prior_fights": [
+          {
+            "bout_id": "ufcstats:fight:bc9dd73e0a982c08",
+            "event_date": "2014-02-01",
+            "source_url": "http://ufcstats.com/fight-details/bc9dd73e0a982c08"
+          },
+          {
+            "bout_id": "ufcstats:fight:53fe9da9fb8d4f88",
+            "event_date": "2014-08-23",
+            "source_url": "http://ufcstats.com/fight-details/53fe9da9fb8d4f88"
+          },
+          {
+            "bout_id": "ufcstats:fight:4cc9ef5e68009fd4",
+            "event_date": "2014-10-25",
+            "source_url": "http://ufcstats.com/fight-details/4cc9ef5e68009fd4"
+          },
+          {
+            "bout_id": "ufcstats:fight:0eac602503b48b1a",
+            "event_date": "2015-03-21",
+            "source_url": "http://ufcstats.com/fight-details/0eac602503b48b1a"
+          },
+          {
+            "bout_id": "ufcstats:fight:318449b3f9346566",
+            "event_date": "2016-01-30",
+            "source_url": "http://ufcstats.com/fight-details/318449b3f9346566"
+          },
+          {
+            "bout_id": "ufcstats:fight:8156479490877d08",
+            "event_date": "2017-01-15",
+            "source_url": "http://ufcstats.com/fight-details/8156479490877d08"
+          },
+          {
+            "bout_id": "ufcstats:fight:eafda776967c6444",
+            "event_date": "2017-06-25",
+            "source_url": "http://ufcstats.com/fight-details/eafda776967c6444"
+          },
+          {
+            "bout_id": "ufcstats:fight:52e4f12eaeffd142",
+            "event_date": "2017-09-16",
+            "source_url": "http://ufcstats.com/fight-details/52e4f12eaeffd142"
+          },
+          {
+            "bout_id": "ufcstats:fight:d2b5ce5548b71668",
+            "event_date": "2018-04-21",
+            "source_url": "http://ufcstats.com/fight-details/d2b5ce5548b71668"
+          }
+        ]
+      }
+    }
+  ],
+  "limitations": [
+    "These are retrospective research comparisons, not a bout-winner forecast or a betting recommendation.",
+    "Only earlier whole event dates enter the aggregates. Target-day and later fights are excluded, even when their results are already retained.",
+    "A target bout or the same participant pair within two days of the target date is also excluded, protecting against source event-date disagreements.",
+    "Historical cards loaded from a research database or supplied manifest use a two-day whole-date embargo. Canonical archive cards use their canonical event date; all same-event dates remain excluded.",
+    "Archive collection times can be later than historical fights. Chronological feature construction does not prove historical source availability.",
+    "Archived reach is an approximate static attribute observed retrospectively; its historical measurement date is unknown.",
+    "Each metric uses only fights with all of its required counts and, for time-based rates, a known duration. Its sample size can differ from other metrics.",
+    "Unresolved identities are not matched by name. Missing counts are not zero; current athlete career averages are never substituted."
+  ]
+}
