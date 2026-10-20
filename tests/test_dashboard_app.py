@@ -85,6 +85,26 @@ class DashboardAppSmokeTests(unittest.TestCase):
         self.assertIn("No paper decisions recorded", markup)
         self.assertIn("No manually entered wagers", markup)
 
+    def test_saved_research_matchup_switches_without_creating_operating_database(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary, patch.dict(os.environ, {
+            'UFC_MODEL_FORECAST_REPORT': '',
+        }):
+            missing = Path(temporary) / 'missing.sqlite'
+            app = self._run_app(missing, Path(temporary) / 'missing.json')
+            self.assertEqual(list(app.exception), [])
+            selector = next(item for item in app.selectbox if item.key == 'sports_matchup')
+            app = selector.set_value('report:ufc333:2026-10-24:2').run()
+            self.assertEqual(list(app.exception), [])
+            spotlight = next(item.value for item in app.markdown if "class='spotlight-grid'" in item.value)
+            probability = next(item.value for item in app.markdown if "class='history-model-line'" in item.value)
+            self.assertIn('Petr Yan', spotlight)
+            self.assertIn('Merab Dvalishvili', spotlight)
+            self.assertNotIn('Alexander Volkanovski', spotlight)
+            self.assertIn('42.8%', probability)
+            self.assertIn('57.2%', probability)
+            self.assertIn('RESEARCH FORECAST', self._all_markup(app))
+            self.assertFalse(missing.exists())
+
     def test_saved_forward_research_stays_in_model_evidence_with_lookup_caveat(self) -> None:
         report = {
             "status": "available", "cutoff_at_utc": "2026-09-26T22:47:55Z",

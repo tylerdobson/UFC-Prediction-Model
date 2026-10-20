@@ -1,0 +1,2069 @@
+{
+  "schema_version": 1,
+  "artifact_type": "descriptive_prior_fight_history",
+  "research_only": true,
+  "model_features_reproduced": false,
+  "source_report_sha256": "f9bf0377707e7ff3b7b55ddae3f169077e383df5ae693d5078026095ad3f3887",
+  "source_card_sha256": "a7055dc3cc23447e2eeb099eaaa5430e87decbd42d650a8beb14fc1938399883",
+  "forecast_id": "b1a3a3e7601adb6e40b53231d40bf753df979e1a6def230e071b0fcf2565ba85",
+  "forecast_cutoff_at_utc": "2026-10-19T20:22:26Z",
+  "target_event_date": "2026-10-24",
+  "strictly_before_date": "2026-10-19",
+  "max_fights_per_fighter": 5,
+  "ordering": "Latest available prior fights, then displayed oldest to newest; rounds in source round order.",
+  "limitations": [
+    "The two series have separate opponents and dates; matching bar indices are not the same bout, round or shared timeline.",
+    "These are descriptive archived observations, not live fight momentum or recomputed model features.",
+    "Only whole dates strictly before the forecast cutoff date and the target event's two-day embargo enter this asset.",
+    "Unavailable fights are not padded. Missing counts or unknown validated duration produce null rates, not zero or assumed five-minute exposure.",
+    "Archive capture dates do not establish source availability before every historical fight."
+  ],
+  "fighters": {
+    "Alexander Volkanovski": {
+      "fighter_id": "ufcstats:fighter:e1248941344b3288",
+      "name": "Alexander Volkanovski",
+      "available_prior_bouts": 18,
+      "selected_bouts": 5,
+      "source_url": "http://ufcstats.com/fighter-details/e1248941344b3288",
+      "fights": [
+        {
+          "bout_id": "ufcstats:fight:4b12a4b48755cd6b",
+          "event_date": "2023-07-08",
+          "event_name": "UFC 290: Volkanovski vs. Rodriguez",
+          "opponent": "Yair Rodriguez",
+          "opponent_id": "ufcstats:fighter:cbf5e6f231b55443",
+          "elapsed_seconds": 859,
+          "significant_strikes_landed": 66,
+          "significant_strikes_absorbed": 40,
+          "significant_strikes_landed_per_minute": 4.610011641443539,
+          "significant_strikes_absorbed_per_minute": 2.7939464493597206,
+          "source_url": "http://ufcstats.com/fight-details/4b12a4b48755cd6b",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 11,
+              "significant_strikes_absorbed": 5,
+              "significant_strikes_landed_per_minute": 2.2,
+              "significant_strikes_absorbed_per_minute": 1.0,
+              "source_row_number": 8473
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 18,
+              "significant_strikes_absorbed": 12,
+              "significant_strikes_landed_per_minute": 3.6,
+              "significant_strikes_absorbed_per_minute": 2.4,
+              "source_row_number": 8474
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 259,
+              "significant_strikes_landed": 37,
+              "significant_strikes_absorbed": 23,
+              "significant_strikes_landed_per_minute": 8.571428571428571,
+              "significant_strikes_absorbed_per_minute": 5.328185328185328,
+              "source_row_number": 8475
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:0ea435ddf02deb60",
+          "event_date": "2023-10-21",
+          "event_name": "UFC 294: Makhachev vs. Volkanovski 2",
+          "opponent": "Islam Makhachev",
+          "opponent_id": "ufcstats:fighter:275aca31f61ba28c",
+          "elapsed_seconds": 186,
+          "significant_strikes_landed": 4,
+          "significant_strikes_absorbed": 24,
+          "significant_strikes_landed_per_minute": 1.2903225806451613,
+          "significant_strikes_absorbed_per_minute": 7.741935483870968,
+          "source_url": "http://ufcstats.com/fight-details/0ea435ddf02deb60",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 186,
+              "significant_strikes_landed": 4,
+              "significant_strikes_absorbed": 24,
+              "significant_strikes_landed_per_minute": 1.2903225806451613,
+              "significant_strikes_absorbed_per_minute": 7.741935483870968,
+              "source_row_number": 7678
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:bec3154a11df3299",
+          "event_date": "2024-02-17",
+          "event_name": "UFC 298: Volkanovski vs. Topuria",
+          "opponent": "Ilia Topuria",
+          "opponent_id": "ufcstats:fighter:54f64b5e283b0ce7",
+          "elapsed_seconds": 512,
+          "significant_strikes_landed": 47,
+          "significant_strikes_absorbed": 35,
+          "significant_strikes_landed_per_minute": 5.5078125,
+          "significant_strikes_absorbed_per_minute": 4.1015625,
+          "source_url": "http://ufcstats.com/fight-details/bec3154a11df3299",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 26,
+              "significant_strikes_absorbed": 15,
+              "significant_strikes_landed_per_minute": 5.2,
+              "significant_strikes_absorbed_per_minute": 3.0,
+              "source_row_number": 7023
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 212,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 20,
+              "significant_strikes_landed_per_minute": 5.943396226415095,
+              "significant_strikes_absorbed_per_minute": 5.660377358490566,
+              "source_row_number": 7024
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:e733f148060bef2a",
+          "event_date": "2025-04-12",
+          "event_name": "UFC 314: Volkanovski vs. Lopes",
+          "opponent": "Diego Lopes",
+          "opponent_id": "ufcstats:fighter:f166e93d04a8c274",
+          "elapsed_seconds": 1500,
+          "significant_strikes_landed": 158,
+          "significant_strikes_absorbed": 63,
+          "significant_strikes_landed_per_minute": 6.32,
+          "significant_strikes_absorbed_per_minute": 2.52,
+          "source_url": "http://ufcstats.com/fight-details/e733f148060bef2a",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 27,
+              "significant_strikes_absorbed": 8,
+              "significant_strikes_landed_per_minute": 5.4,
+              "significant_strikes_absorbed_per_minute": 1.6,
+              "source_row_number": 3917
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 24,
+              "significant_strikes_absorbed": 16,
+              "significant_strikes_landed_per_minute": 4.8,
+              "significant_strikes_absorbed_per_minute": 3.2,
+              "source_row_number": 3918
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 25,
+              "significant_strikes_absorbed": 9,
+              "significant_strikes_landed_per_minute": 5.0,
+              "significant_strikes_absorbed_per_minute": 1.8,
+              "source_row_number": 3919
+            },
+            {
+              "round_number": 4,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 39,
+              "significant_strikes_absorbed": 16,
+              "significant_strikes_landed_per_minute": 7.8,
+              "significant_strikes_absorbed_per_minute": 3.2,
+              "source_row_number": 3920
+            },
+            {
+              "round_number": 5,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 43,
+              "significant_strikes_absorbed": 14,
+              "significant_strikes_landed_per_minute": 8.6,
+              "significant_strikes_absorbed_per_minute": 2.8,
+              "source_row_number": 3921
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:b06b43670238c2d8",
+          "event_date": "2026-01-31",
+          "event_name": "UFC 325: Volkanovski vs. Lopes 2",
+          "opponent": "Diego Lopes",
+          "opponent_id": "ufcstats:fighter:f166e93d04a8c274",
+          "elapsed_seconds": 1500,
+          "significant_strikes_landed": 98,
+          "significant_strikes_absorbed": 70,
+          "significant_strikes_landed_per_minute": 3.92,
+          "significant_strikes_absorbed_per_minute": 2.8,
+          "source_url": "http://ufcstats.com/fight-details/b06b43670238c2d8",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 12,
+              "significant_strikes_absorbed": 12,
+              "significant_strikes_landed_per_minute": 2.4,
+              "significant_strikes_absorbed_per_minute": 2.4,
+              "source_row_number": 2067
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 19,
+              "significant_strikes_absorbed": 16,
+              "significant_strikes_landed_per_minute": 3.8,
+              "significant_strikes_absorbed_per_minute": 3.2,
+              "source_row_number": 2068
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 17,
+              "significant_strikes_landed_per_minute": 4.2,
+              "significant_strikes_absorbed_per_minute": 3.4,
+              "source_row_number": 2069
+            },
+            {
+              "round_number": 4,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 25,
+              "significant_strikes_absorbed": 22,
+              "significant_strikes_landed_per_minute": 5.0,
+              "significant_strikes_absorbed_per_minute": 4.4,
+              "source_row_number": 2070
+            },
+            {
+              "round_number": 5,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 3,
+              "significant_strikes_landed_per_minute": 4.2,
+              "significant_strikes_absorbed_per_minute": 0.6,
+              "source_row_number": 2071
+            }
+          ]
+        }
+      ]
+    },
+    "Movsar Evloev": {
+      "fighter_id": "ufcstats:fighter:76e2870ffafbe38f",
+      "name": "Movsar Evloev",
+      "available_prior_bouts": 10,
+      "selected_bouts": 5,
+      "source_url": "http://ufcstats.com/fighter-details/76e2870ffafbe38f",
+      "fights": [
+        {
+          "bout_id": "ufcstats:fight:aacb47949a572f25",
+          "event_date": "2022-06-04",
+          "event_name": "UFC Fight Night: Volkov vs. Rozenstruik",
+          "opponent": "Dan Ige",
+          "opponent_id": "ufcstats:fighter:82a5152216251682",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 68,
+          "significant_strikes_absorbed": 42,
+          "significant_strikes_landed_per_minute": 4.533333333333333,
+          "significant_strikes_absorbed_per_minute": 2.8,
+          "source_url": "http://ufcstats.com/fight-details/aacb47949a572f25",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 23,
+              "significant_strikes_absorbed": 17,
+              "significant_strikes_landed_per_minute": 4.6,
+              "significant_strikes_absorbed_per_minute": 3.4,
+              "source_row_number": 11246
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 30,
+              "significant_strikes_absorbed": 20,
+              "significant_strikes_landed_per_minute": 6.0,
+              "significant_strikes_absorbed_per_minute": 4.0,
+              "source_row_number": 11247
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 15,
+              "significant_strikes_absorbed": 5,
+              "significant_strikes_landed_per_minute": 3.0,
+              "significant_strikes_absorbed_per_minute": 1.0,
+              "source_row_number": 11248
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:069ab7e7b8b5d262",
+          "event_date": "2023-05-06",
+          "event_name": "UFC 288: Sterling vs. Cejudo",
+          "opponent": "Diego Lopes",
+          "opponent_id": "ufcstats:fighter:f166e93d04a8c274",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 88,
+          "significant_strikes_absorbed": 37,
+          "significant_strikes_landed_per_minute": 5.866666666666666,
+          "significant_strikes_absorbed_per_minute": 2.466666666666667,
+          "source_url": "http://ufcstats.com/fight-details/069ab7e7b8b5d262",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 16,
+              "significant_strikes_absorbed": 17,
+              "significant_strikes_landed_per_minute": 3.2,
+              "significant_strikes_absorbed_per_minute": 3.4,
+              "source_row_number": 8969
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 39,
+              "significant_strikes_absorbed": 10,
+              "significant_strikes_landed_per_minute": 7.8,
+              "significant_strikes_absorbed_per_minute": 2.0,
+              "source_row_number": 8970
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 33,
+              "significant_strikes_absorbed": 10,
+              "significant_strikes_landed_per_minute": 6.6,
+              "significant_strikes_absorbed_per_minute": 2.0,
+              "source_row_number": 8971
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:1a7cd191f0cf160c",
+          "event_date": "2024-01-20",
+          "event_name": "UFC 297: Strickland vs. Du Plessis",
+          "opponent": "Arnold Allen",
+          "opponent_id": "ufcstats:fighter:040a74bb0a465c54",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 51,
+          "significant_strikes_absorbed": 59,
+          "significant_strikes_landed_per_minute": 3.4,
+          "significant_strikes_absorbed_per_minute": 3.933333333333333,
+          "source_url": "http://ufcstats.com/fight-details/1a7cd191f0cf160c",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 13,
+              "significant_strikes_absorbed": 12,
+              "significant_strikes_landed_per_minute": 2.6,
+              "significant_strikes_absorbed_per_minute": 2.4,
+              "source_row_number": 7252
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 18,
+              "significant_strikes_landed_per_minute": 4.2,
+              "significant_strikes_absorbed_per_minute": 3.6,
+              "source_row_number": 7253
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 17,
+              "significant_strikes_absorbed": 29,
+              "significant_strikes_landed_per_minute": 3.4,
+              "significant_strikes_absorbed_per_minute": 5.8,
+              "source_row_number": 7254
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:df30514e0674d598",
+          "event_date": "2024-12-07",
+          "event_name": "UFC 310: Pantoja vs. Asakura",
+          "opponent": "Aljamain Sterling",
+          "opponent_id": "ufcstats:fighter:cb696ebfb6598724",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 8,
+          "significant_strikes_absorbed": 12,
+          "significant_strikes_landed_per_minute": 0.5333333333333333,
+          "significant_strikes_absorbed_per_minute": 0.8,
+          "source_url": "http://ufcstats.com/fight-details/df30514e0674d598",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 1,
+              "significant_strikes_absorbed": 3,
+              "significant_strikes_landed_per_minute": 0.2,
+              "significant_strikes_absorbed_per_minute": 0.6,
+              "source_row_number": 4791
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 3,
+              "significant_strikes_absorbed": 5,
+              "significant_strikes_landed_per_minute": 0.6,
+              "significant_strikes_absorbed_per_minute": 1.0,
+              "source_row_number": 4792
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 4,
+              "significant_strikes_absorbed": 4,
+              "significant_strikes_landed_per_minute": 0.8,
+              "significant_strikes_absorbed_per_minute": 0.8,
+              "source_row_number": 4793
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:346e3897c2ead99a",
+          "event_date": "2026-03-21",
+          "event_name": "UFC Fight Night: Evloev vs. Murphy",
+          "opponent": "Lerone Murphy",
+          "opponent_id": "ufcstats:fighter:396fe87b84ac2e1c",
+          "elapsed_seconds": 1500,
+          "significant_strikes_landed": 86,
+          "significant_strikes_absorbed": 89,
+          "significant_strikes_landed_per_minute": 3.44,
+          "significant_strikes_absorbed_per_minute": 3.56,
+          "source_url": "http://ufcstats.com/fight-details/346e3897c2ead99a",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 11,
+              "significant_strikes_absorbed": 14,
+              "significant_strikes_landed_per_minute": 2.2,
+              "significant_strikes_absorbed_per_minute": 2.8,
+              "source_row_number": 1663
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 17,
+              "significant_strikes_absorbed": 24,
+              "significant_strikes_landed_per_minute": 3.4,
+              "significant_strikes_absorbed_per_minute": 4.8,
+              "source_row_number": 1664
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 25,
+              "significant_strikes_absorbed": 23,
+              "significant_strikes_landed_per_minute": 5.0,
+              "significant_strikes_absorbed_per_minute": 4.6,
+              "source_row_number": 1665
+            },
+            {
+              "round_number": 4,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 16,
+              "significant_strikes_landed_per_minute": 4.2,
+              "significant_strikes_absorbed_per_minute": 3.2,
+              "source_row_number": 1666
+            },
+            {
+              "round_number": 5,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 12,
+              "significant_strikes_absorbed": 12,
+              "significant_strikes_landed_per_minute": 2.4,
+              "significant_strikes_absorbed_per_minute": 2.4,
+              "source_row_number": 1667
+            }
+          ]
+        }
+      ]
+    },
+    "Petr Yan": {
+      "fighter_id": "ufcstats:fighter:d661ce4da776fc20",
+      "name": "Petr Yan",
+      "available_prior_bouts": 16,
+      "selected_bouts": 5,
+      "source_url": "http://ufcstats.com/fighter-details/d661ce4da776fc20",
+      "fights": [
+        {
+          "bout_id": "ufcstats:fight:0ccd2593c88209e4",
+          "event_date": "2023-03-11",
+          "event_name": "UFC Fight Night: Yan vs. Dvalishvili",
+          "opponent": "Merab Dvalishvili",
+          "opponent_id": "ufcstats:fighter:c03520b5c88ed6b4",
+          "elapsed_seconds": 1500,
+          "significant_strikes_landed": 75,
+          "significant_strikes_absorbed": 147,
+          "significant_strikes_landed_per_minute": 3.0,
+          "significant_strikes_absorbed_per_minute": 5.88,
+          "source_url": "http://ufcstats.com/fight-details/0ccd2593c88209e4",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 13,
+              "significant_strikes_absorbed": 22,
+              "significant_strikes_landed_per_minute": 2.6,
+              "significant_strikes_absorbed_per_minute": 4.4,
+              "source_row_number": 9373
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 18,
+              "significant_strikes_absorbed": 35,
+              "significant_strikes_landed_per_minute": 3.6,
+              "significant_strikes_absorbed_per_minute": 7.0,
+              "source_row_number": 9374
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 8,
+              "significant_strikes_absorbed": 15,
+              "significant_strikes_landed_per_minute": 1.6,
+              "significant_strikes_absorbed_per_minute": 3.0,
+              "source_row_number": 9375
+            },
+            {
+              "round_number": 4,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 38,
+              "significant_strikes_landed_per_minute": 4.2,
+              "significant_strikes_absorbed_per_minute": 7.6,
+              "source_row_number": 9376
+            },
+            {
+              "round_number": 5,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 15,
+              "significant_strikes_absorbed": 37,
+              "significant_strikes_landed_per_minute": 3.0,
+              "significant_strikes_absorbed_per_minute": 7.4,
+              "source_row_number": 9377
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:9861b6d04e6ed43c",
+          "event_date": "2024-03-09",
+          "event_name": "UFC 299: O'Malley vs. Vera 2",
+          "opponent": "Song Yadong",
+          "opponent_id": "ufcstats:fighter:efb96bf3e9ada36f",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 99,
+          "significant_strikes_absorbed": 86,
+          "significant_strikes_landed_per_minute": 6.6,
+          "significant_strikes_absorbed_per_minute": 5.733333333333333,
+          "source_url": "http://ufcstats.com/fight-details/9861b6d04e6ed43c",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 22,
+              "significant_strikes_absorbed": 20,
+              "significant_strikes_landed_per_minute": 4.4,
+              "significant_strikes_absorbed_per_minute": 4.0,
+              "source_row_number": 6851
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 41,
+              "significant_strikes_absorbed": 31,
+              "significant_strikes_landed_per_minute": 8.2,
+              "significant_strikes_absorbed_per_minute": 6.2,
+              "source_row_number": 6852
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 36,
+              "significant_strikes_absorbed": 35,
+              "significant_strikes_landed_per_minute": 7.2,
+              "significant_strikes_absorbed_per_minute": 7.0,
+              "source_row_number": 6853
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:f53573316a4f349f",
+          "event_date": "2024-11-23",
+          "event_name": "UFC Fight Night: Yan vs. Figueiredo",
+          "opponent": "Deiveson Figueiredo",
+          "opponent_id": "ufcstats:fighter:aa72b0f831d0bfe5",
+          "elapsed_seconds": 1500,
+          "significant_strikes_landed": 121,
+          "significant_strikes_absorbed": 53,
+          "significant_strikes_landed_per_minute": 4.84,
+          "significant_strikes_absorbed_per_minute": 2.12,
+          "source_url": "http://ufcstats.com/fight-details/f53573316a4f349f",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 6,
+              "significant_strikes_absorbed": 1,
+              "significant_strikes_landed_per_minute": 1.2,
+              "significant_strikes_absorbed_per_minute": 0.2,
+              "source_row_number": 4823
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 32,
+              "significant_strikes_absorbed": 10,
+              "significant_strikes_landed_per_minute": 6.4,
+              "significant_strikes_absorbed_per_minute": 2.0,
+              "source_row_number": 4824
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 13,
+              "significant_strikes_landed_per_minute": 4.2,
+              "significant_strikes_absorbed_per_minute": 2.6,
+              "source_row_number": 4825
+            },
+            {
+              "round_number": 4,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 25,
+              "significant_strikes_absorbed": 14,
+              "significant_strikes_landed_per_minute": 5.0,
+              "significant_strikes_absorbed_per_minute": 2.8,
+              "source_row_number": 4826
+            },
+            {
+              "round_number": 5,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 37,
+              "significant_strikes_absorbed": 15,
+              "significant_strikes_landed_per_minute": 7.4,
+              "significant_strikes_absorbed_per_minute": 3.0,
+              "source_row_number": 4827
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:d4d4ee045b0ca695",
+          "event_date": "2025-07-26",
+          "event_name": "UFC Fight Night: Whittaker vs. De Ridder",
+          "opponent": "Marcus McGhee",
+          "opponent_id": "ufcstats:fighter:c0ac37a4a1133da9",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 81,
+          "significant_strikes_absorbed": 64,
+          "significant_strikes_landed_per_minute": 5.4,
+          "significant_strikes_absorbed_per_minute": 4.266666666666667,
+          "source_url": "http://ufcstats.com/fight-details/d4d4ee045b0ca695",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 22,
+              "significant_strikes_absorbed": 22,
+              "significant_strikes_landed_per_minute": 4.4,
+              "significant_strikes_absorbed_per_minute": 4.4,
+              "source_row_number": 3211
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 33,
+              "significant_strikes_absorbed": 34,
+              "significant_strikes_landed_per_minute": 6.6,
+              "significant_strikes_absorbed_per_minute": 6.8,
+              "source_row_number": 3212
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 26,
+              "significant_strikes_absorbed": 8,
+              "significant_strikes_landed_per_minute": 5.2,
+              "significant_strikes_absorbed_per_minute": 1.6,
+              "source_row_number": 3213
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:4a0db214d9721d6e",
+          "event_date": "2025-12-06",
+          "event_name": "UFC 323: Dvalishvili vs. Yan 2",
+          "opponent": "Merab Dvalishvili",
+          "opponent_id": "ufcstats:fighter:c03520b5c88ed6b4",
+          "elapsed_seconds": 1500,
+          "significant_strikes_landed": 139,
+          "significant_strikes_absorbed": 134,
+          "significant_strikes_landed_per_minute": 5.56,
+          "significant_strikes_absorbed_per_minute": 5.36,
+          "source_url": "http://ufcstats.com/fight-details/4a0db214d9721d6e",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 17,
+              "significant_strikes_absorbed": 22,
+              "significant_strikes_landed_per_minute": 3.4,
+              "significant_strikes_absorbed_per_minute": 4.4,
+              "source_row_number": 2256
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 19,
+              "significant_strikes_landed_per_minute": 4.2,
+              "significant_strikes_absorbed_per_minute": 3.8,
+              "source_row_number": 2257
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 25,
+              "significant_strikes_absorbed": 21,
+              "significant_strikes_landed_per_minute": 5.0,
+              "significant_strikes_absorbed_per_minute": 4.2,
+              "source_row_number": 2258
+            },
+            {
+              "round_number": 4,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 38,
+              "significant_strikes_absorbed": 37,
+              "significant_strikes_landed_per_minute": 7.6,
+              "significant_strikes_absorbed_per_minute": 7.4,
+              "source_row_number": 2259
+            },
+            {
+              "round_number": 5,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 38,
+              "significant_strikes_absorbed": 35,
+              "significant_strikes_landed_per_minute": 7.6,
+              "significant_strikes_absorbed_per_minute": 7.0,
+              "source_row_number": 2260
+            }
+          ]
+        }
+      ]
+    },
+    "Merab Dvalishvili": {
+      "fighter_id": "ufcstats:fighter:c03520b5c88ed6b4",
+      "name": "Merab Dvalishvili",
+      "available_prior_bouts": 17,
+      "selected_bouts": 5,
+      "source_url": "http://ufcstats.com/fighter-details/c03520b5c88ed6b4",
+      "fights": [
+        {
+          "bout_id": "ufcstats:fight:3146e5a47a922976",
+          "event_date": "2024-09-14",
+          "event_name": "UFC 306: Riyadh Season Noche UFC",
+          "opponent": "Sean O'Malley",
+          "opponent_id": "ufcstats:fighter:b50a426a33da0012",
+          "elapsed_seconds": 1500,
+          "significant_strikes_landed": 82,
+          "significant_strikes_absorbed": 47,
+          "significant_strikes_landed_per_minute": 3.28,
+          "significant_strikes_absorbed_per_minute": 1.88,
+          "source_url": "http://ufcstats.com/fight-details/3146e5a47a922976",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 16,
+              "significant_strikes_absorbed": 14,
+              "significant_strikes_landed_per_minute": 3.2,
+              "significant_strikes_absorbed_per_minute": 2.8,
+              "source_row_number": 5408
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 18,
+              "significant_strikes_absorbed": 5,
+              "significant_strikes_landed_per_minute": 3.6,
+              "significant_strikes_absorbed_per_minute": 1.0,
+              "source_row_number": 5409
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 17,
+              "significant_strikes_absorbed": 11,
+              "significant_strikes_landed_per_minute": 3.4,
+              "significant_strikes_absorbed_per_minute": 2.2,
+              "source_row_number": 5410
+            },
+            {
+              "round_number": 4,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 6,
+              "significant_strikes_landed_per_minute": 4.2,
+              "significant_strikes_absorbed_per_minute": 1.2,
+              "source_row_number": 5411
+            },
+            {
+              "round_number": 5,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 10,
+              "significant_strikes_absorbed": 11,
+              "significant_strikes_landed_per_minute": 2.0,
+              "significant_strikes_absorbed_per_minute": 2.2,
+              "source_row_number": 5412
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:f39941b3743bf18c",
+          "event_date": "2025-01-18",
+          "event_name": "UFC 311: Makhachev vs. Moicano",
+          "opponent": "Umar Nurmagomedov",
+          "opponent_id": "ufcstats:fighter:2b6fc1c02736833d",
+          "elapsed_seconds": 1500,
+          "significant_strikes_landed": 111,
+          "significant_strikes_absorbed": 104,
+          "significant_strikes_landed_per_minute": 4.44,
+          "significant_strikes_absorbed_per_minute": 4.16,
+          "source_url": "http://ufcstats.com/fight-details/f39941b3743bf18c",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 20,
+              "significant_strikes_absorbed": 18,
+              "significant_strikes_landed_per_minute": 4.0,
+              "significant_strikes_absorbed_per_minute": 3.6,
+              "source_row_number": 4561
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 20,
+              "significant_strikes_absorbed": 25,
+              "significant_strikes_landed_per_minute": 4.0,
+              "significant_strikes_absorbed_per_minute": 5.0,
+              "source_row_number": 4562
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 22,
+              "significant_strikes_landed_per_minute": 4.2,
+              "significant_strikes_absorbed_per_minute": 4.4,
+              "source_row_number": 4563
+            },
+            {
+              "round_number": 4,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 36,
+              "significant_strikes_absorbed": 21,
+              "significant_strikes_landed_per_minute": 7.2,
+              "significant_strikes_absorbed_per_minute": 4.2,
+              "source_row_number": 4564
+            },
+            {
+              "round_number": 5,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 14,
+              "significant_strikes_absorbed": 18,
+              "significant_strikes_landed_per_minute": 2.8,
+              "significant_strikes_absorbed_per_minute": 3.6,
+              "source_row_number": 4565
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:e61d83e4e1f9c4d7",
+          "event_date": "2025-06-07",
+          "event_name": "UFC 316: Dvalishvili vs. O'Malley 2",
+          "opponent": "Sean O'Malley",
+          "opponent_id": "ufcstats:fighter:b50a426a33da0012",
+          "elapsed_seconds": 882,
+          "significant_strikes_landed": 52,
+          "significant_strikes_absorbed": 31,
+          "significant_strikes_landed_per_minute": 3.5374149659863945,
+          "significant_strikes_absorbed_per_minute": 2.108843537414966,
+          "source_url": "http://ufcstats.com/fight-details/e61d83e4e1f9c4d7",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 17,
+              "significant_strikes_absorbed": 12,
+              "significant_strikes_landed_per_minute": 3.4,
+              "significant_strikes_absorbed_per_minute": 2.4,
+              "source_row_number": 3575
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 23,
+              "significant_strikes_absorbed": 19,
+              "significant_strikes_landed_per_minute": 4.6,
+              "significant_strikes_absorbed_per_minute": 3.8,
+              "source_row_number": 3576
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 282,
+              "significant_strikes_landed": 12,
+              "significant_strikes_absorbed": 0,
+              "significant_strikes_landed_per_minute": 2.5531914893617023,
+              "significant_strikes_absorbed_per_minute": 0.0,
+              "source_row_number": 3577
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:a8511df8285f5c91",
+          "event_date": "2025-10-04",
+          "event_name": "UFC 320: Ankalaev vs. Pereira 2",
+          "opponent": "Cory Sandhagen",
+          "opponent_id": "ufcstats:fighter:65f09bacd3957381",
+          "elapsed_seconds": 1500,
+          "significant_strikes_landed": 114,
+          "significant_strikes_absorbed": 80,
+          "significant_strikes_landed_per_minute": 4.56,
+          "significant_strikes_absorbed_per_minute": 3.2,
+          "source_url": "http://ufcstats.com/fight-details/a8511df8285f5c91",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 11,
+              "significant_strikes_absorbed": 27,
+              "significant_strikes_landed_per_minute": 2.2,
+              "significant_strikes_absorbed_per_minute": 5.4,
+              "source_row_number": 2743
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 33,
+              "significant_strikes_absorbed": 2,
+              "significant_strikes_landed_per_minute": 6.6,
+              "significant_strikes_absorbed_per_minute": 0.4,
+              "source_row_number": 2744
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 15,
+              "significant_strikes_absorbed": 14,
+              "significant_strikes_landed_per_minute": 3.0,
+              "significant_strikes_absorbed_per_minute": 2.8,
+              "source_row_number": 2745
+            },
+            {
+              "round_number": 4,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 19,
+              "significant_strikes_landed_per_minute": 4.2,
+              "significant_strikes_absorbed_per_minute": 3.8,
+              "source_row_number": 2746
+            },
+            {
+              "round_number": 5,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 34,
+              "significant_strikes_absorbed": 18,
+              "significant_strikes_landed_per_minute": 6.8,
+              "significant_strikes_absorbed_per_minute": 3.6,
+              "source_row_number": 2747
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:4a0db214d9721d6e",
+          "event_date": "2025-12-06",
+          "event_name": "UFC 323: Dvalishvili vs. Yan 2",
+          "opponent": "Petr Yan",
+          "opponent_id": "ufcstats:fighter:d661ce4da776fc20",
+          "elapsed_seconds": 1500,
+          "significant_strikes_landed": 134,
+          "significant_strikes_absorbed": 139,
+          "significant_strikes_landed_per_minute": 5.36,
+          "significant_strikes_absorbed_per_minute": 5.56,
+          "source_url": "http://ufcstats.com/fight-details/4a0db214d9721d6e",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 22,
+              "significant_strikes_absorbed": 17,
+              "significant_strikes_landed_per_minute": 4.4,
+              "significant_strikes_absorbed_per_minute": 3.4,
+              "source_row_number": 2251
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 19,
+              "significant_strikes_absorbed": 21,
+              "significant_strikes_landed_per_minute": 3.8,
+              "significant_strikes_absorbed_per_minute": 4.2,
+              "source_row_number": 2252
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 25,
+              "significant_strikes_landed_per_minute": 4.2,
+              "significant_strikes_absorbed_per_minute": 5.0,
+              "source_row_number": 2253
+            },
+            {
+              "round_number": 4,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 37,
+              "significant_strikes_absorbed": 38,
+              "significant_strikes_landed_per_minute": 7.4,
+              "significant_strikes_absorbed_per_minute": 7.6,
+              "source_row_number": 2254
+            },
+            {
+              "round_number": 5,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 35,
+              "significant_strikes_absorbed": 38,
+              "significant_strikes_landed_per_minute": 7.0,
+              "significant_strikes_absorbed_per_minute": 7.6,
+              "source_row_number": 2255
+            }
+          ]
+        }
+      ]
+    },
+    "Alexander Volkov": {
+      "fighter_id": "ufcstats:fighter:279566840aa55bf2",
+      "name": "Alexander Volkov",
+      "available_prior_bouts": 18,
+      "selected_bouts": 5,
+      "source_url": "http://ufcstats.com/fighter-details/279566840aa55bf2",
+      "fights": [
+        {
+          "bout_id": "ufcstats:fight:3b561a154aa2bbb2",
+          "event_date": "2023-03-11",
+          "event_name": "UFC Fight Night: Yan vs. Dvalishvili",
+          "opponent": "Alexandr Romanov",
+          "opponent_id": "ufcstats:fighter:c0badf3243907e59",
+          "elapsed_seconds": 136,
+          "significant_strikes_landed": 12,
+          "significant_strikes_absorbed": 0,
+          "significant_strikes_landed_per_minute": 5.294117647058823,
+          "significant_strikes_absorbed_per_minute": 0.0,
+          "source_url": "http://ufcstats.com/fight-details/3b561a154aa2bbb2",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 136,
+              "significant_strikes_landed": 12,
+              "significant_strikes_absorbed": 0,
+              "significant_strikes_landed_per_minute": 5.294117647058823,
+              "significant_strikes_absorbed_per_minute": 0.0,
+              "source_row_number": 9383
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:e4ed294e16e16d81",
+          "event_date": "2023-09-09",
+          "event_name": "UFC 293: Adesanya vs. Strickland",
+          "opponent": "Tai Tuivasa",
+          "opponent_id": "ufcstats:fighter:c62fbc117d57b943",
+          "elapsed_seconds": 577,
+          "significant_strikes_landed": 93,
+          "significant_strikes_absorbed": 28,
+          "significant_strikes_landed_per_minute": 9.670710571923744,
+          "significant_strikes_absorbed_per_minute": 2.9116117850953205,
+          "source_url": "http://ufcstats.com/fight-details/e4ed294e16e16d81",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 51,
+              "significant_strikes_absorbed": 15,
+              "significant_strikes_landed_per_minute": 10.2,
+              "significant_strikes_absorbed_per_minute": 3.0,
+              "source_row_number": 7959
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 277,
+              "significant_strikes_landed": 42,
+              "significant_strikes_absorbed": 13,
+              "significant_strikes_landed_per_minute": 9.097472924187725,
+              "significant_strikes_absorbed_per_minute": 2.815884476534296,
+              "source_row_number": 7960
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:cd3bb8a2824fbf22",
+          "event_date": "2024-06-22",
+          "event_name": "UFC Fight Night: Whittaker vs. Aliskerov",
+          "opponent": "Sergei Pavlovich",
+          "opponent_id": "ufcstats:fighter:f14cf73e51b29254",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 83,
+          "significant_strikes_absorbed": 46,
+          "significant_strikes_landed_per_minute": 5.533333333333333,
+          "significant_strikes_absorbed_per_minute": 3.066666666666667,
+          "source_url": "http://ufcstats.com/fight-details/cd3bb8a2824fbf22",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 26,
+              "significant_strikes_absorbed": 15,
+              "significant_strikes_landed_per_minute": 5.2,
+              "significant_strikes_absorbed_per_minute": 3.0,
+              "source_row_number": 6008
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 31,
+              "significant_strikes_absorbed": 15,
+              "significant_strikes_landed_per_minute": 6.2,
+              "significant_strikes_absorbed_per_minute": 3.0,
+              "source_row_number": 6009
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 26,
+              "significant_strikes_absorbed": 16,
+              "significant_strikes_landed_per_minute": 5.2,
+              "significant_strikes_absorbed_per_minute": 3.2,
+              "source_row_number": 6010
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:f706508c52f337a6",
+          "event_date": "2024-12-07",
+          "event_name": "UFC 310: Pantoja vs. Asakura",
+          "opponent": "Ciryl Gane",
+          "opponent_id": "ufcstats:fighter:787bb1f087ccff8a",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 39,
+          "significant_strikes_absorbed": 43,
+          "significant_strikes_landed_per_minute": 2.6,
+          "significant_strikes_absorbed_per_minute": 2.8666666666666667,
+          "source_url": "http://ufcstats.com/fight-details/f706508c52f337a6",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 10,
+              "significant_strikes_absorbed": 12,
+              "significant_strikes_landed_per_minute": 2.0,
+              "significant_strikes_absorbed_per_minute": 2.4,
+              "source_row_number": 4770
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 25,
+              "significant_strikes_absorbed": 27,
+              "significant_strikes_landed_per_minute": 5.0,
+              "significant_strikes_absorbed_per_minute": 5.4,
+              "source_row_number": 4771
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 4,
+              "significant_strikes_absorbed": 4,
+              "significant_strikes_landed_per_minute": 0.8,
+              "significant_strikes_absorbed_per_minute": 0.8,
+              "source_row_number": 4772
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:b42a3386a7dccb3d",
+          "event_date": "2025-10-25",
+          "event_name": "UFC 321: Aspinall vs. Gane",
+          "opponent": "Jailton Almeida",
+          "opponent_id": "ufcstats:fighter:41e83a89929d1327",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 24,
+          "significant_strikes_absorbed": 9,
+          "significant_strikes_landed_per_minute": 1.6,
+          "significant_strikes_absorbed_per_minute": 0.6,
+          "source_url": "http://ufcstats.com/fight-details/b42a3386a7dccb3d",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 15,
+              "significant_strikes_absorbed": 0,
+              "significant_strikes_landed_per_minute": 3.0,
+              "significant_strikes_absorbed_per_minute": 0.0,
+              "source_row_number": 2573
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 2,
+              "significant_strikes_absorbed": 4,
+              "significant_strikes_landed_per_minute": 0.4,
+              "significant_strikes_absorbed_per_minute": 0.8,
+              "source_row_number": 2574
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 7,
+              "significant_strikes_absorbed": 5,
+              "significant_strikes_landed_per_minute": 1.4,
+              "significant_strikes_absorbed_per_minute": 1.0,
+              "source_row_number": 2575
+            }
+          ]
+        }
+      ]
+    },
+    "Rizvan Kuniev": {
+      "fighter_id": "ufcstats:fighter:739fd4fbb5d862f4",
+      "name": "Rizvan Kuniev",
+      "available_prior_bouts": 2,
+      "selected_bouts": 2,
+      "source_url": "http://ufcstats.com/fighter-details/739fd4fbb5d862f4",
+      "fights": [
+        {
+          "bout_id": "ufcstats:fight:8e5744c664fec3e9",
+          "event_date": "2025-06-21",
+          "event_name": "UFC Fight Night: Hill vs. Rountree Jr.",
+          "opponent": "Curtis Blaydes",
+          "opponent_id": "ufcstats:fighter:fa6796c55d6c5440",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 45,
+          "significant_strikes_absorbed": 56,
+          "significant_strikes_landed_per_minute": 3.0,
+          "significant_strikes_absorbed_per_minute": 3.7333333333333334,
+          "source_url": "http://ufcstats.com/fight-details/8e5744c664fec3e9",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 8,
+              "significant_strikes_absorbed": 12,
+              "significant_strikes_landed_per_minute": 1.6,
+              "significant_strikes_absorbed_per_minute": 2.4,
+              "source_row_number": 3452
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 24,
+              "significant_strikes_absorbed": 16,
+              "significant_strikes_landed_per_minute": 4.8,
+              "significant_strikes_absorbed_per_minute": 3.2,
+              "source_row_number": 3453
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 13,
+              "significant_strikes_absorbed": 28,
+              "significant_strikes_landed_per_minute": 2.6,
+              "significant_strikes_absorbed_per_minute": 5.6,
+              "source_row_number": 3454
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:a5c5f76cf0a7c784",
+          "event_date": "2026-02-07",
+          "event_name": "UFC Fight Night: Bautista vs. Oliveira",
+          "opponent": "Jailton Almeida",
+          "opponent_id": "ufcstats:fighter:41e83a89929d1327",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 43,
+          "significant_strikes_absorbed": 31,
+          "significant_strikes_landed_per_minute": 2.8666666666666667,
+          "significant_strikes_absorbed_per_minute": 2.066666666666667,
+          "source_url": "http://ufcstats.com/fight-details/a5c5f76cf0a7c784",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 12,
+              "significant_strikes_absorbed": 5,
+              "significant_strikes_landed_per_minute": 2.4,
+              "significant_strikes_absorbed_per_minute": 1.0,
+              "source_row_number": 2010
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 15,
+              "significant_strikes_absorbed": 8,
+              "significant_strikes_landed_per_minute": 3.0,
+              "significant_strikes_absorbed_per_minute": 1.6,
+              "source_row_number": 2011
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 16,
+              "significant_strikes_absorbed": 18,
+              "significant_strikes_landed_per_minute": 3.2,
+              "significant_strikes_absorbed_per_minute": 3.6,
+              "source_row_number": 2012
+            }
+          ]
+        }
+      ]
+    },
+    "Aaron Pico": {
+      "fighter_id": "ufcstats:fighter:5537efc6e496dd84",
+      "name": "Aaron Pico",
+      "available_prior_bouts": 1,
+      "selected_bouts": 1,
+      "source_url": "http://ufcstats.com/fighter-details/5537efc6e496dd84",
+      "fights": [
+        {
+          "bout_id": "ufcstats:fight:9fa6a029f7f8241c",
+          "event_date": "2025-08-16",
+          "event_name": "UFC 319: Du Plessis vs. Chimaev",
+          "opponent": "Lerone Murphy",
+          "opponent_id": "ufcstats:fighter:396fe87b84ac2e1c",
+          "elapsed_seconds": 201,
+          "significant_strikes_landed": 13,
+          "significant_strikes_absorbed": 8,
+          "significant_strikes_landed_per_minute": 3.8805970149253732,
+          "significant_strikes_absorbed_per_minute": 2.388059701492537,
+          "source_url": "http://ufcstats.com/fight-details/9fa6a029f7f8241c",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 201,
+              "significant_strikes_landed": 13,
+              "significant_strikes_absorbed": 8,
+              "significant_strikes_landed_per_minute": 3.8805970149253732,
+              "significant_strikes_absorbed_per_minute": 2.388059701492537,
+              "source_row_number": 3042
+            }
+          ]
+        }
+      ]
+    },
+    "Losene Keita": {
+      "fighter_id": "ufcstats:fighter:5b43d68174b6e2ab",
+      "name": "Losene Keita",
+      "available_prior_bouts": 2,
+      "selected_bouts": 2,
+      "source_url": "http://ufcstats.com/fighter-details/5b43d68174b6e2ab",
+      "fights": [
+        {
+          "bout_id": "ufcstats:fight:3b9f50f07d9a1601",
+          "event_date": "2026-03-21",
+          "event_name": "UFC Fight Night: Evloev vs. Murphy",
+          "opponent": "Nathaniel Wood",
+          "opponent_id": "ufcstats:fighter:329e403448756217",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 52,
+          "significant_strikes_absorbed": 67,
+          "significant_strikes_landed_per_minute": 3.466666666666667,
+          "significant_strikes_absorbed_per_minute": 4.466666666666667,
+          "source_url": "http://ufcstats.com/fight-details/3b9f50f07d9a1601",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 11,
+              "significant_strikes_absorbed": 17,
+              "significant_strikes_landed_per_minute": 2.2,
+              "significant_strikes_absorbed_per_minute": 3.4,
+              "source_row_number": 1706
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 23,
+              "significant_strikes_absorbed": 19,
+              "significant_strikes_landed_per_minute": 4.6,
+              "significant_strikes_absorbed_per_minute": 3.8,
+              "source_row_number": 1707
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 18,
+              "significant_strikes_absorbed": 31,
+              "significant_strikes_landed_per_minute": 3.6,
+              "significant_strikes_absorbed_per_minute": 6.2,
+              "source_row_number": 1708
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:b90b099c1f47bb93",
+          "event_date": "2026-09-05",
+          "event_name": "UFC Fight Night: Hooker vs. Parnasse",
+          "opponent": "Muhammad Naimov",
+          "opponent_id": "ufcstats:fighter:8d11d9c13e2ccdf7",
+          "elapsed_seconds": 174,
+          "significant_strikes_landed": 18,
+          "significant_strikes_absorbed": 4,
+          "significant_strikes_landed_per_minute": 6.206896551724138,
+          "significant_strikes_absorbed_per_minute": 1.3793103448275863,
+          "source_url": "http://ufcstats.com/fight-details/b90b099c1f47bb93",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 174,
+              "significant_strikes_landed": 18,
+              "significant_strikes_absorbed": 4,
+              "significant_strikes_landed_per_minute": 6.206896551724138,
+              "significant_strikes_absorbed_per_minute": 1.3793103448275863,
+              "source_row_number": 349
+            }
+          ]
+        }
+      ]
+    },
+    "Azamat Murzakanov": {
+      "fighter_id": "ufcstats:fighter:e90a2f22417af68e",
+      "name": "Azamat Murzakanov",
+      "available_prior_bouts": 7,
+      "selected_bouts": 5,
+      "source_url": "http://ufcstats.com/fighter-details/e90a2f22417af68e",
+      "fights": [
+        {
+          "bout_id": "ufcstats:fight:792f139c2b9fd294",
+          "event_date": "2023-04-15",
+          "event_name": "UFC Fight Night: Holloway vs. Allen",
+          "opponent": "Dustin Jacoby",
+          "opponent_id": "ufcstats:fighter:e4277e87a789d687",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 67,
+          "significant_strikes_absorbed": 64,
+          "significant_strikes_landed_per_minute": 4.466666666666667,
+          "significant_strikes_absorbed_per_minute": 4.266666666666667,
+          "source_url": "http://ufcstats.com/fight-details/792f139c2b9fd294",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 25,
+              "significant_strikes_absorbed": 19,
+              "significant_strikes_landed_per_minute": 5.0,
+              "significant_strikes_absorbed_per_minute": 3.8,
+              "source_row_number": 9124
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 26,
+              "significant_strikes_absorbed": 21,
+              "significant_strikes_landed_per_minute": 5.2,
+              "significant_strikes_absorbed_per_minute": 4.2,
+              "source_row_number": 9125
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 16,
+              "significant_strikes_absorbed": 24,
+              "significant_strikes_landed_per_minute": 3.2,
+              "significant_strikes_absorbed_per_minute": 4.8,
+              "source_row_number": 9126
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:fbbb703581440496",
+          "event_date": "2024-08-03",
+          "event_name": "UFC Fight Night: Sandhagen vs. Nurmagomedov",
+          "opponent": "Alonzo Menifield",
+          "opponent_id": "ufcstats:fighter:a495f599e787614f",
+          "elapsed_seconds": 498,
+          "significant_strikes_landed": 45,
+          "significant_strikes_absorbed": 15,
+          "significant_strikes_landed_per_minute": 5.421686746987952,
+          "significant_strikes_absorbed_per_minute": 1.8072289156626506,
+          "source_url": "http://ufcstats.com/fight-details/fbbb703581440496",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 22,
+              "significant_strikes_absorbed": 8,
+              "significant_strikes_landed_per_minute": 4.4,
+              "significant_strikes_absorbed_per_minute": 1.6,
+              "source_row_number": 5725
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 198,
+              "significant_strikes_landed": 23,
+              "significant_strikes_absorbed": 7,
+              "significant_strikes_landed_per_minute": 6.96969696969697,
+              "significant_strikes_absorbed_per_minute": 2.121212121212121,
+              "source_row_number": 5726
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:01100a90b584215d",
+          "event_date": "2025-06-07",
+          "event_name": "UFC 316: Dvalishvili vs. O'Malley 2",
+          "opponent": "Brendson Ribeiro",
+          "opponent_id": "ufcstats:fighter:49edd0d90f60fb7d",
+          "elapsed_seconds": 205,
+          "significant_strikes_landed": 27,
+          "significant_strikes_absorbed": 8,
+          "significant_strikes_landed_per_minute": 7.902439024390244,
+          "significant_strikes_absorbed_per_minute": 2.341463414634146,
+          "source_url": "http://ufcstats.com/fight-details/01100a90b584215d",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 205,
+              "significant_strikes_landed": 27,
+              "significant_strikes_absorbed": 8,
+              "significant_strikes_landed_per_minute": 7.902439024390244,
+              "significant_strikes_absorbed_per_minute": 2.341463414634146,
+              "source_row_number": 3607
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:ef12d2aaaadaf6d0",
+          "event_date": "2025-10-25",
+          "event_name": "UFC 321: Aspinall vs. Gane",
+          "opponent": "Aleksandar Rakic",
+          "opponent_id": "ufcstats:fighter:333b9e5c723ac873",
+          "elapsed_seconds": 191,
+          "significant_strikes_landed": 3,
+          "significant_strikes_absorbed": 9,
+          "significant_strikes_landed_per_minute": 0.9424083769633508,
+          "significant_strikes_absorbed_per_minute": 2.8272251308900525,
+          "source_url": "http://ufcstats.com/fight-details/ef12d2aaaadaf6d0",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 191,
+              "significant_strikes_landed": 3,
+              "significant_strikes_absorbed": 9,
+              "significant_strikes_landed_per_minute": 0.9424083769633508,
+              "significant_strikes_absorbed_per_minute": 2.8272251308900525,
+              "source_row_number": 2580
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:aade9d76ac6c6aef",
+          "event_date": "2026-04-11",
+          "event_name": "UFC 327: Prochazka vs. Ulberg",
+          "opponent": "Paulo Costa",
+          "opponent_id": "ufcstats:fighter:2e5c2aa8e4ab9d82",
+          "elapsed_seconds": 683,
+          "significant_strikes_landed": 34,
+          "significant_strikes_absorbed": 55,
+          "significant_strikes_landed_per_minute": 2.986822840409956,
+          "significant_strikes_absorbed_per_minute": 4.831625183016105,
+          "source_url": "http://ufcstats.com/fight-details/aade9d76ac6c6aef",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 7,
+              "significant_strikes_absorbed": 21,
+              "significant_strikes_landed_per_minute": 1.4,
+              "significant_strikes_absorbed_per_minute": 4.2,
+              "source_row_number": 1497
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 23,
+              "significant_strikes_absorbed": 19,
+              "significant_strikes_landed_per_minute": 4.6,
+              "significant_strikes_absorbed_per_minute": 3.8,
+              "source_row_number": 1498
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 83,
+              "significant_strikes_landed": 4,
+              "significant_strikes_absorbed": 15,
+              "significant_strikes_landed_per_minute": 2.891566265060241,
+              "significant_strikes_absorbed_per_minute": 10.843373493975903,
+              "source_row_number": 1499
+            }
+          ]
+        }
+      ]
+    },
+    "Dominick Reyes": {
+      "fighter_id": "ufcstats:fighter:2e19380f34871c6a",
+      "name": "Dominick Reyes",
+      "available_prior_bouts": 15,
+      "selected_bouts": 5,
+      "source_url": "http://ufcstats.com/fighter-details/2e19380f34871c6a",
+      "fights": [
+        {
+          "bout_id": "ufcstats:fight:2d12ae4683bbf433",
+          "event_date": "2024-06-08",
+          "event_name": "UFC Fight Night: Cannonier vs. Imavov",
+          "opponent": "Dustin Jacoby",
+          "opponent_id": "ufcstats:fighter:e4277e87a789d687",
+          "elapsed_seconds": 120,
+          "significant_strikes_landed": 20,
+          "significant_strikes_absorbed": 6,
+          "significant_strikes_landed_per_minute": 10.0,
+          "significant_strikes_absorbed_per_minute": 3.0,
+          "source_url": "http://ufcstats.com/fight-details/2d12ae4683bbf433",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 120,
+              "significant_strikes_landed": 20,
+              "significant_strikes_absorbed": 6,
+              "significant_strikes_landed_per_minute": 10.0,
+              "significant_strikes_absorbed_per_minute": 3.0,
+              "source_row_number": 6129
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:97caf8fca9d9603b",
+          "event_date": "2024-12-07",
+          "event_name": "UFC 310: Pantoja vs. Asakura",
+          "opponent": "Anthony Smith",
+          "opponent_id": "ufcstats:fighter:d4c9dcd330403612",
+          "elapsed_seconds": 586,
+          "significant_strikes_landed": 121,
+          "significant_strikes_absorbed": 21,
+          "significant_strikes_landed_per_minute": 12.389078498293514,
+          "significant_strikes_absorbed_per_minute": 2.150170648464164,
+          "source_url": "http://ufcstats.com/fight-details/97caf8fca9d9603b",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 48,
+              "significant_strikes_absorbed": 21,
+              "significant_strikes_landed_per_minute": 9.6,
+              "significant_strikes_absorbed_per_minute": 4.2,
+              "source_row_number": 4785
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 286,
+              "significant_strikes_landed": 73,
+              "significant_strikes_absorbed": 0,
+              "significant_strikes_landed_per_minute": 15.314685314685315,
+              "significant_strikes_absorbed_per_minute": 0.0,
+              "source_row_number": 4786
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:b2d731415bd367df",
+          "event_date": "2025-04-12",
+          "event_name": "UFC 314: Volkanovski vs. Lopes",
+          "opponent": "Nikita Krylov",
+          "opponent_id": "ufcstats:fighter:1091d4d957141094",
+          "elapsed_seconds": 144,
+          "significant_strikes_landed": 8,
+          "significant_strikes_absorbed": 4,
+          "significant_strikes_landed_per_minute": 3.3333333333333335,
+          "significant_strikes_absorbed_per_minute": 1.6666666666666667,
+          "source_url": "http://ufcstats.com/fight-details/b2d731415bd367df",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 144,
+              "significant_strikes_landed": 8,
+              "significant_strikes_absorbed": 4,
+              "significant_strikes_landed_per_minute": 3.3333333333333335,
+              "significant_strikes_absorbed_per_minute": 1.6666666666666667,
+              "source_row_number": 3944
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:a3ee907c77544cde",
+          "event_date": "2025-09-27",
+          "event_name": "UFC Fight Night: Ulberg vs. Reyes",
+          "opponent": "Carlos Ulberg",
+          "opponent_id": "ufcstats:fighter:9014c02eff8b3d62",
+          "elapsed_seconds": 267,
+          "significant_strikes_landed": 5,
+          "significant_strikes_absorbed": 11,
+          "significant_strikes_landed_per_minute": 1.1235955056179776,
+          "significant_strikes_absorbed_per_minute": 2.4719101123595504,
+          "source_url": "http://ufcstats.com/fight-details/a3ee907c77544cde",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 267,
+              "significant_strikes_landed": 5,
+              "significant_strikes_absorbed": 11,
+              "significant_strikes_landed_per_minute": 1.1235955056179776,
+              "significant_strikes_absorbed_per_minute": 2.4719101123595504,
+              "source_row_number": 2808
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:c4d060cff018979a",
+          "event_date": "2026-04-11",
+          "event_name": "UFC 327: Prochazka vs. Ulberg",
+          "opponent": "Johnny Walker",
+          "opponent_id": "ufcstats:fighter:c21f26bbde777573",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 34,
+          "significant_strikes_absorbed": 42,
+          "significant_strikes_landed_per_minute": 2.2666666666666666,
+          "significant_strikes_absorbed_per_minute": 2.8,
+          "source_url": "http://ufcstats.com/fight-details/c4d060cff018979a",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 10,
+              "significant_strikes_absorbed": 17,
+              "significant_strikes_landed_per_minute": 2.0,
+              "significant_strikes_absorbed_per_minute": 3.4,
+              "source_row_number": 1509
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 9,
+              "significant_strikes_absorbed": 13,
+              "significant_strikes_landed_per_minute": 1.8,
+              "significant_strikes_absorbed_per_minute": 2.6,
+              "source_row_number": 1510
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 15,
+              "significant_strikes_absorbed": 12,
+              "significant_strikes_landed_per_minute": 3.0,
+              "significant_strikes_absorbed_per_minute": 2.4,
+              "source_row_number": 1511
+            }
+          ]
+        }
+      ]
+    },
+    "Grant Dawson": {
+      "fighter_id": "ufcstats:fighter:99bd51917728c25d",
+      "name": "Grant Dawson",
+      "available_prior_bouts": 15,
+      "selected_bouts": 5,
+      "source_url": "http://ufcstats.com/fighter-details/99bd51917728c25d",
+      "fights": [
+        {
+          "bout_id": "ufcstats:fight:cf306c4714530f31",
+          "event_date": "2024-06-01",
+          "event_name": "UFC 302: Makhachev vs. Poirier",
+          "opponent": "Joe Solecki",
+          "opponent_id": "ufcstats:fighter:af65aa688d13eedf",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 46,
+          "significant_strikes_absorbed": 12,
+          "significant_strikes_landed_per_minute": 3.066666666666667,
+          "significant_strikes_absorbed_per_minute": 0.8,
+          "source_url": "http://ufcstats.com/fight-details/cf306c4714530f31",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 7,
+              "significant_strikes_absorbed": 2,
+              "significant_strikes_landed_per_minute": 1.4,
+              "significant_strikes_absorbed_per_minute": 0.4,
+              "source_row_number": 6231
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 17,
+              "significant_strikes_absorbed": 4,
+              "significant_strikes_landed_per_minute": 3.4,
+              "significant_strikes_absorbed_per_minute": 0.8,
+              "source_row_number": 6232
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 22,
+              "significant_strikes_absorbed": 6,
+              "significant_strikes_landed_per_minute": 4.4,
+              "significant_strikes_absorbed_per_minute": 1.2,
+              "source_row_number": 6233
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:98c29ba02cee5ba3",
+          "event_date": "2024-10-12",
+          "event_name": "UFC Fight Night: Royval vs. Taira",
+          "opponent": "Rafa Garcia",
+          "opponent_id": "ufcstats:fighter:e132d47bd9efbbe0",
+          "elapsed_seconds": 402,
+          "significant_strikes_landed": 44,
+          "significant_strikes_absorbed": 5,
+          "significant_strikes_landed_per_minute": 6.567164179104478,
+          "significant_strikes_absorbed_per_minute": 0.746268656716418,
+          "source_url": "http://ufcstats.com/fight-details/98c29ba02cee5ba3",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 20,
+              "significant_strikes_absorbed": 4,
+              "significant_strikes_landed_per_minute": 4.0,
+              "significant_strikes_absorbed_per_minute": 0.8,
+              "source_row_number": 5227
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 102,
+              "significant_strikes_landed": 24,
+              "significant_strikes_absorbed": 1,
+              "significant_strikes_landed_per_minute": 14.117647058823529,
+              "significant_strikes_absorbed_per_minute": 0.5882352941176471,
+              "source_row_number": 5228
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:aa3fca085d476636",
+          "event_date": "2025-01-18",
+          "event_name": "UFC 311: Makhachev vs. Moicano",
+          "opponent": "Diego Ferreira",
+          "opponent_id": "ufcstats:fighter:f53d4f21d1b5f2dc",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 56,
+          "significant_strikes_absorbed": 41,
+          "significant_strikes_landed_per_minute": 3.7333333333333334,
+          "significant_strikes_absorbed_per_minute": 2.7333333333333334,
+          "source_url": "http://ufcstats.com/fight-details/aa3fca085d476636",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 11,
+              "significant_strikes_landed_per_minute": 4.2,
+              "significant_strikes_absorbed_per_minute": 2.2,
+              "source_row_number": 4593
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 21,
+              "significant_strikes_absorbed": 17,
+              "significant_strikes_landed_per_minute": 4.2,
+              "significant_strikes_absorbed_per_minute": 3.4,
+              "source_row_number": 4594
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 14,
+              "significant_strikes_absorbed": 13,
+              "significant_strikes_landed_per_minute": 2.8,
+              "significant_strikes_absorbed_per_minute": 2.6,
+              "source_row_number": 4595
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:c797b58d85c840a4",
+          "event_date": "2025-12-06",
+          "event_name": "UFC 323: Dvalishvili vs. Yan 2",
+          "opponent": "Manuel Torres",
+          "opponent_id": "ufcstats:fighter:2e7878927067fdca",
+          "elapsed_seconds": 145,
+          "significant_strikes_landed": 8,
+          "significant_strikes_absorbed": 9,
+          "significant_strikes_landed_per_minute": 3.310344827586207,
+          "significant_strikes_absorbed_per_minute": 3.7241379310344827,
+          "source_url": "http://ufcstats.com/fight-details/c797b58d85c840a4",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 145,
+              "significant_strikes_landed": 8,
+              "significant_strikes_absorbed": 9,
+              "significant_strikes_landed_per_minute": 3.310344827586207,
+              "significant_strikes_absorbed_per_minute": 3.7241379310344827,
+              "source_row_number": 2279
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:ffcb47e17eebe6a6",
+          "event_date": "2026-05-09",
+          "event_name": "UFC 328: Chimaev vs. Strickland",
+          "opponent": "Mateusz Rebecki",
+          "opponent_id": "ufcstats:fighter:849c5d9979df5357",
+          "elapsed_seconds": 882,
+          "significant_strikes_landed": 35,
+          "significant_strikes_absorbed": 33,
+          "significant_strikes_landed_per_minute": 2.380952380952381,
+          "significant_strikes_absorbed_per_minute": 2.2448979591836733,
+          "source_url": "http://ufcstats.com/fight-details/ffcb47e17eebe6a6",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 13,
+              "significant_strikes_absorbed": 8,
+              "significant_strikes_landed_per_minute": 2.6,
+              "significant_strikes_absorbed_per_minute": 1.6,
+              "source_row_number": 1273
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 20,
+              "significant_strikes_absorbed": 24,
+              "significant_strikes_landed_per_minute": 4.0,
+              "significant_strikes_absorbed_per_minute": 4.8,
+              "source_row_number": 1274
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 282,
+              "significant_strikes_landed": 2,
+              "significant_strikes_absorbed": 1,
+              "significant_strikes_landed_per_minute": 0.425531914893617,
+              "significant_strikes_absorbed_per_minute": 0.2127659574468085,
+              "source_row_number": 1275
+            }
+          ]
+        }
+      ]
+    },
+    "Nurullo Aliev": {
+      "fighter_id": "ufcstats:fighter:ca28cdf526d6b6e9",
+      "name": "Nurullo Aliev",
+      "available_prior_bouts": 2,
+      "selected_bouts": 2,
+      "source_url": "http://ufcstats.com/fighter-details/ca28cdf526d6b6e9",
+      "fights": [
+        {
+          "bout_id": "ufcstats:fight:02615499125b4b5d",
+          "event_date": "2023-02-25",
+          "event_name": "UFC Fight Night: Muniz vs. Allen",
+          "opponent": "Rafael Alves",
+          "opponent_id": "ufcstats:fighter:029afd138865d20a",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 19,
+          "significant_strikes_absorbed": 6,
+          "significant_strikes_landed_per_minute": 1.2666666666666666,
+          "significant_strikes_absorbed_per_minute": 0.4,
+          "source_url": "http://ufcstats.com/fight-details/02615499125b4b5d",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 0,
+              "significant_strikes_absorbed": 4,
+              "significant_strikes_landed_per_minute": 0.0,
+              "significant_strikes_absorbed_per_minute": 0.8,
+              "source_row_number": 9552
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 6,
+              "significant_strikes_absorbed": 0,
+              "significant_strikes_landed_per_minute": 1.2,
+              "significant_strikes_absorbed_per_minute": 0.0,
+              "source_row_number": 9553
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 13,
+              "significant_strikes_absorbed": 2,
+              "significant_strikes_landed_per_minute": 2.6,
+              "significant_strikes_absorbed_per_minute": 0.4,
+              "source_row_number": 9554
+            }
+          ]
+        },
+        {
+          "bout_id": "ufcstats:fight:192619174bd1ad77",
+          "event_date": "2025-01-11",
+          "event_name": "UFC Fight Night: Dern vs. Ribas 2",
+          "opponent": "Joe Solecki",
+          "opponent_id": "ufcstats:fighter:af65aa688d13eedf",
+          "elapsed_seconds": 900,
+          "significant_strikes_landed": 35,
+          "significant_strikes_absorbed": 28,
+          "significant_strikes_landed_per_minute": 2.3333333333333335,
+          "significant_strikes_absorbed_per_minute": 1.8666666666666667,
+          "source_url": "http://ufcstats.com/fight-details/192619174bd1ad77",
+          "rounds": [
+            {
+              "round_number": 1,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 2,
+              "significant_strikes_absorbed": 2,
+              "significant_strikes_landed_per_minute": 0.4,
+              "significant_strikes_absorbed_per_minute": 0.4,
+              "source_row_number": 4679
+            },
+            {
+              "round_number": 2,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 9,
+              "significant_strikes_absorbed": 5,
+              "significant_strikes_landed_per_minute": 1.8,
+              "significant_strikes_absorbed_per_minute": 1.0,
+              "source_row_number": 4680
+            },
+            {
+              "round_number": 3,
+              "elapsed_seconds": 300,
+              "significant_strikes_landed": 24,
+              "significant_strikes_absorbed": 21,
+              "significant_strikes_landed_per_minute": 4.8,
+              "significant_strikes_absorbed_per_minute": 4.2,
+              "source_row_number": 4681
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "source": {
+    "statistics_database_sha256": "5935d396fde70c9d88ece734e93f1fc637ce1e5a1dfef5467288f06916be009e",
+    "statistics_store_content_sha256": "1337cf7825ac2417bc1362b6abbdbbe199152c8168074d13d887ef7bb1edd81f",
+    "archive_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+    "archive_repository_url": "https://github.com/Greco1899/scrape_ufc_stats",
+    "archive_repository_commit": "3e2f3db5751c14b5d4ea52e41921982ca23b9b23",
+    "captured_at_utc": "2026-10-19T19:49:25Z",
+    "normalization_protocol": "canonical-ufc-statistics-history-v1"
+  }
+}

@@ -13,6 +13,10 @@ RUN python -m pip install --no-cache-dir uv==0.12.9
 COPY pyproject.toml uv.lock README.md ./
 COPY src/ ./src/
 COPY app.py dashboard.css ./
+COPY sports-dashboard.css ./
+COPY assets/ ./assets/
+COPY output/ufc333-20261019-v6-final/ ./output/ufc333-20261019-v6-final/
+COPY output/pdf/UFC-333-V6-Full-Statistics-Report.pdf ./output/pdf/UFC-333-V6-Full-Statistics-Report.pdf
 COPY .streamlit/config.toml ./.streamlit/config.toml
 COPY scripts/dashboard-container-entrypoint.sh ./scripts/dashboard-container-entrypoint.sh
 

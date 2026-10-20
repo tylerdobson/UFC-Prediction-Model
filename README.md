@@ -43,6 +43,10 @@ The offline demo and real archive share the production normalizer. Scheduled ref
 
 ## Screenshots
 
+**UFC prediction dashboard.** The saved V6 research edition with official UFC fighter portraits, earlier-round statistics, selectable matchups and verified report downloads. [Launch the dashboard](#dashboard-and-operating-workflow).
+
+[![UFC Forecast dashboard with real fighter portraits, saved UFC 333 probabilities and comparative statistics](docs/assets/screenshots/ufc-dashboard.png)](docs/assets/screenshots/ufc-dashboard.png)
+
 **Actual MySQL warehouse.** Workbench connected to the project instance, with normalized tables and the archive verification query. The real archive contains 793 cards, 8,950 bouts, 8,818 usable paired-stat bouts and 132 held bouts. [Run the screenshot query](sql/mysql/portfolio_screenshot.sql).
 
 [![MySQL Workbench connected to the UFC warehouse, showing normalized schema tables and real archive coverage results](docs/assets/screenshots/mysql-workbench.png)](docs/assets/screenshots/mysql-workbench.png)
@@ -110,17 +114,29 @@ python scripts/render_prediction_pdf.py \
 
 Refresh source evidence before a later run. The saved card and athlete facts are timestamped snapshots, not live feeds. New reports reject changed evidence, post-cutoff captures, started events, missing core facts and ambiguous identities. A new event needs its own source-listed card and athlete manifests.
 
-## Existing dashboard and operating workflow
-
-Captured from the running Streamlit dashboard with the project's fictional demo database. The upcoming-card view labels the records as demo data and shows the read-only decision requirements.
-
-![UFC Forecast dashboard showing a fictional upcoming card, observed demo quotes, and decision requirements.](docs/images/ufc-demo-dashboard.png)
+## Dashboard and operating workflow
 
 ```sh
-python -m streamlit run app.py --server.address 127.0.0.1
+uv sync --frozen --all-extras
+uv run --frozen --all-extras streamlit run app.py --server.address 127.0.0.1
 ```
 
-The read-only dashboard remains available for saved operating, historical and forward-test evidence. Its older score-event research opt-in retains V3 defaults; the report generator selects the evaluated V6 policy when given `--statistics-db`. Fitting and ingestion run outside page requests. Operating alert and paper gates remain unchanged, and no component places wagers.
+Open `http://127.0.0.1:8501`. The dashboard defaults to the checked-in V6 research report and verifies every release artifact before displaying it. No private database is needed for that saved edition. Select any of the six scored matchups to update the fighter portraits, win probabilities and statistics; inspect all eight identity-held matchups and download the original PDF or CSV. Dates and retrospective evaluation remain explicit, and the edition becomes archived when its event start passes.
+
+The history chart uses [retained earlier-fight observations](assets/data/README.md): 47 fighter-fight records and 136 rounds across the 12 scored fighters, with up to five earlier fights per fighter. Hover a bar for its opponent, date, round and observed duration. The two series describe separate fight histories; they are not live momentum or a shared timeline. The statistics view provides eight reach, striking and grappling comparisons, and archive tiles link to their UFCStats bout sources.
+
+The four-fighter grid, icon rail, light-gray panels, black matchup strip, condensed headings and lime/purple comparisons are adapted from [VALMAX's sports dashboard reference](https://dribbble.com/shots/26961358-Live-Sports-Analytics-Dashboard). Real fighter portraits load directly from official UFC image URLs with [source attribution](assets/fighters/README.md); they need internet access. Licensed fonts, saved data and downloads are local. The six existing tabs remain available, and operating card details appear in a separate expander below the research edition. [Design verification](design-qa.md) records the reference comparison and browser checks.
+
+Use `UFC_MODEL_FORECAST_REPORT` to select another project-local report with a matching sibling release manifest. Missing or changed report evidence is withheld. Operating, historical and forward-test views keep their existing data verification; the older score-event research opt-in retains V3 defaults. Fitting and ingestion run outside page requests. No component places wagers.
+
+<details>
+<summary>Earlier dashboard capture with fictional demo data</summary>
+
+Captured from the earlier Streamlit dashboard with the project's fictional demo database. These records do not establish model quality or a betting edge.
+
+![Earlier UFC Forecast dashboard showing fictional demo records and decision requirements](docs/images/ufc-demo-dashboard.png)
+
+</details>
 
 ## Documentation
 

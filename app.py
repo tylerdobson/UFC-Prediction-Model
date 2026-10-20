@@ -20,6 +20,8 @@ from ufc_odds_model.dashboard_data import (
     load_dashboard, load_ufc332_forward_research, load_model_upgrade_report, load_forward_ledger,
 )
 from ufc_odds_model.integrity import verify_evidence
+from ufc_odds_model.dashboard_forecast import load_saved_forecast
+from ufc_odds_model.dashboard_sports import font_css, render_saved_forecast
 
 
 DB_PATH = Path(os.environ.get("UFC_MODEL_DB", "data/ufc.sqlite"))
@@ -47,6 +49,7 @@ _UFC332_FRESH_FILES = {
 _UFC332_FRESH_STRICT = Path("reports/ufc332-forward-research-20260927T1601Z.json")
 _UFC332_FRESH_FULL = Path("reports/ufc332-forward-research-full-20260927T1601Z.json")
 CSS_PATH = Path(__file__).with_name("dashboard.css")
+SPORTS_CSS_PATH = Path(__file__).with_name("sports-dashboard.css")
 PROJECT_ROOT = Path(__file__).resolve().parent
 UPGRADE_REPORT_PATH = Path(os.environ.get('UFC_MODEL_UPGRADE_REPORT',str(PROJECT_ROOT/'reports/model_lab_phase6.json')))
 UPGRADE_DB_PATH = Path(os.environ.get('UFC_MODEL_UPGRADE_DB',str(PROJECT_ROOT/'data/ufc_research_complete_profiles.sqlite')))
@@ -300,16 +303,16 @@ def _status_meta(snapshot: Mapping[str, Any]) -> tuple[str, str, str]:
     return last_run, _utc(cutoff, short=True), freshness
 
 
-def _header(snapshot: Mapping[str, Any]) -> None:
-    run, cutoff, freshness = _status_meta(snapshot)
+def _header(snapshot: Mapping[str, Any], saved_forecast: Mapping[str, Any]) -> None:
+    report = saved_forecast.get('report') or {}
+    saved = report.get('generated_at_utc')
+    stamp = _utc(saved or snapshot.get('as_of_utc'), short=True)
+    label = 'Saved forecast' if saved else 'Snapshot at load'
     st.markdown(
         "<header class='app-header'><div class='brandline'>"
-        "<span class='brand'>UFC Forecast</span><span class='brand-divider'></span>"
-        "<span class='workspace'>Pre-fight workspace</span></div>"
+        "<span class='brand'>UFC Forecast</span></div>"
         "<div class='header-metrics'>"
-        f"<div class='header-metric'><span>Last source run</span><strong>{_esc(run)}</strong></div>"
-        f"<div class='header-metric'><span>Model cutoff</span><strong>{_esc(cutoff)}</strong></div>"
-        f"<div class='header-metric'><span>Quote check at load</span><strong>{_esc(freshness)}</strong></div>"
+        f"<div class='header-metric'><span>{label}</span><strong>{_esc(stamp)}</strong></div>"
         "</div></header>",
         unsafe_allow_html=True,
     )
@@ -1412,7 +1415,8 @@ def _render_forward_test() -> None:
 
 def main() -> None:
     st.set_page_config(page_title="UFC Forecast · Pre-fight workspace", page_icon="🥊", layout="wide")
-    st.markdown("<style>" + CSS_PATH.read_text(encoding="utf-8") + "</style>", unsafe_allow_html=True)
+    st.markdown("<style>" + font_css(PROJECT_ROOT) + CSS_PATH.read_text(encoding="utf-8")
+                + SPORTS_CSS_PATH.read_text(encoding="utf-8") + "</style>", unsafe_allow_html=True)
     try:
         as_of = datetime.now(timezone.utc)
         snapshot = load_dashboard(
@@ -1424,12 +1428,23 @@ def main() -> None:
         st.error("The dashboard could not read its saved data. Check the local database and report configuration.")
         return
     historical = _historical_snapshot(snapshot, as_of)
-    _header(snapshot)
+    saved_forecast = load_saved_forecast(
+        os.environ.get('UFC_MODEL_FORECAST_REPORT') or None, project_root=PROJECT_ROOT, as_of=as_of,
+    )
+    _header(snapshot, saved_forecast)
     upcoming, history, model, quality, ledgers, forward = st.tabs([
         "Upcoming card", "Historical data", "Model evidence", "Data quality", "Ledgers", "Forward test",
     ])
     with upcoming:
-        _render_upcoming(snapshot)
+        if render_saved_forecast(saved_forecast, PROJECT_ROOT):
+            with st.expander('Operating card and source evidence'):
+                run, cutoff, freshness = _status_meta(snapshot)
+                st.caption(f'Last source run: {run} · Model cutoff: {cutoff} · Quote check at load: {freshness}')
+                _render_upcoming(snapshot)
+        else:
+            if os.environ.get('UFC_MODEL_FORECAST_REPORT'):
+                st.info(saved_forecast['reason'])
+            _render_upcoming(snapshot)
     with history:
         _render_historical_data(historical)
     with model:
