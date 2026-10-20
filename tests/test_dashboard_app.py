@@ -88,7 +88,12 @@ class DashboardAppSmokeTests(unittest.TestCase):
     def test_saved_research_matchup_switches_without_creating_operating_database(self) -> None:
         with tempfile.TemporaryDirectory() as temporary, patch.dict(os.environ, {
             'UFC_MODEL_FORECAST_REPORT': '',
-        }):
+            # AppTest reruns execute app.py again after _run_app's temporary
+            # environment has exited. Keep this fixture selected for both runs.
+            'UFC_MODEL_DB': str(Path(temporary) / 'missing.sqlite'),
+            'UFC_MODEL_EVALUATION_REPORT': str(Path(temporary) / 'missing.json'),
+        }), patch('ufc_odds_model.mysql_runtime.connect_server',
+                  side_effect=AssertionError('Saved file fixture must not read MySQL')) as mysql:
             missing = Path(temporary) / 'missing.sqlite'
             app = self._run_app(missing, Path(temporary) / 'missing.json')
             self.assertEqual(list(app.exception), [])
@@ -104,6 +109,7 @@ class DashboardAppSmokeTests(unittest.TestCase):
             self.assertIn('57.2%', probability)
             self.assertIn('RESEARCH FORECAST', self._all_markup(app))
             self.assertFalse(missing.exists())
+            mysql.assert_not_called()
 
     def test_saved_forward_research_stays_in_model_evidence_with_lookup_caveat(self) -> None:
         report = {

@@ -143,9 +143,17 @@ class CardStatisticsTests(unittest.TestCase):
 
     def test_cli_creates_three_formats_and_preserves_existing_editions(self):
         directory = self.root / "edition"
-        args = ["--stats-db", str(self.store), "--event-id", "0000000000000003", "--out-dir", str(directory)]
-        with patch("sys.stdout", io.StringIO()):
+        history = self.root / "empty-research.sqlite"
+        with sqlite3.connect(history) as connection:
+            connection.execute("CREATE TABLE events(event_id TEXT PRIMARY KEY,name TEXT,event_date TEXT)")
+        args = ["--stats-db", str(self.store), "--history", str(history),
+                "--event-id", "0000000000000003", "--out-dir", str(directory)]
+        with patch("sys.stdout", io.StringIO()), patch(
+            "ufc_odds_model.mysql_runtime.connect_server",
+            side_effect=AssertionError("Fixture CLI must not use the default MySQL history"),
+        ) as mysql:
             self.assertEqual(report.main(args), 0)
+            mysql.assert_not_called()
         self.assertEqual({p.name for p in directory.iterdir()}, {"card-statistics.json", "card-statistics.html", "card-statistics.csv"})
         before = {p.name: p.read_bytes() for p in directory.iterdir()}
         with patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
