@@ -1,20 +1,19 @@
 # MySQL statistics warehouse
 
-The warehouse publishes the verified canonical statistics SQLite store into a
-separate project MySQL database. It supports SQL analysis and a portfolio
+The warehouse publishes verified native canonical MySQL datasets into
+versioned analytical tables and views in the project database. It supports SQL analysis and a portfolio
 demonstration; it does not train models, change frozen research results, approve
 a card, or create betting recommendations. MySQL availability does not improve
 the model's measured accuracy.
 
-The implementation requires MySQL 8.4 or later and the optional project
-`warehouse` dependency extra. The publisher creates only project tables and
+The implementation requires MySQL 8.4 or later and the core PyMySQL
+dependency. The publisher creates only project tables and
 views in the configured database. Database/user provisioning belongs to the
 local instance setup; it never changes the global server or creates users.
 
 ## Run
 
-Install the optional dependency using the project's documented environment
-setup, for example `python -m pip install -e '.[warehouse]'`.
+Install the project using the documented environment setup; MySQL support is a core dependency.
 
 The local instance helper in `scripts/local_mysql.py` provisions a separate
 instance on port 3307. The existing server on port 3306 remains independent.
@@ -38,10 +37,10 @@ to a remote database.
 
 ```bash
 PYTHONPATH=src .venv/bin/python -m ufc_odds_model.mysql_warehouse publish \
-  --statistics-db data/ufc_fight_statistics.sqlite
+  --statistics-db mysql:statistics
 ```
 
-Optional flags are `--source-sha256` (the expected statistics **SQLite file**
+Optional flags are `--source-sha256` (the expected statistics dataset logical/source
 SHA256, checked before connection) and `--run-id` (1–64 letters, digits, dots,
 hyphens or underscores). The default version ID derives from the source SHA256.
 Repeated publication with the same version ID and source is idempotent. Reusing
@@ -87,19 +86,18 @@ The 22 integer statistic columns retain significant/total/position strike
 counts, takedowns, knockdowns, submission attempts, reversals and control
 seconds. Missing fields remain SQL `NULL`; they do not become zero. Rounds
 include the source CSV row number and error flags. Raw source receipts and
-unmatched raw round rows remain in the retained archive/SQLite store; the
+unmatched raw round rows remain in the retained native canonical MySQL dataset; the
 warehouse contains the normalized facts and their provenance, not a second
 copy of every raw source payload.
 
-Before any MySQL connection, the publisher verifies the SQLite content hash,
+Before warehouse publication, the publisher verifies the canonical content hash,
 expected file hash when supplied, source table/field contracts, identities,
 foreign keys, event dates, paired coverage, complete round sequences, exact
 round-to-bout totals, numeric ranges and text widths. If a raw round's control
 exceeds its validated duration, the normalized control stays NULL and its
 `source_errors_json` explicitly records
 `warehouse:control_exceeds_validated_round_duration`. Capture metadata and
-archive/source hashes accompany every publication. The SQLite file hash is
-checked again after materializing the read-only snapshot.
+archive/source hashes accompany every publication. The dataset fingerprint is checked while materializing its read-only snapshot. Explicit legacy file inputs remain available for migration validation.
 
 A database-scoped session lock serializes schema checks and publication across
 processes. The publisher checks the schema version/hash plus actual column

@@ -1,6 +1,6 @@
 # Project MySQL on macOS
 
-This optional setup uses an existing MySQL installation. It runs a separate,
+This default runtime setup uses an existing MySQL installation. It runs a separate,
 project-owned instance bound to **127.0.0.1:3307**, with database `ufc_warehouse`
 and application user `ufc_pipeline`. An existing system instance on port 3306
 keeps its own configuration and data.
@@ -10,11 +10,13 @@ keeps its own configuration and data.
 From the repository root, with MySQL server binaries installed:
 
 ```sh
-uv sync --frozen --extra warehouse
+uv sync --frozen --all-extras
+. .venv/bin/activate
 .venv/bin/python scripts/local_mysql.py setup
 .venv/bin/python scripts/local_mysql.py install-service
 .venv/bin/python scripts/local_mysql.py status
-./scripts/demo.sh --mysql \
+ufc-mysql init
+./scripts/demo.sh \
   --config "$HOME/Library/Application Support/UFCForecast/pipeline-env.json"
 ```
 
@@ -69,11 +71,7 @@ ORDER BY gaps DESC;
 See [the warehouse schema and analytical queries](MYSQL_WAREHOUSE.md) for the
 row grain, version keys, nullable statistics and historical cutoffs.
 
-The demo deliberately changes the active warehouse version to its synthetic
-snapshot. Run the normal refresh afterward to restore the real archive as the
-active version; both complete publications are retained. The active publication
-metadata identifies the source. Use a separate database if you want demo and real
-data active at the same time.
+The native demo writes a separate synthetic namespace and never changes the real archive's statistics alias or active analytical views. Native runtime catalog tables (`ufc_runtime_*`) identify dataset roles and immutable versions; delivery tables (`ufc_app_*`) retain rankings, evaluations and the forecast chain. See [MySQL runtime](MYSQL_RUNTIME.md).
 
 ## Manage the instance
 

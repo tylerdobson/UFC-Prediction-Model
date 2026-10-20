@@ -1,7 +1,7 @@
 # Private hosted dashboard plan
 
 This is a **reviewable scaffold**, not a deployed service. It serves the existing
-read-only Streamlit snapshot at `app.tylerjamesdobson.com` for one GitHub account.
+read-only Streamlit dashboard over native MySQL at `app.tylerjamesdobson.com` for one GitHub account.
 The root domain and `www` keep serving the separate portfolio. The hosted stack
 does not ingest data, refresh odds, generate alerts, or place bets.
 
@@ -66,8 +66,11 @@ and its [GitHub username allowlist](https://oauth2-proxy.github.io/oauth2-proxy/
    and `2c1b9dfd0d0636e8f5c6ed9a910e00cf4062e65b8a1115e5888f122e0252c399`.
    These archives and the copied source data are private and Git-ignored. Do
    **not** copy `.env`, `ODDS_API_KEY`, provider keys, or workstation credentials.
-3. On the host, install Python 3.12 and the project's Python environment, then verify and
-   restore the two bundles to distinct new directories under `data/`. Do not
+3. On the host, install Python 3.12 and the project's Python environment, then configure
+   MySQL 8.4 and native datasets using [MYSQL_RUNTIME.md](MYSQL_RUNTIME.md).
+   Keep the database reachable only through the application's private network.
+   If restoring the older evidence listed above, verify and restore its bundles
+   to distinct new directories under `data/`. Do not
    edit the archived database or the saved reports. The restore records its
    receipt-path changes in `restore_report.json`; the unchanged copied research
    database remains under `data/` for independent forward-report verification.
@@ -88,15 +91,27 @@ and its [GitHub username allowlist](https://oauth2-proxy.github.io/oauth2-proxy/
    database, while the retrospective holdout remains bound to the separate
    research database.
 
-   Set `UFC_DB_FILE=restored-ufc332-pilot/database.sqlite`. Set
-   `UFC_HISTORY_DB_PATH` to the absolute path of the separately restored
-   `data/restored-research-history/database.sqlite`. Set
+   Those SQLite commands are an explicit historical evidence/migration drill;
+   they do not select normal dashboard runtime storage. Import retained source
+   datasets through the verified MySQL migration contract, preserving originals.
+   Set `UFC_MODEL_DB=mysql:operating`,
+   `UFC_MODEL_HISTORY_DB=mysql:research-complete` and
+   `UFC_MODEL_STATISTICS_DB=mysql:statistics`. Set
    `UFC_FORWARD_SOURCE_ROOT` to the **original workstation checkout path**
    embedded in the saved forward reports; the verifier maps those references
    into the copied host checkout, checks every source byte and receipt, and
    rejects missing files, links, or paths outside that root. The restored
-   history DB is read only in the web app and cannot supply operating alerts.
-4. Before publishing, run the combined preflight. It verifies both restored
+   source evidence remains read only and cannot authorize operating alerts.
+4. Before publishing, run the native startup preflight with the external private
+   project MySQL configuration available through `UFC_MYSQL_CONFIG`:
+
+   ```sh
+   uv run --frozen python -m ufc_odds_model.deployment --root "$(pwd -P)" --db mysql:operating
+   ```
+
+   It checks the current operating schema, foreign keys and retained receipt
+   bytes without opening a SQLite runtime database. The earlier combined
+   historical evidence drill below is optional; it verifies both restored
    databases, the research holdout, and every retained source used by the
    copied Sep 27 forward reports. For this snapshot it should report 10
    operating receipts, 2,837 research receipts, 790 completed research events,
@@ -109,8 +124,8 @@ and its [GitHub username allowlist](https://oauth2-proxy.github.io/oauth2-proxy/
    ```
 
    The [container deployment runbook](CONTAINER_DEPLOYMENT.md) explains the
-   single-file and receipt checks. A failed hash, missing receipt, SQLite
-   sidecar, or path mapping mismatch blocks release. These checks do not grant
+   native startup and explicit legacy receipt checks. A failed hash, missing
+   receipt, schema mismatch or path mapping mismatch blocks release. These checks do not grant
    data-source rights or establish a current executable quote.
 5. Copy `deploy/hosted.env.example` to `deploy/hosted.env` on the server and fill
    in its non-secret values. The actual file is Git-ignored. Create
@@ -119,9 +134,13 @@ and its [GitHub username allowlist](https://oauth2-proxy.github.io/oauth2-proxy/
    cryptographically random bytes. Own both files with the non-root deployment
    UID/GID and mode `0600`; `deploy/secrets/` is Git-ignored. OAuth2 Proxy
    supports [file-backed secrets](https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview/).
-   The web stack gets **no** odds or fight-data provider key.
+   Also create an owner-only application MySQL config outside the image and
+   set `UFC_MYSQL_CONFIG_FILE` to its absolute path. Set
+   `UFC_DOCKER_MYSQL_HOST` and `UFC_MYSQL_PORT` to a reachable private database
+   endpoint. Linux bridge networking cannot reach a server bound only to host
+   loopback. The web stack gets **no** odds or fight-data provider key.
 6. From the checkout root, validate and start the overlay only after the secret
-   files and snapshot exist:
+   files, native datasets and retained evidence exist:
 
    ```bash
    docker compose --env-file deploy/hosted.env -f compose.yaml -f deploy/compose.hosted.yaml config -q
@@ -150,7 +169,7 @@ Check from outside the VPS:
 - An account other than the allowlisted GitHub username cannot enter. The
   allowed account can sign out; a cleared session becomes anonymous again.
 - Port 8501 cannot be reached from the internet. The root domain and `www` still
-  open the portfolio. The dashboard shows the selected snapshot and research
+  open the portfolio. The dashboard shows the selected native dataset and research
   labels without turning on alert or promotion eligibility.
 - Restore one daily backup to a separate test Droplet or test directory and run
   the evidence preflight there. DigitalOcean's backup images are

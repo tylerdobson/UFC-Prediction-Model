@@ -179,7 +179,8 @@ def parse_attributes(bindings: list[dict]) -> tuple[dict, list[str]]:
 
 
 def import_profiles(connection, *, raw_dir="data/raw/wikidata_profiles",
-                    report_path="reports/wikidata_profiles_report.json", fetch=None, offline=False):
+                    report_path="reports/wikidata_profiles_report.json", fetch=None, offline=False,
+                    write_report=True):
     db.require_current_schema(connection)
     if Path(report_path).exists():
         raise ValueError("Profile report needs a new filename")
@@ -270,8 +271,40 @@ def import_profiles(connection, *, raw_dir="data/raw/wikidata_profiles",
               "new_attribute_rows": imported, "conflicts": conflicts,
               "unmatched_fighters": sorted(set(fighters) - set(by_fighter)),
               "provisional_fighters_excluded": True}
-    write_new_json(report_path, report)
+    if write_report:
+        write_new_json(report_path, report)
     return report
+
+
+def import_profiles_copy(source,output,*,raw_dir="data/raw/wikidata_profiles",
+                         report_path="reports/wikidata_profiles_report.json",fetch=None,offline=False):
+    """Import into a new native research version; preserve its source dataset.
+
+    Publication follows successful import and integrity checks. No SQLite
+    staging database or active alias is used by this MySQL workflow.
+    """
+    from .mysql_runtime import (clone_dataset,finalize_dataset,inspect_dataset,
+                                is_mysql_target,dataset_name)
+    if not is_mysql_target(source) or not is_mysql_target(output):
+        raise ValueError('Native profile copies require separate MySQL source and output dataset handles')
+    if dataset_name(source)==dataset_name(output):raise ValueError('Profile output database must be separate')
+    if Path(report_path).exists():raise ValueError('Profile report needs a new filename')
+    original=inspect_dataset(source,verify=True)
+    connection=clone_dataset(source,output,role='research',upgrade_operating_schema=True)
+    try:
+        report=import_profiles(connection,raw_dir=raw_dir,report_path=report_path,
+                               fetch=fetch,offline=offline,write_report=False)
+        if inspect_dataset(source,verify=True)['content_sha256']!=original['content_sha256']:
+            raise ValueError('Original research dataset changed during profile import')
+        receipt=finalize_dataset(connection,{'workflow':'wikidata_profile_copy',
+            'parent_content_sha256':original['content_sha256']})
+        report.update({'storage_backend':'mysql','output_dataset':receipt['target'],
+                       'original_content_sha256':original['content_sha256'],
+                       'output_database_sha256':receipt['content_sha256']})
+        write_new_json(report_path,report)
+        return report
+    except BaseException:connection.rollback();raise
+    finally:connection.close()
 
 
 def static_profiles(connection, *, cutoff_at_utc=None, research=False, receipt_cache=None):

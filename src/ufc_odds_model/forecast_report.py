@@ -142,9 +142,15 @@ def build_report(card_path: str | Path, history_path: str | Path,
                             for b in eligible for f in (b['fighter_a'], b['fighter_b']) for key in core_stats):
         raise ValueError('Core official fight statistics are required for every scored fighter')
     # A transient card supplies target rows, never approved operating evidence.
-    with closing(sqlite3.connect(':memory:')) as connection:
-        connection.row_factory = sqlite3.Row
-        db.init_db(connection)
+    from .mysql_runtime import is_mysql_target, scratch_operating
+    if is_mysql_target(history_path):
+        card_store = scratch_operating()
+    else:
+        card_store = closing(sqlite3.connect(':memory:'))
+    with card_store as connection:
+        if getattr(connection, 'dialect', None) != 'mysql':
+            connection.row_factory = sqlite3.Row
+            db.init_db(connection)
         db.upsert_event(connection, event['event_id'], event['name'], event['event_date'],
                         'scheduled', source='research_report_card',
                         start_time_utc=event['event_start_utc'])
@@ -342,14 +348,14 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project-root', type=Path, default=Path.cwd())
     parser.add_argument('--card', required=True, type=Path)
-    parser.add_argument('--history', type=Path, default=Path('data/ufc_research_complete_profiles.sqlite'))
+    parser.add_argument('--history', default='mysql:research-complete')
     parser.add_argument('--selection', type=Path)
     parser.add_argument('--evaluation', type=Path)
     parser.add_argument('--stats-archive', type=Path,
                         default=Path('data/raw/ufcstats-archive-20261019/manifest.json'))
     parser.add_argument('--athlete-facts', type=Path,
                         help='Optional verified current official facts for this card; historical statistics are automatic')
-    parser.add_argument('--statistics-db', type=Path,
+    parser.add_argument('--statistics-db', default='mysql:statistics',
                         help='Use the evaluated all-card statistics model from this store')
     parser.add_argument('--require-complete-statistics', action='store_true',
                         help='Reject a card if a scored fighter lacks reach or earlier strike counts')

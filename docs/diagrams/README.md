@@ -1,48 +1,17 @@
-# Statistics pipeline architecture
+# MySQL architecture diagram
 
-`statistics-pipeline.mmd` is the editable Mermaid source. The SVG is a scalable,
-accessible export with native SVG text (`htmlLabels: false`); the PNG is the
-README-friendly raster export. The diagram describes the local batch pipeline,
-not a continuously available hosted service.
+The editable Mermaid source produces the SVG and README PNG. Solid arrows carry data; dashed arrows show control, migration, or a separate invocation. MySQL is the runtime database for operating records, canonical statistics, research, rankings, evaluations and the forecast ledger. Raw captures and report exports remain files.
 
-Solid arrows carry observations or published artifacts. Dashed arrows indicate
-refresh control or a separately invoked consumer. The synthetic offline demo is
-an alternative input and does not carry the real archive's counts. The research
-consumer is not retrained automatically by the operations refresh.
+New statistics versions are normalized directly in MySQL. After quality checks, the statistics alias and its publication receipt commit in one transaction. Warehouse analytical-view publication has its own validated InnoDB transaction; replay reconciles an interrupted refresh between these publication steps. Dashboard reads pin each opened immutable dataset. Schema DDL occurs before publication transactions.
 
-`*` The dataset gate's default is 90% of prior card, bout and usable-paired-bout
-counts, when a prior ready version exists. Nonempty checks always apply. An
-explicitly reviewed `--min-retained-fraction` can change that threshold. Paired
-round and nullable-field checks happen before this dataset gate. This gate
-belongs to the scheduled refresh workflow. The offline demo instead checks its
-own declared fixture expectations; the separate card-report and model commands
-read the verified SQLite store directly.
+Synthetic demo datasets have a separate role and namespace. The demo cannot activate the real statistics alias or warehouse view. Legacy SQLite files are retained migration inputs and explicit regression fixtures; normal operation does not stage through them or fall back to them.
 
-MySQL schema initialization precedes its data transaction; schema DDL is not
-part of the atomic load. The load, destination validation and active-pointer
-switch share one InnoDB transaction. SQLite's local ready pointer activates
-after optional MySQL publication; the two stores are not a distributed
-transaction. Failed local activation is reconciled by replaying the same
-warehouse version. See [the publication contract](../MYSQL_WAREHOUSE.md) and
-[operations recovery](../PIPELINE_OPERATIONS.md).
+Model evaluation is a separate job. Current rankings are descriptive and do not become historical training features. Local scheduling depends on the Mac being awake and logged in. See the [runtime contract](../MYSQL_RUNTIME.md).
 
-The local schedule is configured for 09:00. A manual launchd kickstart verified
-execution; it does not demonstrate a future scheduled run or operation while
-the Mac is off. Failure notifications depend on macOS notification settings.
-
-## Render
-
-From the repository root, with Node.js 22.13+ and an installed Chrome browser:
+To render, from the project root:
 
 ```sh
 sh scripts/render_architecture.sh
 ```
 
-The script pins `@mermaid-js/mermaid-cli@12.0.0`, keeps the npm cache outside the
-repository and disables Puppeteer's browser download. The initial package fetch
-needs network access. It never modifies project runtime dependencies. Override
-`PUPPETEER_EXECUTABLE_PATH` on another machine. The committed config selects the
-existing macOS Chrome executable by default.
-
-Mermaid references: [CLI](https://github.com/mermaid-js/mermaid-cli) and
-[flowchart syntax](https://mermaid.js.org/syntax/flowchart.html).
+The script pins Mermaid CLI 12.0.0 and uses local Chrome. Override `PUPPETEER_EXECUTABLE_PATH` when needed. The initial npm fetch needs network access.

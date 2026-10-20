@@ -1,5 +1,7 @@
 # Web application plan
 
+> Historical plan. The delivered architecture now uses MySQL by default and has seven dashboard sections. Use [MySQL runtime](MYSQL_RUNTIME.md), [dashboard runbook](DASHBOARD_RUNBOOK.md), and the current README for operation. SQLite references below describe the earlier implementation.
+
 ## Intended final deliverable
 
 The finished project should be a reproducible data and modeling pipeline **and** a small web dashboard. The Python package and SQLite database remain the source of truth. The web app reads verified predictions and source timestamps; it does not calculate a fresh model inside a page request or place wagers.

@@ -1,0 +1,87 @@
+{
+  "backend": "mysql",
+  "operating_dataset": "operating",
+  "status": "ready",
+  "sqlite_fallback": false,
+  "migrated_sources": {
+    "research-complete": {
+      "target": "mysql:research-complete-d0019aaf2d73",
+      "source_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+      "content_sha256": "252cfb135d9c19b1d646ea1e8190fc6f2835a01a81230badcea5b277f8b97a62",
+      "counts": {
+        "bets": 0,
+        "bouts": 8905,
+        "card_bout_snapshots": 0,
+        "card_event_snapshots": 0,
+        "events": 790,
+        "fight_stat_observations": 0,
+        "fighter_external_ids": 5423,
+        "fighter_profile_observations": 0,
+        "fighter_static_attributes": 5993,
+        "fighters": 2810,
+        "ingestion_runs": 2847,
+        "odds_quote_receipts": 0,
+        "odds_quotes": 0,
+        "operator_job_runs": 12,
+        "paper_bets": 0,
+        "predictions": 0,
+        "prefight_gate_checks": 0,
+        "results": 8905,
+        "schema_migrations": 14,
+        "wikidata_profile_queries": 9,
+        "wikipedia_source_receipts": 2533
+      }
+    },
+    "statistics-v6": {
+      "target": "mysql:statistics-v6-5935d396fde7",
+      "source_sha256": "5935d396fde70c9d88ece734e93f1fc637ce1e5a1dfef5467288f06916be009e",
+      "content_sha256": "9fd24620cc853a05fddf48937d5f04f4d923f433cf183423907c90f72f31c56c",
+      "counts": {
+        "bouts": 8950,
+        "events": 793,
+        "fighter_bout_facts": 17636,
+        "fighters": 4629,
+        "gaps": 396,
+        "metadata": 14,
+        "research_bout_links": 5398,
+        "research_event_links": 753,
+        "research_fighter_links": 1667,
+        "research_holds": 3507,
+        "round_facts": 41514,
+        "source_files": 4,
+        "source_round_rows": 42162
+      }
+    },
+    "intake-ufc332": {
+      "target": "mysql:intake-ufc332-e3bb4226c6ae",
+      "source_sha256": "e3bb4226c6ae56deaad8ec457407ffaef3a12a48b8c2086471b6a2410d09f789",
+      "content_sha256": "81e2c97111d9b935675d25adee94460e6cc1065d5da88a31a43ff4f6a2c85291",
+      "counts": {
+        "bets": 0,
+        "bouts": 8,
+        "card_bout_snapshots": 8,
+        "card_event_snapshots": 1,
+        "events": 1,
+        "fight_stat_observations": 0,
+        "fighter_external_ids": 0,
+        "fighter_profile_observations": 0,
+        "fighters": 16,
+        "ingestion_runs": 2,
+        "odds_quote_receipts": 20,
+        "odds_quotes": 20,
+        "operator_job_runs": 0,
+        "paper_bets": 0,
+        "predictions": 0,
+        "prefight_gate_checks": 0,
+        "results": 0,
+        "schema_migrations": 13,
+        "wikipedia_source_receipts": 0
+      }
+    }
+  },
+  "forecast_ledger_entries": 3,
+  "fighter_contexts": 12,
+  "report_sha256": "f9bf0377707e7ff3b7b55ddae3f169077e383df5ae693d5078026095ad3f3887",
+  "original_sources_preserved": true,
+  "migrated_at_utc": "2026-10-20T03:02:31.026753+00:00"
+}

@@ -7,7 +7,7 @@ if [ "$(id -u)" -eq 0 ]; then
 fi
 
 python -m ufc_odds_model.deployment \
-  --root "$UFC_DEPLOY_ROOT" --db "$UFC_MODEL_DB" --quiet
+  --root "$UFC_DEPLOY_ROOT" --db "${UFC_MODEL_DB:-mysql:operating}" --quiet
 
 exec python -m streamlit run /app/app.py \
   --server.address 0.0.0.0 --server.port 8501 --server.headless true

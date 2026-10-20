@@ -8,7 +8,7 @@ version = "0.2.0"
 description = "UFC data ingestion, point-in-time probability evaluation, and paper trading"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = ["pymysql[rsa]==1.2.3"]
 
 [project.optional-dependencies]
 dashboard = ["streamlit==1.64.0"]
@@ -24,6 +24,7 @@ ufc-statistics = "ufc_odds_model.statistics_workflow:main"
 ufc-pipeline = "ufc_odds_model.pipeline_ops:main"
 ufc-pipeline-demo = "ufc_odds_model.portfolio_demo:main"
 ufc-warehouse = "ufc_odds_model.mysql_warehouse:main"
+ufc-mysql = "ufc_odds_model.mysql_project:main"
 
 [tool.setuptools.packages.find]
 where = ["src", "."]

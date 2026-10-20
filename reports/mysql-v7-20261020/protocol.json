@@ -1,0 +1,157 @@
+{
+  "automatic_model_promotion": false,
+  "candidate_count": 2,
+  "comparison_rule": "pretest_loss_lower_and_fixed_loss_lower_and_fixed_accuracy_not_lower_and_context_coverage_sufficient",
+  "created_at_utc": "2026-10-20T03:02:50Z",
+  "database_sha256": "d0019aaf2d7358d4601660ef61da0a5171f337ec881a07813afb69a03262616f",
+  "definitions": {
+    "baseline": "unchanged_V6_balanced_recent5",
+    "candidates": [
+      {
+        "candidate_id": "measured_style_recent5",
+        "metric_count": 5
+      },
+      {
+        "candidate_id": "style_finish_opponents_recent5",
+        "metric_count": 11
+      }
+    ],
+    "combat_methods": [
+      "decision",
+      "decision_majority",
+      "decision_split",
+      "decision_unanimous",
+      "ko_tko",
+      "submission"
+    ],
+    "finish_denominator": "eligible_binary_bouts_with_classified_combat_method",
+    "held_rows_used": false,
+    "metrics": [
+      {
+        "difference_divisor": 0.25,
+        "label": "Clinch share of significant-strike attempts",
+        "metric": "clinch_attempt_share",
+        "neutral_prior": 0.1,
+        "observedness_difference": true
+      },
+      {
+        "difference_divisor": 0.25,
+        "label": "Ground share of significant-strike attempts",
+        "metric": "ground_attempt_share",
+        "neutral_prior": 0.15,
+        "observedness_difference": true
+      },
+      {
+        "difference_divisor": 0.25,
+        "label": "Body share of significant-strike attempts",
+        "metric": "body_attempt_share",
+        "neutral_prior": 0.2,
+        "observedness_difference": true
+      },
+      {
+        "difference_divisor": 0.25,
+        "label": "Leg share of significant-strike attempts",
+        "metric": "leg_attempt_share",
+        "neutral_prior": 0.15,
+        "observedness_difference": true
+      },
+      {
+        "difference_divisor": 5.0,
+        "label": "Takedown attempts per 15 minutes",
+        "metric": "takedown_attempts_per_15",
+        "neutral_prior": 2.5,
+        "observedness_difference": true
+      },
+      {
+        "difference_divisor": 0.25,
+        "label": "KO/TKO win share of classified combat bouts",
+        "metric": "ko_win_share",
+        "neutral_prior": 0.15,
+        "observedness_difference": true
+      },
+      {
+        "difference_divisor": 0.25,
+        "label": "KO/TKO loss share of classified combat bouts",
+        "metric": "ko_loss_share",
+        "neutral_prior": 0.15,
+        "observedness_difference": true
+      },
+      {
+        "difference_divisor": 0.25,
+        "label": "Submission win share of classified combat bouts",
+        "metric": "submission_win_share",
+        "neutral_prior": 0.1,
+        "observedness_difference": true
+      },
+      {
+        "difference_divisor": 0.25,
+        "label": "Submission loss share of classified combat bouts",
+        "metric": "submission_loss_share",
+        "neutral_prior": 0.1,
+        "observedness_difference": true
+      },
+      {
+        "difference_divisor": 400.0,
+        "label": "Earlier opponents pre-bout archive Elo",
+        "metric": "opponent_pre_bout_elo",
+        "neutral_prior": 1500.0,
+        "observedness_difference": true
+      },
+      {
+        "difference_divisor": 0.25,
+        "label": "Earlier opponents pre-bout archive win rate",
+        "metric": "opponent_pre_bout_win_rate",
+        "neutral_prior": 0.5,
+        "observedness_difference": true
+      }
+    ],
+    "missingness_rule": "fixed_neutral_shrinkage_and_separate_antisymmetric_observedness_difference",
+    "near_target_days_excluded": 2,
+    "opponent_elo_k": 64.0,
+    "opponent_strength_rule": "usable_archive_results_strictly_before_prior_fight_whole_date",
+    "pseudo_attempts": 50.0,
+    "pseudo_finish_bouts": 4.0,
+    "pseudo_minutes": 30.0,
+    "pseudo_opponents": 2.0,
+    "recent_eligible_bouts": 5,
+    "whole_boundary_date_ties": true
+  },
+  "evaluation_rule": "only_the_single_frozen_candidate_on_reused_historical_benchmark",
+  "fixed_test_is_reused_benchmark": true,
+  "fresh_holdout": false,
+  "implementation_sha256": {
+    "fight_context": "6379010aa3d8deabc6bf36c310560ac8ce1eadc4581e269c5e8fabc2d65a4c96",
+    "logistic": "330541f3fc8f9b0a99aedc1b495c578f4de48f6bb1b124d2b84f523664966f4d",
+    "research_stats": "05bd59bcc15128daf2b6861f93ee9a37d0165eae9c83208e1a7c9efd68579cff",
+    "research_training": "b5d479f03005964c4ead493bc87dababb8bb20ae48f5d13bf484395b2fb721e9",
+    "research_upgrade": "afaa775a1c455c9ac2786edb0587413a5fc7177a27d1517b51fc7bce3ed3cd36",
+    "research_v6": "fc12a9f5754b9a077f8b33169bd8565fc6b5ed823dc9345fb5350b89b6b2e23b",
+    "v7": "1dad817d285be3c3f489ce53c9a10dae6b3913f5fcafdc8583a0c1a6d5ee7c55"
+  },
+  "minimum_complete_bouts": 100,
+  "minimum_complete_share": 0.25,
+  "promotion_eligible": false,
+  "protocol_manifest_sha256": "aa08c7bf4b2906abc2be04322281c22e06596fccd01a7ba71f9a5bc7035440af",
+  "protocol_version": "research-v7-two-context-families-v1",
+  "research_only": true,
+  "schema_version": 1,
+  "selected_policy": {
+    "earliest_year": 2010,
+    "l2": 0.002,
+    "lookback_years": 8
+  },
+  "selection_labels_through": "2023-12-02",
+  "selection_rule": "minimum_pretest_rolling_log_loss_then_declared_candidate_order",
+  "selection_years": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "source_manifest_sha256": "877fcd554b39957e42ba2bb4ee4f5a12a67a604bf880c8e9c08ca695315d4980",
+  "statistics_sha256": "5935d396fde70c9d88ece734e93f1fc637ce1e5a1dfef5467288f06916be009e"
+}

@@ -22,6 +22,10 @@ from .prediction_report import validate_report
 
 
 def _sha(path):
+    from .mysql_runtime import is_mysql_target
+    if is_mysql_target(path):
+        from .model_lab import file_sha256
+        return file_sha256(path)
     with Path(path).open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
@@ -198,7 +202,7 @@ def _unique_object(pairs):
     return result
 
 
-def load_dashboard_history(path, *, report_sha256, cutoff_at_utc):
+def load_dashboard_history(path=None, *, report_sha256, cutoff_at_utc, document=None):
     """Load bound public chart data, failing closed without leaking local paths."""
     unavailable = {"status": "unavailable", "fighters": {}, "limitations": [],
                    "reason": "Saved earlier-fight history could not be verified for this forecast."}
@@ -206,11 +210,16 @@ def load_dashboard_history(path, *, report_sha256, cutoff_at_utc):
         if not isinstance(report_sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", report_sha256):
             raise ValueError("Invalid report fingerprint")
         cutoff = _time(cutoff_at_utc)
-        path = Path(path)
-        if path.is_symlink() or not path.is_file() or path.stat().st_size > 5_000_000:
-            raise ValueError("History artifact missing or unbounded")
-        with path.open("rb") as stream:
-            content = stream.read(5_000_001)
+        if document is not None:
+            if path is not None:
+                raise ValueError("Choose one history source")
+            content = json.dumps(document, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
+        else:
+            path = Path(path)
+            if path.is_symlink() or not path.is_file() or path.stat().st_size > 5_000_000:
+                raise ValueError("History artifact missing or unbounded")
+            with path.open("rb") as stream:
+                content = stream.read(5_000_001)
         if len(content) > 5_000_000:
             raise ValueError("History artifact unbounded")
         raw = json.loads(content, object_pairs_hook=_unique_object)

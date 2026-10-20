@@ -145,7 +145,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--raw-dir", default="data/raw/wikipedia/date_review")
     parser.add_argument("--review-out", default="reports/wikipedia_date_reconciliation.json")
     args = parser.parse_args(argv)
-    if Path(args.db).resolve() == db.DEFAULT_DB.resolve():
+    from .mysql_runtime import is_mysql_target, dataset_name
+    if ((is_mysql_target(args.db) and dataset_name(args.db) == 'operating')
+            or (not is_mysql_target(args.db) and Path(args.db).resolve() == Path('data/ufc.sqlite').resolve())):
         parser.error("Use an explicit separate --db path for Wikipedia research history")
     with closing(db.connect(args.db)) as connection:
         db.require_current_schema(connection)

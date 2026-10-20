@@ -1,30 +1,55 @@
-# Scheduled statistics refresh
+# Scheduled native MySQL refresh
 
-The operations pipeline captures an immutable upstream archive, normalizes it into a new SQLite statistics store, checks its quality, optionally publishes a transactional MySQL snapshot, and activates a local ready pointer. Every attempt retains a JSON run receipt with stage timing, source/build hashes, coverage, outcome, and alert status. It does not retrain a prediction model or change the original research databases.
+The normal pipeline captures an immutable upstream archive, normalizes CSVs
+directly into a new MySQL statistics version, checks coverage, refreshes official
+rankings and publishes committed evidence. It creates no SQLite staging store
+and does not retrain a model. Every attempt retains a sanitized JSON run receipt
+with source hashes, stage timing, coverage, outcome and alert status.
 
-## Run a refresh
+## Run or replay
 
-Run commands from the project directory using its existing virtual environment:
+From the repository root:
 
 ```sh
+.venv/bin/ufc-pipeline refresh
+.venv/bin/ufc-pipeline status
+# Equivalent module entry point:
 .venv/bin/python -m ufc_odds_model.pipeline_ops refresh
-.venv/bin/python -m ufc_odds_model.pipeline_ops status
 ```
 
-The first command resolves the current upstream Git commit, downloads files using that exact commit, and verifies source hashes. To retain a specific source version, pass `--commit FULL_40_CHARACTER_GIT_SHA`. To rebuild a previously captured archive without network access:
+The refresh resolves the current upstream Git commit and downloads files pinned
+to that commit. `--commit FULL_40_CHARACTER_GIT_SHA` selects an explicit immutable
+source version. A retained archive can be replayed without external source
+network calls by disabling the otherwise-default rankings refresh:
 
 ```sh
-.venv/bin/python -m ufc_odds_model.pipeline_ops refresh \
-  --archive data/raw/ufcstats-archive-20261019/manifest.json
+.venv/bin/ufc-pipeline refresh \
+  --archive data/raw/ufcstats-archive-20261019/manifest.json \
+  --no-refresh-rankings
 ```
 
-Canonical UFCStats identities work without a research database. An optional read-only research crosswalk can be supplied with `--history data/ufc_research_complete_profiles.sqlite`. It provides exact research identity links while retaining explicit ambiguous joins and coverage gaps. Neither source path is modified.
+This replay still requires the configured MySQL server. Without
+`--no-refresh-rankings`, an archive replay also fetches the current official
+rankings. A clean installation needs no private research database: the default
+build uses canonical archive identities without a research crosswalk. The local
+installed configuration supplies `mysql:research-complete`. Use `--history
+mysql:research-complete` to select that read-only input explicitly, or
+`--no-history` to override a configured crosswalk. Its exact source identity
+contributes to the build fingerprint. Native refresh rejects SQLite history
+paths; import retained legacy evidence first. Ambiguous research joins remain
+explicit gaps.
 
-The default operations directory is `data/raw/case-study-ops`, separate from original databases and model artifacts. Use `--ops-root PATH` to change it. It is already covered by the repository's ignored `data/raw/` directory.
+The verified native refresh `20261020T030415Z-f1bcb649f5` completed in 28.1 seconds
+with 793 cards, 8,950 canonical bouts and 41,514 fighter-round fact rows. These are
+that run's observed counts, not a promise that every field or research join is
+complete. Inspect the current publication and coverage for later runs.
 
-## Runtime configuration and MySQL
+## Runtime configuration
 
-Configuration is read at runtime from `~/Library/Application Support/UFCForecast/pipeline-env.json` when present, or from an explicit `--config PATH`. It must be a regular file owned by the current user with no group or other permissions; use `chmod 600 PATH`. JSON is parsed as data and is never sourced as a shell script.
+The default private configuration is
+`~/Library/Application Support/UFCForecast/pipeline-env.json`; `--config PATH`
+selects another file. It is parsed as JSON, never sourced as shell code, and must
+be a current-user-owned regular file with no group/other permissions (`0600`).
 
 ```json
 {
@@ -37,79 +62,132 @@ Configuration is read at runtime from `~/Library/Application Support/UFCForecast
   },
   "options": {
     "mysql": true,
+    "history": "mysql:research-complete",
+    "refresh_rankings": true,
     "min_retained_fraction": 0.9
   }
 }
 ```
 
-A flat object containing only the supported environment variables is also accepted. Supported options are `ops_root`, `archive`, `history`, `commit`, `repository`, `mysql`, `local_alert`, `webhook_alert`, and `min_retained_fraction`. Explicit CLI values override options. Keep private configuration outside the repository.
+Supported options include `ops_root`, `archive`, `history`, `commit`, `repository`,
+`mysql`, `refresh_rankings`, `local_alert`, `webhook_alert` and
+`min_retained_fraction`. Explicit CLI values override configured options. A flat
+object of supported environment variables is accepted by the pipeline's config
+reader; the wrapped form above also works across native runtime commands. Keep
+credentials outside the repository and never embed them in a plist.
+
+MySQL is the normal CLI default. `--mysql` can make that choice explicit.
+`--no-mysql` selects the retained legacy fixture/replay implementation; a failed
+MySQL connection never enters that branch.
+
+## Quality and publication boundaries
+
+Before publication, a dataset must contain a card, fighter, bout and usable
+paired statistics bout. When a prior publication exists, card/bout/usable-paired
+counts must retain at least 90% of the previous values by default. The `quality`
+stage records observed/prior counts, thresholds and each result. Individual held
+bouts and optional missing fields stay documented rather than becoming zeros.
+
+For an intentional smaller nonempty source, review the quality report and choose
+an explicit finite `--min-retained-fraction` from 0 to 1. Zero relaxes the shrink
+threshold, not the nonempty requirement:
 
 ```sh
-.venv/bin/python -m ufc_odds_model.pipeline_ops refresh --mysql \
-  --config "$HOME/Library/Application Support/UFCForecast/pipeline-env.json"
+.venv/bin/ufc-pipeline refresh --archive PATH/manifest.json \
+  --no-refresh-rankings --min-retained-fraction 0
 ```
 
-MySQL publication calls `mysql_warehouse.publish_statistics` with a stable version key derived from the built database hash. Retrying the same data reuses that warehouse version rather than creating a complete duplicate snapshot for every operations run. The warehouse publisher validates and commits its active snapshot in one transaction. Credentials and raw exception messages are excluded from operations receipts and scheduler output.
+The native version name derives from source commit/manifest, research input and
+builder hashes. Repeated inputs reverify sources and the existing immutable
+MySQL content rather than create another full version. Warehouse publication
+uses a stable content-derived key as well.
 
-## Quality gates and failure behavior
+The statistics alias and its `pipeline/statistics` delivery document commit in
+one transaction after verification. Warehouse analytical views publish in a
+separate transaction; rankings publish separately too. A failure before alias
+activation retains the previous statistics alias. A later failure can leave a
+complete new warehouse or ranking publication while the archive alias is older;
+replay reconciles these stages. A lost commit acknowledgement has an uncertain
+outcome, so inspect status and replay the same inputs rather than assuming a
+rollback. This is not a distributed transaction across database and file logs.
 
-Before MySQL publication or local activation, a dataset must have at least one card, fighter, bout, and usable paired statistics bout. When a prior ready snapshot exists, the next dataset must retain at least 90% of its card, bout, and usable paired-bout counts. This catches empty or substantially truncated captures even when their CSV headers and hashes are valid. Every gate logs observed counts, prior counts, thresholds, and pass/fail results in the `quality` stage.
+Native refresh failures return `1`, configuration failures `2`, and concurrent
+lock conflicts `3`. An OS-held advisory lock permits one refresh per operations
+directory and releases after process exit. The legacy branch uses its historical
+lock-conflict code `75`. Receipts expose error categories, not raw credentials or
+arbitrary connection exception strings. A failed quality build is retained for
+inspection without alias activation.
 
-Individual quarantined bouts remain documented source gaps. Missing optional statistics do not make an otherwise valid archive fail the dataset gate. To deliberately replace a larger dataset with a smaller nonempty one, choose an explicit threshold after reviewing the quality receipt:
-
-```sh
-.venv/bin/python -m ufc_odds_model.pipeline_ops refresh \
-  --archive PATH/manifest.json --min-retained-fraction 0
-```
-
-The threshold accepts a finite number from 0 to 1; setting it to zero never permits an empty dataset. It can also be configured using `options.min_retained_fraction`.
-
-A failed run returns nonzero and preserves the last verified local ready pointer. Exit codes are `1` for refresh failures, `2` for configuration failures, and `75` when another refresh already owns this operations directory. An OS-held advisory lock permits one writer per operations directory and is released after a process exits, including after a crash.
-
-MySQL publication occurs before local activation. A failure before the warehouse transaction commits retains the previous committed warehouse snapshot. If the connection loses the commit acknowledgment, the outcome is uncertain: MySQL may already contain the complete new version. Replaying the same stable version resolves that uncertainty without duplicate rows. The local pointer remains at its prior verified version on a failed run. If the warehouse succeeds but local receipt storage or activation fails, a retry reconciles the same warehouse version with the local pointer; this is not a distributed transaction. A built version that fails the dataset gate remains available for inspection and is not activated.
-
-## Receipts and immutable versions
+## Retained files and MySQL records
 
 ```text
 data/raw/case-study-ops/
-  sources/                         pinned upstream or retained offline receipts
-  versions/COMMIT/INPUT_HASH/
-    statistics.sqlite
+  sources/                         pinned upstream/offline source receipts
+  rankings/                        actual official HTML and capture receipts
+  native-exports/INPUT_HASH/
     coverage.json
     coverage.csv
-    ready.json                     hashes, provenance, counts, logical digest
-  runs/RUN_ID/run.json              stage timing, checks, outcome, alert status
-  latest-ready.json                relocatable pointer to verified version
-  .refresh.lock                    persistent file; lock ownership is OS-held
+  runs/RUN_ID/run.json              timings, hashes, checks, outcome, alerts
+  .refresh.lock                    OS-held ownership; file can remain idle
   scheduler.stdout.log
   scheduler.stderr.log
 ```
 
-The version identity includes the source manifest hash, immutable source commit, optional research database hash, and builder implementation hash. A repeated source/build combination rechecks all retained source hashes, version artifact hashes, and the SQLite logical digest before reuse. Each attempt still creates a distinct run receipt. The `status` command verifies the pointed-to artifacts rather than only checking that a pointer file exists.
+Normalized rows and ready identities live in MySQL runtime datasets/catalogs.
+`mysql:statistics` resolves the current approved version. The active delivery
+document retains coverage, inputs, quality results and warehouse receipt. Native
+`status` verifies MySQL content and reads this publication; it does not rely on a
+local `latest-ready.json`. Older `versions/.../statistics.sqlite` and local ready
+pointers belong to the explicit legacy implementation.
 
-## Daily schedule and local failure notifications
+Use the [backup](BACKUP_RUNBOOK.md) and [evidence bundle](EVIDENCE_BUNDLE.md)
+procedures for recovery. Current rankings remain descriptive current context,
+separate from historical model inputs and separate from source stated update
+labels.
 
-The LaunchAgent runs at **09:00 local time**, without running immediately on installation. It uses the project's `.venv/bin/python` and project working directory. The installer manages only `com.ufcforecast.statistics-refresh` in the current user's `~/Library/LaunchAgents`; it does not manage MySQL or other services.
+## Daily schedule and failure notifications
+
+The existing project LaunchAgent runs at **09:00 local time**, using the
+repository's `.venv/bin/python` and working directory. Installation does not run
+an immediate refresh. The installer manages only
+`com.ufcforecast.statistics-refresh` in the current user's LaunchAgents:
 
 ```sh
+.venv/bin/python scripts/install_refresh_schedule.py status
 .venv/bin/python scripts/install_refresh_schedule.py install --mysql \
-  --config "$HOME/Library/Application Support/UFCForecast/pipeline-env.json" --dry-run
+  --config "$HOME/Library/Application Support/UFCForecast/pipeline-env.json" \
+  --dry-run
 .venv/bin/python scripts/install_refresh_schedule.py install --mysql \
   --config "$HOME/Library/Application Support/UFCForecast/pipeline-env.json"
-.venv/bin/python scripts/install_refresh_schedule.py status
 .venv/bin/python scripts/install_refresh_schedule.py uninstall
 ```
 
-The installer automatically uses the default private configuration when it exists and enables MySQL when that configuration requests it or supplies MySQL environment values. `--mysql` or `--no-mysql` overrides that choice. The plist contains the configuration path, interpreter, arguments, and log paths; it contains no credentials. The configuration file is reread on every scheduled run. `--hour` and `--minute` allow a different local schedule.
+The plist contains paths and arguments, never passwords. Configuration is reread
+at each run. `--hour`/`--minute` change the local schedule. The separate project
+MySQL service is managed by [local_mysql.py](LOCAL_MYSQL.md); this scheduler does
+not manage another service or change system MySQL settings.
 
-Failed refreshes request a local Mac notification containing only the run ID, failed stage, and preservation status. The receipt records whether the notification command succeeded; the displayed banner also depends on macOS notification settings. `--no-local-alert` disables local notifications for a manual run. Successful runs do not send notifications.
+Failed refreshes request a local Mac notification with the run ID. Read the run
+receipt's stage array for the failed stage and use `ufc-pipeline status` to verify
+the active MySQL publication. The receipt records notification-command success;
+macOS settings determine whether a banner appears. `--no-local-alert` disables
+it for a manual run. Successful runs send no notification. The Mac must be
+running and the user logged in; sleep/connectivity can delay work.
 
-Scheduled refreshes explicitly disable webhooks. Optional manual webhook alerts require both `--webhook-alert` and `UFC_PIPELINE_ALERT_WEBHOOK` containing an HTTPS URL. They use a five-second timeout and send only a generic failure payload. There is no webhook call unless explicitly enabled. The implemented and selected alert destination for this project is local Mac notifications.
+Scheduled runs disable webhooks. Optional manual HTTPS webhook alerts require
+both `--webhook-alert` and `UFC_PIPELINE_ALERT_WEBHOOK`; they use a five-second
+timeout and a generic failure payload. The selected destination is local Mac
+notifications, with no outbound webhook configured by default.
 
-## Verify without network or service changes
+## Verification
 
 ```sh
-.venv/bin/python -B -m unittest tests.test_pipeline_ops -v
+.venv/bin/python -B -m unittest tests.test_pipeline_ops tests.test_mysql_runtime \
+  tests.test_mysql_delivery -v
 ```
 
-The tests build synthetic retained archives in temporary directories and exercise repeat refreshes, stable publication keys, a separate-process lock conflict, tampered artifacts, empty and truncated feeds, publication failures, post-activation receipt rollback, private configuration, and LaunchAgent install/rollback using an injected command runner. They do not install a real schedule, send a real notification, contact a webhook, or require MySQL.
+Pure tests exercise fixtures, failure gates and secret-safe behavior without
+installing a schedule or sending notifications. Native tests are opt-in with
+`UFC_MYSQL_INTEGRATION=1` against an initialized test instance; they exercise real
+publication, rollback and concurrent ledger writers. Review fixtures and target
+configuration before enabling database-writing tests.

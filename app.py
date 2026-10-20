@@ -24,7 +24,7 @@ from ufc_odds_model.dashboard_forecast import load_saved_forecast
 from ufc_odds_model.dashboard_sports import font_css, render_saved_forecast
 
 
-DB_PATH = Path(os.environ.get("UFC_MODEL_DB", "data/ufc.sqlite"))
+DB_PATH = Path(os.environ.get("UFC_MODEL_DB", "mysql:operating"))
 EVALUATION_PATH = Path(
     os.environ.get("UFC_MODEL_EVALUATION_REPORT", "reports/evaluation.json")
 )
@@ -1413,10 +1413,93 @@ def _render_forward_test() -> None:
     st.caption('No UFC 332 closing proxy was captured. CLV needs a later verified pre-start snapshot; early saved odds cannot establish it. Ledger settlement never approves operating results or places a wager.')
 
 
+@st.cache_data(ttl=60, show_spinner=False)
+def _mysql_snapshot():
+    from ufc_odds_model.dashboard_mysql import load_mysql_overview
+    from ufc_odds_model.dashboard_forecast import load_mysql_saved_forecast
+    from ufc_odds_model.mysql_delivery import load_document
+    now = datetime.now(timezone.utc)
+    overview = load_mysql_overview(as_of=now)
+    saved = load_mysql_saved_forecast(project_root=PROJECT_ROOT, as_of=now)
+    try:
+        history = load_document('fight-history', 'current', as_of=now)
+    except Exception:
+        history = None
+    return overview, saved, history
+
+
+def _render_fighter_context(overview, saved):
+    context = overview.get('model_evidence', {}).get('fight_context') or {}
+    report = saved.get('report') or {}
+    if (not report or context.get('report_sha256') != saved.get('artifacts', {}).get('json', {}).get('sha256')
+            or context.get('cutoff_at_utc') != report['forecast']['cutoff_at_utc']):
+        st.info('Past-fight context has not been verified for this forecast edition.')
+        return
+    by_id = {bout['bout_id']: bout for bout in report['bouts']}
+    selected = st.session_state.get('sports_matchup', next(iter(by_id)))
+    bout = by_id.get(selected, next(iter(by_id.values())))
+    st.caption('Latest five source bouts before the forecast embargo. Held rows stay visible and are excluded from aggregates. '
+               'These descriptive measurements accompany the frozen V6 forecast; V7 tests them separately in Model evidence.')
+    for side in ('fighter_a', 'fighter_b'):
+        name = bout[side]
+        fighter = context.get('fighters', {}).get(name) or {}
+        st.subheader(name)
+        rows = []
+        for fight in fighter.get('prior_fights', []):
+            strength = fight.get('opponent_pre_bout_strength') or {}
+            record = strength.get('prior_record') or {}
+            rows.append({'Date': fight['event_date'], 'Opponent': fight['opponent'],
+                         'Result': fight['result'], 'Method': fight.get('method'), 'Detail': fight.get('detail'),
+                         'Round': fight.get('end_round'), 'Time': fight.get('end_time'),
+                         'Opponent prior archive Elo': strength.get('archive_elo'),
+                         'Opponent prior archive record': (f"{record.get('wins', 0)}–{record.get('losses', 0)}–{record.get('draws', 0)}" if record else None),
+                         'Feature eligible': fight['eligible_for_features'], 'Hold': fight.get('coverage_reason'),
+                         'Source': fight['source_url']})
+        st.dataframe(rows, hide_index=True, width='stretch',
+                     column_config={'Source': st.column_config.LinkColumn('Source')})
+        measures = [{'Measurement': key.replace('_', ' ').capitalize(), 'Value': value.get('value'),
+                     'Observed bouts': value.get('bouts'), 'Numerator': value.get('numerator'),
+                     'Denominator': value.get('denominator'), 'Denominator unit': value.get('denominator_unit')}
+                    for key, value in fighter.get('measured_style', {}).items()]
+        st.dataframe(measures, hide_index=True, width='stretch')
+        st.caption('Opponent strength uses usable earlier archive results, with same-date results withheld. '
+                   'Missing measurements remain unavailable; measured style is not a biographical label.')
+
+
+def _main_mysql():
+    from ufc_odds_model import dashboard_mysql as sections
+    overview, saved, history_document = _mysql_snapshot()
+    _header(overview, saved)
+    if overview['status'] == 'unavailable':
+        st.error('MySQL is unavailable. Start the configured project server and initialize or restore its datasets.')
+    tabs = st.tabs(['Upcoming card', 'Historical data', 'Model evidence', 'Data quality',
+                    'Ledgers', 'Forward test', 'Rankings'])
+    with tabs[0]:
+        if render_saved_forecast(saved, PROJECT_ROOT, history_document=history_document, native=True):
+            with st.expander('Past opponents, results and measured fighter style'):
+                _render_fighter_context(overview, saved)
+        else:
+            st.info('A verified forecast edition has not been published to MySQL.')
+    for tab, renderer in zip(tabs[1:], (sections.render_historical_archive, sections.render_model_evidence,
+                                      sections.render_data_quality, sections.render_ledgers,
+                                      sections.render_forward_test, sections.render_rankings)):
+        with tab:
+            renderer(overview, st=st)
+    health = overview.get('health', {})
+    st.markdown("<footer class='app-footer'><span>MySQL · Read-only · "
+                f"Snapshot {_esc(_utc(overview.get('as_of_utc')))}</span>"
+                f"<span>{_esc(health.get('server_version', 'Connection unavailable'))} · UFC Forecast</span></footer>",
+                unsafe_allow_html=True)
+
+
 def main() -> None:
     st.set_page_config(page_title="UFC Forecast · Pre-fight workspace", page_icon="🥊", layout="wide")
     st.markdown("<style>" + font_css(PROJECT_ROOT) + CSS_PATH.read_text(encoding="utf-8")
                 + SPORTS_CSS_PATH.read_text(encoding="utf-8") + "</style>", unsafe_allow_html=True)
+    from ufc_odds_model.mysql_runtime import is_mysql_target
+    if is_mysql_target(DB_PATH):
+        _main_mysql()
+        return
     try:
         as_of = datetime.now(timezone.utc)
         snapshot = load_dashboard(

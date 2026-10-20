@@ -29,7 +29,7 @@ from . import historical_stats, statistics_workflow
 
 DEFAULT_OPS_ROOT = Path("data/raw/case-study-ops")
 DEFAULT_CONFIG = Path.home() / "Library/Application Support/UFCForecast/pipeline-env.json"
-CONFIG_OPTIONS = {"ops_root", "archive", "history", "commit", "repository", "mysql", "local_alert", "webhook_alert", "min_retained_fraction"}
+CONFIG_OPTIONS = {"ops_root", "archive", "history", "commit", "repository", "mysql", "local_alert", "webhook_alert", "min_retained_fraction", "refresh_rankings"}
 PROTOCOL = "ufc-statistics-operations-v1"
 
 
@@ -104,7 +104,7 @@ def read_config(path=None):
                 or not isinstance(value, str) or "\x00" in value):
             raise ValueError("Unsupported configuration environment")
     for key, value in options.items():
-        if key in {"mysql", "local_alert", "webhook_alert"}:
+        if key in {"mysql", "local_alert", "webhook_alert", "refresh_rankings"}:
             if type(value) is not bool:
                 raise ValueError("Configuration flags must be boolean")
         elif key == "min_retained_fraction":
@@ -345,7 +345,9 @@ def _mysql_receipt(result):
 def send_failure_alerts(run, *, local=True, webhook=False):
     """Send no credentials, exception messages, source URLs, or config contents."""
     result = {"local": "disabled", "webhook": "disabled"}
-    message = f"Run {run['run_id']} failed during {run.get('failed_stage', 'configuration')}. Last ready local snapshot preserved."
+    preservation = ('Inspect the MySQL publication receipt; replay reconciles interrupted publication.'
+                    if run.get('database_backend') == 'mysql' else 'Last ready local snapshot preserved.')
+    message = f"Run {run['run_id']} failed during {run.get('failed_stage', 'configuration')}. {preservation}"
     if local:
         if sys.platform == "darwin":
             script = 'on run argv\ndisplay notification (item 1 of argv) with title (item 2 of argv)\nend run'
@@ -475,12 +477,16 @@ def main(argv=None):
     commands = parser.add_subparsers(dest="command", required=True)
     refresh = commands.add_parser("refresh", help="Capture, normalize, verify and publish a data version")
     refresh.add_argument("--ops-root", type=Path)
-    refresh.add_argument("--archive", type=Path, help="Offline retained archive manifest; no network access")
+    refresh.add_argument("--archive", type=Path, help="Retained archive manifest; use --no-refresh-rankings for offline replay")
     refresh.add_argument("--commit", help="Optional full immutable upstream Git SHA")
     refresh.add_argument("--repository")
-    refresh.add_argument("--history", type=Path, help="Optional read-only research ID crosswalk")
+    history_args = refresh.add_mutually_exclusive_group()
+    history_args.add_argument("--history", type=Path, help="Optional read-only MySQL research ID crosswalk")
+    history_args.add_argument('--no-history', action='store_true', help='Build canonical identities without a research crosswalk')
     refresh.add_argument("--config", type=Path, help="Owner-private runtime JSON; default external config is auto-detected")
     refresh.add_argument("--mysql", action=argparse.BooleanOptionalAction, default=None)
+    refresh.add_argument('--refresh-rankings', action=argparse.BooleanOptionalAction, default=None,
+                         help='Refresh official rankings too (default true); disable for offline archive replay')
     refresh.add_argument("--local-alert", action=argparse.BooleanOptionalAction, default=None)
     refresh.add_argument("--webhook-alert", action=argparse.BooleanOptionalAction, default=None,
                          help="Explicit opt-in; URL comes only from UFC_PIPELINE_ALERT_WEBHOOK")
@@ -491,8 +497,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.command == "status":
         try:
-            snapshot = _ready_snapshot(args.ops_root.expanduser().resolve())
-            print(json.dumps({"ready": snapshot is not None, "snapshot": snapshot["pointer"] if snapshot else None}, indent=2))
+            from .mysql_pipeline import status as mysql_status
+            print(json.dumps(mysql_status(), indent=2))
             return 0
         except Exception as exc:
             print(json.dumps({"ready": False, "status": "verification_failed", "error_type": type(exc).__name__}))
@@ -504,7 +510,16 @@ def main(argv=None):
             value = getattr(args, key)
             if value is not None:
                 options[key] = value
-        result = refresh_pipeline(**options)
+        if args.no_history:
+            options['history'] = None
+        if options.pop('mysql', True):
+            from .mysql_pipeline import refresh_pipeline as refresh_mysql
+            result = refresh_mysql(**options)
+        else:
+            # Explicit legacy mode is retained only for offline fixture/replay
+            # compatibility. MySQL failure never enters this branch.
+            options.pop('refresh_rankings', None)
+            result = refresh_pipeline(**options)
     except Exception as exc:
         try:
             result = _configuration_failure(args.ops_root or DEFAULT_OPS_ROOT, exc)

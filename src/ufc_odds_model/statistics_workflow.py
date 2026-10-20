@@ -124,7 +124,7 @@ def _refresh_main(argv) -> int:
 def _inspect_main(command, argv) -> int:
     from .historical_stats import HistoryStore
     parser = argparse.ArgumentParser(description='Inspect the retained all-card statistics store.')
-    parser.add_argument('--stats-db', required=True, type=Path)
+    parser.add_argument('--stats-db', default='mysql:statistics')
     if command in {'events', 'fighters'}:
         parser.add_argument('--query', default='', help='Filter event name or ID')
         if command == 'events':
@@ -184,6 +184,14 @@ def _dispatch(argv=None) -> int:
     if command == 'card':
         from .card_statistics import main as card_main
         return card_main(remaining) or 0
+    # Keep hash-pinned research implementations intact while choosing MySQL
+    # defaults at the command boundary.
+    if '--db' not in remaining:
+        remaining += ['--db', 'mysql:research-complete']
+    if '--statistics-db' not in remaining:
+        remaining += ['--statistics-db', 'mysql:statistics']
+    if '--archive' not in remaining:
+        remaining += ['--archive', 'data/raw/ufcstats-archive-20261019/manifest.json']
     from .research_v6 import main as model_main
     return model_main([command, *remaining]) or 0
 

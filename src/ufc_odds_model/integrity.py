@@ -28,13 +28,17 @@ from .retained_paths import retained_path
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
-def database_file_state(database: Path) -> dict[str, int | None]:
+def database_file_state(database: str | Path) -> dict:
     """Capture both SQLite's main file and its write-ahead log.
 
     A WAL transaction can change the logical database while leaving the main
     file's modification time untouched until the next checkpoint.
     """
-    database = database.resolve()
+    from .mysql_runtime import is_mysql_target
+    if is_mysql_target(database):
+        from .mysql_backup import dataset_state
+        return dataset_state(database)
+    database = Path(database).resolve()
     main = database.stat()
     wal_path = Path(str(database) + "-wal")
     try:
@@ -84,6 +88,10 @@ def verify_evidence(
     """
     if isinstance(max_issues, bool) or not isinstance(max_issues, int) or max_issues < 1:
         raise ValueError("max_issues must be a positive integer")
+    from .mysql_runtime import is_mysql_target
+    if is_mysql_target(database_path):
+        from .mysql_backup import verify_evidence as verify_mysql_evidence
+        return verify_mysql_evidence(database_path, project_root=project_root, max_issues=max_issues)
     database = Path(database_path).expanduser().resolve()
     root = Path(project_root).expanduser().resolve() if project_root else Path.cwd().resolve()
     report: dict = {
@@ -199,7 +207,7 @@ def verify_evidence(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Verify SQLite and retained UFC source payloads")
+    parser = argparse.ArgumentParser(description="Verify native MySQL or explicit legacy SQLite and retained source payloads")
     parser.add_argument("--db", default=str(DEFAULT_DB))
     parser.add_argument("--project-root", default=".")
     parser.add_argument("--output", help="Write a timestamped JSON result for later inspection")

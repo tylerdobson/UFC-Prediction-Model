@@ -301,15 +301,17 @@ def _record(report: dict) -> str:
             f"<p>{_esc(caveat)}</p></div>")
 
 
-def _render_forecast_body(snapshot: dict, root: Path) -> bool:
+def _render_forecast_body(snapshot: dict, root: Path, *, history_document=None, native=False) -> bool:
     """Render the release as a distinct research edition, never operating data."""
     if snapshot.get('status') != 'available':
         return False
     report = snapshot['report']
     portraits = _portraits(root)
-    history = load_dashboard_history(root / 'assets/data/dashboard-fight-history.json',
-                                     report_sha256=snapshot['artifacts']['json']['sha256'],
-                                     cutoff_at_utc=report['forecast']['cutoff_at_utc'])
+    history = load_dashboard_history(
+        None if native else root / 'assets/data/dashboard-fight-history.json',
+        document=history_document if native else None,
+        report_sha256=snapshot['artifacts']['json']['sha256'],
+        cutoff_at_utc=report['forecast']['cutoff_at_utc'])
     _match_strip(report, portraits, snapshot['event_status'])
     left, right = st.columns([.32, .68], gap='small')
     by_id = {bout['bout_id']: bout for bout in report['bouts']}
@@ -377,10 +379,10 @@ def _render_forecast_body(snapshot: dict, root: Path) -> bool:
     return True
 
 
-def render_saved_forecast(snapshot: dict, root: Path) -> bool:
+def render_saved_forecast(snapshot: dict, root: Path, *, history_document=None, native=False) -> bool:
     if snapshot.get('status') != 'available':
         return False
     with st.container(key='sports-shell'):
         st.markdown(_rail(root), unsafe_allow_html=True)
-        _render_forecast_body(snapshot, root)
+        _render_forecast_body(snapshot, root, history_document=history_document, native=native)
     return True

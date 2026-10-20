@@ -31,3 +31,6 @@ data/local-mysql/
 output/pipeline-demo*/
 output/pipeline-verification*/
 *.local.json
+
+# Local native forecast parity artifacts; published V6 release remains unchanged.
+output/ufc333-mysql-verification-*/

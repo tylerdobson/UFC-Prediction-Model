@@ -32,6 +32,15 @@ PROTOCOL_VERSION = "research-fixed-dates-v1"
 @contextmanager
 def read_only(path: str | Path):
     """Read even a frozen old-schema research DB without running migrations."""
+    from .mysql_runtime import connect_dataset, is_mysql_target
+    if is_mysql_target(path):
+        connection = connect_dataset(path, readonly=True)
+        try:
+            yield connection
+        finally:
+            connection.rollback()
+            connection.close()
+        return
     path = Path(path).expanduser().resolve()
     if not path.is_file():
         raise ValueError(f"Database does not exist: {path}")
@@ -46,6 +55,14 @@ def read_only(path: str | Path):
 
 
 def file_sha256(path: str | Path) -> str:
+    from .mysql_runtime import inspect_dataset, is_mysql_target
+    if is_mysql_target(path):
+        receipt = inspect_dataset(path, verify=True)
+        # A verified import retains its original-byte identity so old frozen
+        # selections remain reproducible. New native datasets use their own
+        # logical fingerprint; no SQLite file is read by either runtime path.
+        return ((receipt.get('source_sha256') if receipt.get('immutable') else None)
+                or receipt['content_sha256'])
     digest = hashlib.sha256()
     with Path(path).open("rb") as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):

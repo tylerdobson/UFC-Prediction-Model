@@ -1,14 +1,16 @@
-"""Read-only startup check for the private dashboard container.
+"""Read-only native MySQL startup check with explicit legacy snapshot support.
 
-The container mounts ``data/`` at its *host* absolute path so saved source
-receipts continue to point at the same files. A single-file SQLite snapshot is
-required: a live database with WAL sidecars is not a stable deployment input.
+Normal containers require a current operating MySQL dataset and retained
+receipt bytes under mounted data/. Explicit SQLite paths are legacy migration
+or evidence inputs and retain their standalone snapshot checks.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import re
 import sqlite3
 from contextlib import closing
 from pathlib import Path
@@ -37,14 +39,61 @@ def _within(path: Path, directory: Path) -> bool:
         return False
 
 
-def check_dashboard_deployment(root_path: str | Path, database_path: str | Path) -> dict:
+def _mysql_deployment(root: Path, target: str) -> dict:
+    from .mysql_runtime import RuntimeDatabaseError, connect_dataset, inspect_dataset
+    connection = None
+    try:
+        receipt = inspect_dataset(target, verify=True)
+        if receipt.get('role') != 'operating' or receipt.get('immutable'):
+            raise DeploymentError('Dashboard startup requires an operating MySQL dataset, not synthetic or historical statistics')
+        connection = connect_dataset(target, readonly=True)
+        try:
+            pending = pending_migrations(connection)
+        except ValueError as exc:
+            raise DeploymentError('MySQL migration history is incompatible with this image') from exc
+        if pending:
+            raise DeploymentError('MySQL schema is older than this image; migrate it explicitly before serving')
+        if connection.execute('PRAGMA foreign_key_check').fetchall():
+            raise DeploymentError('MySQL dataset has broken foreign-key references')
+        verified = 0
+        for row in connection.execute('SELECT payload_path,sha256 FROM ingestion_runs'):
+            recorded = Path(str(row['payload_path'])).expanduser()
+            payload = recorded if recorded.is_absolute() else root / recorded
+            if not payload.exists() and not payload.is_symlink() and payload.is_absolute():
+                parts = payload.parts
+                offsets = [i for i in range(len(parts) - 1) if parts[i:i + 2] == ('data', 'raw')]
+                if offsets:
+                    payload = root.joinpath(*parts[offsets[-1]:])
+            if payload.is_symlink() or not _within(payload, root / 'data'):
+                raise DeploymentError('A MySQL source receipt points outside deployment data/')
+            digest = row['sha256']
+            if not payload.is_file() or not isinstance(digest, str) or not re.fullmatch(r'[0-9a-f]{64}', digest):
+                raise DeploymentError('A retained MySQL source payload or SHA256 receipt is missing')
+            with payload.open('rb') as stream:
+                actual = hashlib.file_digest(stream, 'sha256').hexdigest()
+            if actual != digest:
+                raise DeploymentError('Retained MySQL source payload hash does not match its immutable receipt')
+            verified += 1
+        return {'status': 'ready', 'storage_backend': 'mysql', 'database_path': target,
+                'resolved_dataset': receipt['dataset'], 'receipt_count': verified, 'verified_receipts': verified,
+                'source_rights_checked': False, 'model_evaluation_checked': False, 'sqlite_fallback_used': False}
+    except RuntimeDatabaseError as exc:
+        raise DeploymentError('Native MySQL startup check failed; verify the project connection and dataset. SQLite fallback is disabled.') from exc
+    except OSError as exc:
+        raise DeploymentError('Could not read a retained source payload') from exc
+    finally:
+        if connection is not None:
+            connection.rollback()
+            connection.close()
+
+
+def check_dashboard_deployment(root_path: str | Path, database_path: str | Path = 'mysql:operating') -> dict:
     """Verify mount layout, standalone SQLite, and all retained payloads.
 
     This verifies source *bytes*, not source rights, result accuracy, model
     quality, or the freshness of any quote or evaluation report.
     """
     root = _absolute_path(root_path, "Deployment root")
-    database = _absolute_path(database_path, "Dashboard database")
     if root.is_symlink() or not root.is_dir():
         raise DeploymentError("Deployment root must be an existing directory, not a symlink")
     data = root / "data"
@@ -53,6 +102,10 @@ def check_dashboard_deployment(root_path: str | Path, database_path: str | Path)
         raise DeploymentError("Deployment data directory is missing or is a symlink")
     if reports.is_symlink() or not reports.is_dir():
         raise DeploymentError("Deployment reports directory is missing or is a symlink")
+    from .mysql_runtime import is_mysql_target
+    if is_mysql_target(database_path):
+        return _mysql_deployment(root, str(database_path))
+    database = _absolute_path(database_path, "Dashboard database")
     if database.is_symlink() or not database.is_file() or not _within(database, data):
         raise DeploymentError("Dashboard database must be a regular file under deployment data/")
     for suffix in ("-wal", "-shm", "-journal"):
@@ -97,9 +150,9 @@ def check_dashboard_deployment(root_path: str | Path, database_path: str | Path)
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Check a private, read-only dashboard snapshot")
+    parser = argparse.ArgumentParser(description="Check native MySQL and retained dashboard evidence read-only")
     parser.add_argument("--root", required=True, help="Absolute repository/deployment directory")
-    parser.add_argument("--db", required=True, help="Absolute standalone SQLite snapshot under root/data")
+    parser.add_argument("--db", default='mysql:operating', help="Native MySQL operating handle; explicit legacy SQLite snapshot paths are accepted")
     parser.add_argument("--quiet", action="store_true")
     arguments = parser.parse_args(argv)
     try:

@@ -1,5 +1,5 @@
 #!/bin/sh
-# The default demo is offline and does not load .env or private source data.
+# Normal demo uses isolated native MySQL. Source fixtures need no external fetch.
 set -eu
 
 PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
@@ -13,5 +13,12 @@ export PYTHONPATH="$PROJECT_DIR/src${PYTHONPATH:+:$PYTHONPATH}"
 export PYTHONDONTWRITEBYTECODE=1
 export UV_CACHE_DIR="${UV_CACHE_DIR:-${TMPDIR:-/tmp}/ufc-forecast-demo-uv-cache}"
 
-exec uv run --offline --no-project --no-python-downloads --no-env-file --python '>=3.11' \
+for argument in "$@"; do
+  if [ "$argument" = '--legacy-sqlite-fixture' ]; then
+    exec uv run --offline --no-project --no-python-downloads --no-env-file --python '>=3.11' \
+      python -B -m ufc_odds_model.portfolio_demo "$@"
+  fi
+done
+
+exec uv run --frozen --no-python-downloads --no-env-file \
   python -B -m ufc_odds_model.portfolio_demo "$@"

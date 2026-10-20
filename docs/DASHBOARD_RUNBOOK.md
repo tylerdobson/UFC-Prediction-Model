@@ -1,83 +1,27 @@
-# Read-only dashboard runbook
+# Read-only MySQL dashboard
 
-The first web release is a **local, private Streamlit dashboard**. It reads already saved SQLite rows and optional evaluation and source-integrity reports. The Historical data view verifies the retained research-source payload hashes before showing source-row coverage. Opening a page does not fetch an API, fit a model, run an alert, settle a ledger, or place a wager.
-
-## Install and start
-
-From the repository root, with Python 3.11 or newer:
-
-```bash
-python -m venv .venv
-. .venv/bin/activate
-python -m pip install -e '.[dashboard]'
-python -m streamlit run app.py --server.address 127.0.0.1
-```
-
-Open the local URL Streamlit prints (normally `http://127.0.0.1:8501`). The UI defaults to `data/ufc.sqlite` and `reports/evaluation.json`. A missing database or report is shown as unavailable. It does not create the database. To initialize an empty database for a clean installation, use `ufc-model --db data/ufc.sqlite init-db` before launching; see the README for the full event workflow.
-
-Optional server-side paths can be set before launch:
-
-```bash
-export UFC_MODEL_DB=/absolute/path/to/ufc.sqlite
-export UFC_MODEL_EVALUATION_REPORT=/absolute/path/to/evaluation.json
-export UFC_MODEL_RESEARCH_REPORT=/absolute/path/to/ufc_research_1993_2026_holdout.json
-export UFC_MODEL_INTEGRITY_REPORT=/absolute/path/to/integrity.json
-python -m streamlit run app.py --server.address 127.0.0.1
-```
-
-These paths are read on the server only. Keep the SQLite database, saved reports, raw provider payloads, and API credentials outside Git. The app has no fields for credentials and should stay bound to localhost until authentication and a reviewed hosting plan exist.
-
-## What each view means
-
-- **Upcoming card:** displays stored UFC bouts, fighter IDs, latest stored predictions, observed quotes, quote age, and the adapter's availability reason. The source and model evidence panel shows the six optional dated inputs for each logistic prediction. A saved alert check is historical evidence; the dashboard compares its roster snapshot with the latest stored matchup and labels a changed roster. This does not prove that the market is still executable. Use the CLI pre-fight gate at the decision time.
-- **Historical data:** displays the completed Wikipedia research database's imported events, bouts, fighters, results, annual totals, recent cards, and distinct source-page receipts. It labels this history research-only. For each completed card, the dashboard finds its exact page or embedded-section receipt, checks its payload hash and imported-bout count, and displays parsed source rows, held identity rows, and annual accepted shares only when every card reconciles. Conflicting or unreadable receipts suppress those coverage figures. The [dataset card](RESEARCH_DATASET_CARD.md) explains the four reconciled event dates and the limits of this accepted subset.
-- **Model evidence:** displays a saved operating chronological evaluation from `reports/evaluation.json` when present, plus optional dated-input coverage for upcoming predictions. A separate **retrospective research holdout** panel reads `reports/ufc_research_1993_2026_holdout.json` when present. It appears only when the report's schema and accepted-result fingerprint match the selected database and every completed research card has a verified source receipt. A changed result, missing payload, or mismatched identity hold suppresses its scores. The panel labels its Elo and calibrated logistic metrics research-only; they cannot promote a model or support an alert or ROI claim. Missing, invalid, insufficient-history, and stale operating reports remain labelled. The dashboard does not fit models on page load.
-- **UFC 332 forward research:** the Model Evidence tab selects the September 27 scenario when both reports, card, selected CSV, and odds manifest are present; otherwise it tries the earlier September 26 `sealed-v2` reports. It verifies forecast and checked-input digests, card and odds bytes, 23 exact-cutoff result proofs, and full-history receipts before showing eight selected matchups and four saved two-sided bookmaker observations. The newer scenario also independently checks the page, fighter lookup, and odds fetch receipts and their time order. These are exploratory comparisons only. The saved week-ahead prices are stale for October 3, and identities still require human review. This panel creates no alerts or paper decisions. On a fresh clone without the ignored local evidence, it shows unavailable. For a recovered scenario, set `UFC_MODEL_UFC332_STRICT_REPORT`, `UFC_MODEL_UFC332_CAPTURED_REPORT`, `UFC_MODEL_UFC332_CARD_MANIFEST`, `UFC_MODEL_UFC332_CARD_CSV`, and `UFC_MODEL_UFC332_ODDS_MANIFEST` to its matching local files.
-- **Data quality:** displays ingestion receipts, the ten most recent operator jobs including failed or still-started jobs, current database audit issues, price coverage, and the last saved source-integrity check. Job rows contain only an error category, never a provider response. Run `python -m ufc_odds_model.integrity --db data/ufc.sqlite --output reports/integrity.json` before an event; the dashboard labels an absent, expired, failed, different-database, or database-changed check. The checker records both the main SQLite file and any nonempty write-ahead log so later WAL-only writes make its result stale. A saved receipt alone does not prove the payload remains intact.
-- **Ledgers:** displays capped simulated paper decisions and separately recorded actual wagers. Paper rows say whether a roster snapshot was recorded at the gate; older rows without one are labelled legacy/unverified. The dashboard cannot write either ledger. Binary results may settle automatically in the CLI; nonbinary and unresolved cases need review.
-
-The checked-in demo data is fictional. If it is the only source in the selected database, the UI labels it prominently. An empty or stale view should be treated as an expected protective state, not an application error.
-The page is a snapshot, not a live market feed. Refresh it to see later stored records and read the footer's snapshot time. Always rerun the CLI alert gate before acting; even a prior accepted check can expire or be superseded while a browser tab sits idle.
-
-## Local smoke check
-
-After installation, run the app and verify all six tabs. With an empty database, each view should show unavailable or no-entry states. With `data/demo.sqlite`, the dashboard must label demo data, and it must not show an executable wager. Set `UFC_MODEL_HISTORY_DB=data/ufc_research_2011_2025.sqlite` alongside the operating `UFC_MODEL_DB` to inspect the real research history; only Historical data and the retrospective holdout use that separate, receipt-verified database. In a second terminal, the Streamlit health endpoint should return `ok`:
-
-```bash
-curl -fsS http://127.0.0.1:8501/_stcore/health
-```
-
-For the offline core pipeline tests run `python -m unittest discover -s tests -v`. The dashboard dependency is optional so core CLI tests and CI do not need to install Streamlit.
-
-## Model upgrade views
-
-The Model evidence tab now leads with the complete-card v3 comparison,
-2016–2026 rolling log loss against v2/Elo/coin, date-block confidence intervals
-and the favorite-oriented reliability table. Its report must match the exact
-complete-profile database and frozen selection hashes. Earlier operating and
-research evidence remains in an expander; it does not promote the new model.
-
-The Upcoming card compares the model with fresh, verified two-sided market
-probabilities, marks gaps above the recorded limit (default 0.10), and shows
-the top three saved `weight × value × calibration scale` contributions in
-logit units. Positive contributions favor fighter A. Each fighter’s optional
-inputs and prior UFC history are shown when saved. Invalid or absent
-explanations stay unavailable; page loads never compute a fitted model.
-
-The sixth tab, Forward test, verifies the forecast hash chain and retained
-forecast/completed-capture files. It displays per-event and cumulative model
-metrics, plus model/market on the same priced subset. UFC 332 is recovered v2
-research, not a v3 forward validation. Ledgers also shows source-verified CLV
-for paper/actual entries when a later pre-start snapshot exists.
-
-Optional server paths (defaults are relative to the app’s repository root):
+Install `.[dashboard,reports]`, configure MySQL, run `ufc-mysql init`, and publish or restore the retained datasets as described in [MySQL runtime](MYSQL_RUNTIME.md). Then run:
 
 ```sh
-export UFC_MODEL_UPGRADE_REPORT=/absolute/path/to/model_lab_phase6.json
-export UFC_MODEL_UPGRADE_DB=/absolute/path/to/ufc_research_complete_profiles.sqlite
-export UFC_MODEL_UPGRADE_SELECTION=/absolute/path/to/model_lab_phase3_selection.json
-export UFC_MODEL_FORECAST_LEDGER=/absolute/path/to/forecast_ledger.jsonl
+streamlit run app.py --server.address 127.0.0.1
 ```
 
-Verify all six tabs after launch. The source databases remain read-only and
-no output, schema migration, source request or ledger append happens on load.
+The default database is `mysql:operating`. Reads use MySQL sessions; loading a page never initializes tables, trains a model, captures a source, records a bet or updates a ledger. A short read cache bounds repeated archive scans. A failed database read shows unavailable rather than selecting a local report or SQLite source.
+
+| Section | Evidence shown |
+|---|---|
+| Upcoming card | Published frozen forecast, official portraits, earlier-round chart, source-bound PDF/CSV downloads, identity-held matchups and past-fight/style context |
+| Historical data | All retained cards/bouts, opponent, method, division, reach and quality filters, original source links |
+| Model evidence | Saved V6/V7 fixed and rolling metrics, feature coverage, limitations and unpromoted candidate results |
+| Data quality | MySQL health, per-card coverage, missing reach/control time, source hashes and unresolved identity/date/round holds |
+| Ledgers | Actual stored paper and manual wager entries, with separate totals and truthful empty states |
+| Forward test | Hash-verified frozen forecasts, recovered-vs-prestart provenance, settled metrics and pending outcomes |
+| Rankings | Official Meta/media champion and 15 contenders for every active division, update/capture dates and tie notes |
+
+The historical chart uses up to five eligible earlier fights. The separate context panel shows the latest five source rows, including visible held rows excluded from aggregates. Rates retain observed denominators and sample counts. Opponent Elo reflects usable archive results before the bout, not today's ranking or a complete career record.
+
+Current rankings are descriptive and never inserted into historical features. V7 is a research comparison; V6 remains the delivered model after V7's worse fixed-benchmark result. Historical performance does not establish live profitability.
+
+Publish sources and forecasts through CLI jobs. The dashboard resolves its forecast from MySQL and verifies matching local release artifacts for downloads. Keep server credentials outside Git. Portraits load from official UFC URLs and require internet; licensed fonts and report exports are local. Bind locally for private use; public hosting requires the deployment controls described in the container guide.
+
+For verification, open all seven tabs, change a historical filter and matchup, inspect both rankings systems and divisions, and download a report. Database failure must remain an unavailable state. Explicit legacy `UFC_MODEL_DB=/path/to/file.sqlite` is retained only for migration/fixture comparison.

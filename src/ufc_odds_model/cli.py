@@ -36,7 +36,7 @@ from .wikipedia_history import (
 
 def make_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="UFC moneyline modeling starter")
-    parser.add_argument("--db", default=str(db.DEFAULT_DB), help="SQLite database path")
+    parser.add_argument("--db", default=str(db.DEFAULT_DB), help="MySQL dataset (default mysql:operating); explicit legacy files are accepted")
     subcommands = parser.add_subparsers(dest="command", required=True)
     lab = subcommands.add_parser("research-compare", help="Fixed-date, read-only research model comparison")
     lab.add_argument("--db", default=argparse.SUPPRESS)
@@ -64,7 +64,7 @@ def make_parser() -> argparse.ArgumentParser:
     summary=forecast_commands.add_parser("summary")
     summary.add_argument("--out")
     for command in (freeze,settle,summary):
-        command.add_argument("--ledger",default="reports/forecast_ledger.jsonl")
+        command.add_argument("--ledger",default="mysql:forecast")
     odds_plan=subcommands.add_parser("odds-schedule",help="Plan or capture a T-7d/T-24h/T-2h slot")
     odds_plan.add_argument("event_id")
     odds_plan.add_argument("--capture",action="store_true")
@@ -85,7 +85,7 @@ def make_parser() -> argparse.ArgumentParser:
     wikidata.add_argument("--raw-dir", default="data/raw/wikidata_profiles")
     wikidata.add_argument("--report-out", default="reports/wikidata_profiles_report.json")
     wikidata.add_argument("--offline", action="store_true")
-    subcommands.add_parser("init-db", help="Initialize a new or empty SQLite database")
+    subcommands.add_parser("init-db", help="Initialize the MySQL operating dataset")
     migration = subcommands.add_parser(
         "migrate", help="Verify a new backup, then apply pending SQL migrations"
     )
@@ -312,6 +312,13 @@ def _safe_error_text(error: BaseException) -> str:
 
 def _handle_schema_command(args: argparse.Namespace) -> bool:
     """Handle explicit schema changes before normal commands open the database."""
+    from .mysql_runtime import ensure_operating_dataset, is_mysql_target
+    if is_mysql_target(args.db) and args.command in {'init-db', 'migrate'}:
+        if args.command == 'migrate':
+            create_backup(args.db, args.backup)
+        ensure_operating_dataset(args.db)
+        print(f'MySQL operating schema ready: {args.db}')
+        return True
     database_path = Path(args.db).expanduser()
     if args.command == "init-db":
         with closing(db.connect(database_path)) as connection:
@@ -403,6 +410,20 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "import-wikidata-profiles":
             from .model_lab import read_only
             from .wikidata_profiles import import_profiles
+            from .mysql_runtime import is_mysql_target, inspect_dataset
+            if is_mysql_target(args.db):
+                if args.out_db:
+                    from .wikidata_profiles import import_profiles_copy
+                    result = import_profiles_copy(args.db, args.out_db, raw_dir=args.raw_dir,
+                                                  report_path=args.report_out, offline=args.offline)
+                else:
+                    if inspect_dataset(args.db)['immutable']:
+                        raise ValueError('Use --out-db mysql:NEW-VERSION to preserve immutable research evidence')
+                    with closing(db.connect(args.db)) as connection:
+                        result = import_profiles(connection, raw_dir=args.raw_dir,
+                                                 report_path=args.report_out, offline=args.offline)
+                print(json.dumps({k:v for k,v in result.items() if k not in ('conflicts','unmatched_fighters')}, indent=2))
+                return 0
             target = args.out_db or args.db
             if args.out_db:
                 if Path(target).resolve() == Path(args.db).resolve():
@@ -426,11 +447,14 @@ def main(argv: list[str] | None = None) -> int:
                                       report_path=args.identity_report, raw_dir=args.raw_dir)
             print(f"Restored {report['restored_bouts']} research bouts; {report['parser_fallbacks']} parser fallbacks")
             return 0
-        if args.command in {"import-wikipedia-history", "import-wikipedia-years", "import-wikipedia-embedded"} and Path(args.db).resolve() == db.DEFAULT_DB.resolve():
+        from .mysql_runtime import is_mysql_target, dataset_name
+        if args.command in {"import-wikipedia-history", "import-wikipedia-years", "import-wikipedia-embedded"} and (
+                is_mysql_target(args.db) and dataset_name(args.db) == 'operating'
+                or not is_mysql_target(args.db) and Path(args.db).resolve() == Path('data/ufc.sqlite').resolve()):
             raise ValueError("Use an explicit separate --db path for Wikipedia research history")
         if _handle_schema_command(args):
             return 0
-        if not Path(args.db).expanduser().is_file():
+        if not is_mysql_target(args.db) and not Path(args.db).expanduser().is_file():
             raise ValueError(f"Database does not exist: {args.db}; run init-db first")
         with closing(db.connect(args.db)) as connection:
             db.require_current_schema(connection)

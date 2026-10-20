@@ -1271,6 +1271,9 @@ wheels = [
 name = "ufc-odds-model"
 version = "0.2.0"
 source = { editable = "." }
+dependencies = [
+    { name = "pymysql", extra = ["rsa"] },
+]
 
 [package.optional-dependencies]
 dashboard = [
@@ -1285,6 +1288,7 @@ warehouse = [
 
 [package.metadata]
 requires-dist = [
+    { name = "pymysql", extras = ["rsa"], specifier = "==1.2.3" },
     { name = "pymysql", extras = ["rsa"], marker = "extra == 'warehouse'", specifier = "==1.2.3" },
     { name = "reportlab", marker = "extra == 'reports'", specifier = "==5.0.1" },
     { name = "streamlit", marker = "extra == 'dashboard'", specifier = "==1.64.0" },

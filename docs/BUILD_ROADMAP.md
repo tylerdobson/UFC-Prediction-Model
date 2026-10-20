@@ -1,5 +1,7 @@
 # UFC Prediction Model: build roadmap
 
+> Historical plan. The delivered architecture now uses MySQL by default and has seven dashboard sections. Use [MySQL runtime](MYSQL_RUNTIME.md), [dashboard runbook](DASHBOARD_RUNBOOK.md), and the current README for operation. SQLite references below describe the earlier implementation.
+
 ## Product and release target
 
 Build a **pre-fight decision-support web app** for one operator. Before a UFC card, it should show verified matchups, calibrated win probabilities, current bookmaker quotes with their source times, the evidence behind each estimate, and whether a quote passes a conservative freshness and edge check. The operator decides whether to act and records any actual wager manually. The app never submits an order.

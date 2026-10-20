@@ -2485,10 +2485,12 @@ def load_forward_ledger(ledger_path):
     from .forecast_ledger import read_entries, summary
     from .model_lab import file_sha256
     from .retained_paths import retained_path
-    path=Path(ledger_path)
-    if not path.is_file():
+    from .mysql_runtime import is_mysql_target
+    mysql = is_mysql_target(ledger_path)
+    path = ledger_path if mysql else Path(ledger_path)
+    if not mysql and not path.is_file():
         return {'status':'missing','reason':'No frozen forecasts recorded yet.'}
-    root=path.resolve().parent.parent
+    root = Path(__file__).resolve().parents[2] if mysql else path.resolve().parent.parent
     try:
         entries=read_entries(path)
         for entry in entries:

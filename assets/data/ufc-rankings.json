@@ -1,0 +1,4247 @@
+{
+  "schema_version": 1,
+  "artifact_type": "official_current_ufc_rankings",
+  "default_ranking_set": "meta",
+  "default_selection_basis": "official_page_visible_update_footer",
+  "source": {
+    "url": "https://www.ufc.com/rankings",
+    "fetched_at_utc": "2026-10-20T02:43:27Z",
+    "raw_sha256": "59ca294b120be8ebd10e17634c4cb579238c8144d648536f0e931e163aae719e",
+    "raw_bytes": 283571,
+    "response_url": "https://www.ufc.com/rankings",
+    "http_status": 200,
+    "access_mode": "direct_public_https_curl",
+    "raw_archive": {
+      "capture_id": "20261020T024327Z-59ca294b120be8eb",
+      "page_file": "page.html",
+      "receipt_file": "receipt.json"
+    }
+  },
+  "ranking_sets": [
+    {
+      "id": "media",
+      "label": "UFC media-panel rankings",
+      "source_updated_label": "Last updated: Tuesday, Oct. 06",
+      "source_updated_date": null,
+      "source_updated_date_note": "Publisher update label is retained verbatim; no missing calendar year is inferred.",
+      "divisions": [
+        {
+          "id": "mens-pound-for-pound",
+          "name": "Men's Pound-for-Pound",
+          "source_heading": "Men's Pound-for-Pound Top Rank",
+          "kind": "pound_for_pound",
+          "champions": [],
+          "leader": {
+            "name": "Islam Makhachev",
+            "athlete_url": "https://www.ufc.com/athlete/islam-makhachev"
+          },
+          "championship_status": "not_applicable",
+          "contenders": [
+            {
+              "name": "Islam Makhachev",
+              "athlete_url": "https://www.ufc.com/athlete/islam-makhachev",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alexander Volkanovski",
+              "athlete_url": "https://www.ufc.com/athlete/alexander-volkanovski",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Justin Gaethje",
+              "athlete_url": "https://www.ufc.com/athlete/justin-gaethje",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Petr Yan",
+              "athlete_url": "https://www.ufc.com/athlete/petr-yan",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Ilia Topuria",
+              "athlete_url": "https://www.ufc.com/athlete/ilia-topuria",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Joshua Van",
+              "athlete_url": "https://www.ufc.com/athlete/joshua-van",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Sean Strickland",
+              "athlete_url": "https://www.ufc.com/athlete/sean-strickland",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tom Aspinall",
+              "athlete_url": "https://www.ufc.com/athlete/tom-aspinall",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Merab Dvalishvili",
+              "athlete_url": "https://www.ufc.com/athlete/merab-dvalishvili",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alex Pereira",
+              "athlete_url": "https://www.ufc.com/athlete/alex-pereira",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Ciryl Gane",
+              "athlete_url": "https://www.ufc.com/athlete/ciryl-gane",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Khamzat Chimaev",
+              "athlete_url": "https://www.ufc.com/athlete/khamzat-chimaev",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Arman Tsarukyan",
+              "athlete_url": "https://www.ufc.com/athlete/arman-tsarukyan",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alexandre Pantoja",
+              "athlete_url": "https://www.ufc.com/athlete/alexandre-pantoja",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Carlos Ulberg",
+              "athlete_url": "https://www.ufc.com/athlete/carlos-ulberg",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "flyweight",
+          "name": "Flyweight",
+          "source_heading": "Flyweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Joshua Van",
+              "athlete_url": "https://www.ufc.com/athlete/joshua-van",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Alexandre Pantoja",
+              "athlete_url": "https://www.ufc.com/athlete/alexandre-pantoja",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Manel Kape",
+              "athlete_url": "https://www.ufc.com/athlete/manel-kape",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Brandon Royval",
+              "athlete_url": "https://www.ufc.com/athlete/brandon-royval",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tatsuro Taira",
+              "athlete_url": "https://www.ufc.com/athlete/tatsuro-taira",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Kyoji Horiguchi",
+              "athlete_url": "https://www.ufc.com/athlete/kyoji-horiguchi",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Lone’er Kavanagh",
+              "athlete_url": "https://www.ufc.com/athlete/loneer-kavanagh",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Asu Almabayev",
+              "athlete_url": "https://www.ufc.com/athlete/asu-almabayev",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Brandon Moreno",
+              "athlete_url": "https://www.ufc.com/athlete/brandon-moreno",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Amir Albazi",
+              "athlete_url": "https://www.ufc.com/athlete/amir-albazi",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Ramazan Temirov",
+              "athlete_url": "https://www.ufc.com/athlete/ramazan-temirov",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tim Elliott",
+              "athlete_url": "https://www.ufc.com/athlete/tim-elliott",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Steve Erceg",
+              "athlete_url": "https://www.ufc.com/athlete/steve-erceg",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Sumudaerji",
+              "athlete_url": "https://www.ufc.com/athlete/su-mudaerji",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tagir Ulanbekov",
+              "athlete_url": "https://www.ufc.com/athlete/tagir-ulanbekov",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alex Perez",
+              "athlete_url": "https://www.ufc.com/athlete/alex-perez",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "bantamweight",
+          "name": "Bantamweight",
+          "source_heading": "Bantamweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Petr Yan",
+              "athlete_url": "https://www.ufc.com/athlete/petr-yan",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Merab Dvalishvili",
+              "athlete_url": "https://www.ufc.com/athlete/merab-dvalishvili",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Sean O'Malley",
+              "athlete_url": "https://www.ufc.com/athlete/sean-omalley",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Song Yadong",
+              "athlete_url": "https://www.ufc.com/athlete/song-yadong",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Umar Nurmagomedov",
+              "athlete_url": "https://www.ufc.com/athlete/umar-nurmagomedov",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Mario Bautista",
+              "athlete_url": "https://www.ufc.com/athlete/mario-bautista",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Cory Sandhagen",
+              "athlete_url": "https://www.ufc.com/athlete/cory-sandhagen",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Payton Talbott",
+              "athlete_url": "https://www.ufc.com/athlete/payton-talbott",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 5"
+            },
+            {
+              "name": "Aiemann Zahabi",
+              "athlete_url": "https://www.ufc.com/athlete/aiemann-zahabi",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            },
+            {
+              "name": "David Martinez",
+              "athlete_url": "https://www.ufc.com/athlete/david-martinez",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            },
+            {
+              "name": "Raul Rosas Jr.",
+              "athlete_url": "https://www.ufc.com/athlete/raul-rosas-jr",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 1"
+            },
+            {
+              "name": "Marlon Vera",
+              "athlete_url": "https://www.ufc.com/athlete/marlon-vera",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            },
+            {
+              "name": "Deiveson Figueiredo",
+              "athlete_url": "https://www.ufc.com/athlete/deiveson-figueiredo",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 3"
+            },
+            {
+              "name": "Farid Basharat",
+              "athlete_url": "https://www.ufc.com/athlete/farid-basharat",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Marcus McGhee",
+              "athlete_url": "https://www.ufc.com/athlete/marcus-mcghee",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 1"
+            },
+            {
+              "name": "Raoni Barcelos",
+              "athlete_url": "https://www.ufc.com/athlete/raoni-barcelos",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "featherweight",
+          "name": "Featherweight",
+          "source_heading": "Featherweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Alexander Volkanovski",
+              "athlete_url": "https://www.ufc.com/athlete/alexander-volkanovski",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Movsar Evloev",
+              "athlete_url": "https://www.ufc.com/athlete/movsar-evloev",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Diego Lopes",
+              "athlete_url": "https://www.ufc.com/athlete/diego-lopes",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Lerone Murphy",
+              "athlete_url": "https://www.ufc.com/athlete/lerone-murphy",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Aljamain Sterling",
+              "athlete_url": "https://www.ufc.com/athlete/aljamain-sterling",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jean Silva",
+              "athlete_url": "https://www.ufc.com/athlete/jean-silva",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Yair Rodriguez",
+              "athlete_url": "https://www.ufc.com/athlete/yair-rodriguez",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Arnold Allen",
+              "athlete_url": "https://www.ufc.com/athlete/arnold-allen",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Youssef Zalal",
+              "athlete_url": "https://www.ufc.com/athlete/youssef-zalal",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Kevin Vallejos",
+              "athlete_url": "https://www.ufc.com/athlete/kevin-vallejos",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Steve Garcia",
+              "athlete_url": "https://www.ufc.com/athlete/steve-garcia",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Aaron Pico",
+              "athlete_url": "https://www.ufc.com/athlete/aaron-pico",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Melquizael Costa",
+              "athlete_url": "https://www.ufc.com/athlete/melquizael-costa",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Brian Ortega",
+              "athlete_url": "https://www.ufc.com/athlete/brian-ortega",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Patricio Pitbull",
+              "athlete_url": "https://www.ufc.com/athlete/patricio-freire",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "David Onama",
+              "athlete_url": "https://www.ufc.com/athlete/david-onama",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "lightweight",
+          "name": "Lightweight",
+          "source_heading": "Lightweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Justin Gaethje",
+              "athlete_url": "https://www.ufc.com/athlete/justin-gaethje",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Ilia Topuria",
+              "athlete_url": "https://www.ufc.com/athlete/ilia-topuria",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Arman Tsarukyan",
+              "athlete_url": "https://www.ufc.com/athlete/arman-tsarukyan",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Charles Oliveira",
+              "athlete_url": "https://www.ufc.com/athlete/charles-oliveira",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Max Holloway",
+              "athlete_url": "https://www.ufc.com/athlete/max-holloway",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Paddy Pimblett",
+              "athlete_url": "https://www.ufc.com/athlete/paddy-pimblett",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Benoît Saint Denis",
+              "athlete_url": "https://www.ufc.com/athlete/benoit-saint-denis",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Quillan Salkilld",
+              "athlete_url": "https://www.ufc.com/athlete/quillan-salkilld",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Mauricio Ruffy",
+              "athlete_url": "https://www.ufc.com/athlete/mauricio-ruffy",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Salahdine Parnasse",
+              "athlete_url": "https://www.ufc.com/athlete/salahdine-parnasse",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Mateusz Gamrot",
+              "athlete_url": "https://www.ufc.com/athlete/mateusz-gamrot",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Rafael Fiziev",
+              "athlete_url": "https://www.ufc.com/athlete/rafael-fiziev",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Renato Moicano",
+              "athlete_url": "https://www.ufc.com/athlete/renato-moicano",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Dan Hooker",
+              "athlete_url": "https://www.ufc.com/athlete/dan-hooker",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tom Nolan",
+              "athlete_url": "https://www.ufc.com/athlete/tom-nolan",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Beneil Dariush",
+              "athlete_url": "https://www.ufc.com/athlete/beneil-dariush",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "welterweight",
+          "name": "Welterweight",
+          "source_heading": "Welterweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Islam Makhachev",
+              "athlete_url": "https://www.ufc.com/athlete/islam-makhachev",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Ian Machado Garry",
+              "athlete_url": "https://www.ufc.com/athlete/ian-machado-garry",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Carlos Prates",
+              "athlete_url": "https://www.ufc.com/athlete/carlos-prates",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Michael Morales",
+              "athlete_url": "https://www.ufc.com/athlete/michael-morales",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jack Della Maddalena",
+              "athlete_url": "https://www.ufc.com/athlete/jack-della-maddalena",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Gabriel Bonfim",
+              "athlete_url": "https://www.ufc.com/athlete/gabriel-bonfim",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Sean Brady",
+              "athlete_url": "https://www.ufc.com/athlete/sean-brady",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Belal Muhammad",
+              "athlete_url": "https://www.ufc.com/athlete/belal-muhammad",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Leon Edwards",
+              "athlete_url": "https://www.ufc.com/athlete/leon-edwards",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Kamaru Usman",
+              "athlete_url": "https://www.ufc.com/athlete/kamaru-usman",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Joaquin Buckley",
+              "athlete_url": "https://www.ufc.com/athlete/joaquin-buckley",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Yaroslav Amosov",
+              "athlete_url": "https://www.ufc.com/athlete/yaroslav-amosov",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Uroš Medić",
+              "athlete_url": "https://www.ufc.com/athlete/uros-medic",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Mike Malott",
+              "athlete_url": "https://www.ufc.com/athlete/mike-malott",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Daniel Rodriguez",
+              "athlete_url": "https://www.ufc.com/athlete/daniel-rodriguez",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Neil Magny",
+              "athlete_url": "https://www.ufc.com/athlete/neil-magny",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "middleweight",
+          "name": "Middleweight",
+          "source_heading": "Middleweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Sean Strickland",
+              "athlete_url": "https://www.ufc.com/athlete/sean-strickland",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Khamzat Chimaev",
+              "athlete_url": "https://www.ufc.com/athlete/khamzat-chimaev",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Dricus Du Plessis",
+              "athlete_url": "https://www.ufc.com/athlete/dricus-du-plessis",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Nassourdine Imavov",
+              "athlete_url": "https://www.ufc.com/athlete/nassourdine-imavov",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Brendan Allen",
+              "athlete_url": "https://www.ufc.com/athlete/brendan-allen",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Caio Borralho",
+              "athlete_url": "https://www.ufc.com/athlete/caio-borralho",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Joe Pyfer",
+              "athlete_url": "https://www.ufc.com/athlete/joe-pyfer",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Gregory Rodrigues",
+              "athlete_url": "https://www.ufc.com/athlete/gregory-rodrigues",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Anthony Hernandez",
+              "athlete_url": "https://www.ufc.com/athlete/anthony-hernandez",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Israel Adesanya",
+              "athlete_url": "https://www.ufc.com/athlete/israel-adesanya",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Christian Leroy Duncan",
+              "athlete_url": "https://www.ufc.com/athlete/christian-leroy-duncan",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jared Cannonier",
+              "athlete_url": "https://www.ufc.com/athlete/jared-cannonier",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Abus Magomedov",
+              "athlete_url": "https://www.ufc.com/athlete/abus-magomedov",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Ikram Aliskerov",
+              "athlete_url": "https://www.ufc.com/athlete/ikram-aliskerov",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Bo Nickal",
+              "athlete_url": "https://www.ufc.com/athlete/bo-nickal",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Shara Magomedov",
+              "athlete_url": "https://www.ufc.com/athlete/shara-magomedov",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "light-heavyweight",
+          "name": "Light Heavyweight",
+          "source_heading": "Light Heavyweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Carlos Ulberg",
+              "athlete_url": "https://www.ufc.com/athlete/carlos-ulberg",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Magomed Ankalaev",
+              "athlete_url": "https://www.ufc.com/athlete/magomed-ankalaev",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jiří Procházka",
+              "athlete_url": "https://www.ufc.com/athlete/jiri-prochazka",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alex Pereira",
+              "athlete_url": "https://www.ufc.com/athlete/alex-pereira",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Khalil Rountree Jr.",
+              "athlete_url": "https://www.ufc.com/athlete/khalil-rountree-jr",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Navajo Stirling",
+              "athlete_url": "https://www.ufc.com/athlete/navajo-stirling",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Paulo Costa",
+              "athlete_url": "https://www.ufc.com/athlete/paulo-costa",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Azamat Murzakanov",
+              "athlete_url": "https://www.ufc.com/athlete/azamat-murzakanov",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 1"
+            },
+            {
+              "name": "Dominick Reyes",
+              "athlete_url": "https://www.ufc.com/athlete/dominick-reyes",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 2"
+            },
+            {
+              "name": "Jan Błachowicz",
+              "athlete_url": "https://www.ufc.com/athlete/jan-blachowicz",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Bogdan Guskov",
+              "athlete_url": "https://www.ufc.com/athlete/bogdan-guskov",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 1"
+            },
+            {
+              "name": "Robert Whittaker",
+              "athlete_url": "https://www.ufc.com/athlete/robert-whittaker",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 1"
+            },
+            {
+              "name": "Alonzo Menifield",
+              "athlete_url": "https://www.ufc.com/athlete/alonzo-menifield",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 2"
+            },
+            {
+              "name": "Muhammad Saidov",
+              "athlete_url": "https://www.ufc.com/athlete/muhammad-said",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "NR"
+            },
+            {
+              "name": "Reinier de Ridder",
+              "athlete_url": "https://www.ufc.com/athlete/reinier-de-ridder",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "NR"
+            },
+            {
+              "name": "Nikita Krylov",
+              "athlete_url": "https://www.ufc.com/athlete/nikita-krylov",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "heavyweight",
+          "name": "Heavyweight",
+          "source_heading": "Heavyweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Ciryl Gane",
+              "athlete_url": "https://www.ufc.com/athlete/ciryl-gane",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Tom Aspinall",
+              "athlete_url": "https://www.ufc.com/athlete/tom-aspinall",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alexander Volkov",
+              "athlete_url": "https://www.ufc.com/athlete/alexander-volkov",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Sergei Pavlovich",
+              "athlete_url": "https://www.ufc.com/athlete/sergei-pavlovich",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Josh Hokit",
+              "athlete_url": "https://www.ufc.com/athlete/josh-hokit",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Curtis Blaydes",
+              "athlete_url": "https://www.ufc.com/athlete/curtis-blaydes",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Waldo Cortes Acosta",
+              "athlete_url": "https://www.ufc.com/athlete/waldo-cortes-acosta",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Rizvan Kuniev",
+              "athlete_url": "https://www.ufc.com/athlete/rizvan-kuniev",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Vitor Petrino",
+              "athlete_url": "https://www.ufc.com/athlete/vitor-petrino",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Serghei Spivac",
+              "athlete_url": "https://www.ufc.com/athlete/serghei-spivac",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Ante Delija",
+              "athlete_url": "https://www.ufc.com/athlete/ante-delija",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Valter Walker",
+              "athlete_url": "https://www.ufc.com/athlete/valter-walker",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tyrell Fortune",
+              "athlete_url": "https://www.ufc.com/athlete/tyrell-fortune",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Derrick Lewis",
+              "athlete_url": "https://www.ufc.com/athlete/derrick-lewis",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Aleksandar Rakić",
+              "athlete_url": "https://www.ufc.com/athlete/aleksandar-rakic",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 1"
+            },
+            {
+              "name": "Mario Pinto",
+              "athlete_url": "https://www.ufc.com/athlete/mario-pinto",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [
+            "The title panel labels Champion while portrait alt text says interim; the explicit title-panel label is retained."
+          ],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "womens-pound-for-pound",
+          "name": "Women's Pound-for-Pound",
+          "source_heading": "Women's Pound-for-Pound Top Rank",
+          "kind": "pound_for_pound",
+          "champions": [],
+          "leader": {
+            "name": "Valentina Shevchenko",
+            "athlete_url": "https://www.ufc.com/athlete/valentina-shevchenko"
+          },
+          "championship_status": "not_applicable",
+          "contenders": [
+            {
+              "name": "Valentina Shevchenko",
+              "athlete_url": "https://www.ufc.com/athlete/valentina-shevchenko",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Kayla Harrison",
+              "athlete_url": "https://www.ufc.com/athlete/kayla-harrison",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Zhang Weili",
+              "athlete_url": "https://www.ufc.com/athlete/zhang-weili",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Natalia Silva",
+              "athlete_url": "https://www.ufc.com/athlete/natalia-silva",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Mackenzie Dern",
+              "athlete_url": "https://www.ufc.com/athlete/mackenzie-dern",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alexa Grasso",
+              "athlete_url": "https://www.ufc.com/athlete/alexa-grasso",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Manon Fiorot",
+              "athlete_url": "https://www.ufc.com/athlete/manon-fiorot",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Erin Blanchfield",
+              "athlete_url": "https://www.ufc.com/athlete/erin-blanchfield",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tatiana Suarez",
+              "athlete_url": "https://www.ufc.com/athlete/tatiana-suarez",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Julianna Peña",
+              "athlete_url": "https://www.ufc.com/athlete/julianna-pena",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Virna Jandiroba",
+              "athlete_url": "https://www.ufc.com/athlete/virna-jandiroba",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Rose Namajunas",
+              "athlete_url": "https://www.ufc.com/athlete/rose-namajunas",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Raquel Pennington",
+              "athlete_url": "https://www.ufc.com/athlete/raquel-pennington",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Denise Gomes",
+              "athlete_url": "https://www.ufc.com/athlete/denise-gomes",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Maycee Barber",
+              "athlete_url": "https://www.ufc.com/athlete/maycee-barber",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "womens-strawweight",
+          "name": "Women's Strawweight",
+          "source_heading": "Women's Strawweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Mackenzie Dern",
+              "athlete_url": "https://www.ufc.com/athlete/mackenzie-dern",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Zhang Weili",
+              "athlete_url": "https://www.ufc.com/athlete/zhang-weili",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tatiana Suarez",
+              "athlete_url": "https://www.ufc.com/athlete/tatiana-suarez",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Virna Jandiroba",
+              "athlete_url": "https://www.ufc.com/athlete/virna-jandiroba",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Denise Gomes",
+              "athlete_url": "https://www.ufc.com/athlete/denise-gomes",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Gillian Robertson",
+              "athlete_url": "https://www.ufc.com/athlete/gillian-robertson",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Yan Xiaonan",
+              "athlete_url": "https://www.ufc.com/athlete/yan-xiaonan",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Fatima Kline",
+              "athlete_url": "https://www.ufc.com/athlete/fatima-kline",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Loopy Godinez",
+              "athlete_url": "https://www.ufc.com/athlete/loopy-godinez",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alexia Thainara",
+              "athlete_url": "https://www.ufc.com/athlete/alexia-thainara",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jéssica Andrade",
+              "athlete_url": "https://www.ufc.com/athlete/jessica-andrade",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tabatha Ricci",
+              "athlete_url": "https://www.ufc.com/athlete/tabatha-ricci",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Amanda Lemos",
+              "athlete_url": "https://www.ufc.com/athlete/amanda-lemos",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Amanda Ribas",
+              "athlete_url": "https://www.ufc.com/athlete/amanda-ribas",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Angela Hill",
+              "athlete_url": "https://www.ufc.com/athlete/angela-hill",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Mizuki",
+              "athlete_url": "https://www.ufc.com/athlete/mizuki-inoue",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "womens-flyweight",
+          "name": "Women's Flyweight",
+          "source_heading": "Women's Flyweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Natalia Silva",
+              "athlete_url": "https://www.ufc.com/athlete/natalia-silva",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Valentina Shevchenko",
+              "athlete_url": "https://www.ufc.com/athlete/valentina-shevchenko",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            },
+            {
+              "name": "Alexa Grasso",
+              "athlete_url": "https://www.ufc.com/athlete/alexa-grasso",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Manon Fiorot",
+              "athlete_url": "https://www.ufc.com/athlete/manon-fiorot",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Erin Blanchfield",
+              "athlete_url": "https://www.ufc.com/athlete/erin-blanchfield",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Rose Namajunas",
+              "athlete_url": "https://www.ufc.com/athlete/rose-namajunas",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Maycee Barber",
+              "athlete_url": "https://www.ufc.com/athlete/maycee-barber",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": true,
+              "tie_size": 2,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jasmine Jasudavicius",
+              "athlete_url": "https://www.ufc.com/athlete/jasmine-jasudavicius",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": true,
+              "tie_size": 2,
+              "rank_change_label": "Rank increased by 1"
+            },
+            {
+              "name": "Wang Cong",
+              "athlete_url": "https://www.ufc.com/athlete/wang-cong",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tracy Cortez",
+              "athlete_url": "https://www.ufc.com/athlete/tracy-cortez",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Miranda Maverick",
+              "athlete_url": "https://www.ufc.com/athlete/miranda-maverick",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Karine Silva",
+              "athlete_url": "https://www.ufc.com/athlete/karine-silva",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Casey O'Neill",
+              "athlete_url": "https://www.ufc.com/athlete/casey-oneill",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Eduarda Moura",
+              "athlete_url": "https://www.ufc.com/athlete/eduarda-moura",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Regina Tarin",
+              "athlete_url": "https://www.ufc.com/athlete/regina-malpica-rivera",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Gabriella Fernandes",
+              "athlete_url": "https://www.ufc.com/athlete/gabriella-fernandes",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [
+            7
+          ],
+          "missing_rank_reasons": {
+            "7": "published_tie_skips_rank"
+          },
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "womens-bantamweight",
+          "name": "Women's Bantamweight",
+          "source_heading": "Women's Bantamweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Kayla Harrison",
+              "athlete_url": "https://www.ufc.com/athlete/kayla-harrison",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Julianna Peña",
+              "athlete_url": "https://www.ufc.com/athlete/julianna-pena",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Joselyne Edwards",
+              "athlete_url": "https://www.ufc.com/athlete/joselyne-edwards",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Ailin Perez",
+              "athlete_url": "https://www.ufc.com/athlete/ailin-perez",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Raquel Pennington",
+              "athlete_url": "https://www.ufc.com/athlete/raquel-pennington",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            },
+            {
+              "name": "Norma Dumont",
+              "athlete_url": "https://www.ufc.com/athlete/norma-dumont",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Yana Santos",
+              "athlete_url": "https://www.ufc.com/athlete/yana-santos",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Luana Santos",
+              "athlete_url": "https://www.ufc.com/athlete/luana-santos",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jacqueline Cavalcanti",
+              "athlete_url": "https://www.ufc.com/athlete/jacqueline-cavalcanti",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 1"
+            },
+            {
+              "name": "Macy Chiasson",
+              "athlete_url": "https://www.ufc.com/athlete/macy-chiasson",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            },
+            {
+              "name": "Karol Rosa",
+              "athlete_url": "https://www.ufc.com/athlete/karol-rosa",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Bia Mesquita",
+              "athlete_url": "https://www.ufc.com/athlete/bia-mesquita",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Michelle Montague",
+              "athlete_url": "https://www.ufc.com/athlete/michelle-montague",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Nora Cornolle",
+              "athlete_url": "https://www.ufc.com/athlete/nora-cornolle",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Melissa Croden",
+              "athlete_url": "https://www.ufc.com/athlete/melissa-croden",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 1"
+            },
+            {
+              "name": "Daria Zhelezniakova",
+              "athlete_url": "https://www.ufc.com/athlete/dariya-zheleznyakova",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "NR"
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        }
+      ]
+    },
+    {
+      "id": "meta",
+      "label": "UFC Meta rankings",
+      "source_updated_label": "Last updated: Saturday, Oct. 10",
+      "source_updated_date": null,
+      "source_updated_date_note": "Publisher update label is retained verbatim; no missing calendar year is inferred.",
+      "divisions": [
+        {
+          "id": "flyweight",
+          "name": "Flyweight",
+          "source_heading": "Flyweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Joshua Van",
+              "athlete_url": "https://www.ufc.com/athlete/joshua-van",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Manel Kape",
+              "athlete_url": "https://www.ufc.com/athlete/manel-kape",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alexandre Pantoja",
+              "athlete_url": "https://www.ufc.com/athlete/alexandre-pantoja",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Brandon Royval",
+              "athlete_url": "https://www.ufc.com/athlete/brandon-royval",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tatsuro Taira",
+              "athlete_url": "https://www.ufc.com/athlete/tatsuro-taira",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Asu Almabayev",
+              "athlete_url": "https://www.ufc.com/athlete/asu-almabayev",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Lone’er Kavanagh",
+              "athlete_url": "https://www.ufc.com/athlete/loneer-kavanagh",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Ramazan Temirov",
+              "athlete_url": "https://www.ufc.com/athlete/ramazan-temirov",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Kyoji Horiguchi",
+              "athlete_url": "https://www.ufc.com/athlete/kyoji-horiguchi",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Amir Albazi",
+              "athlete_url": "https://www.ufc.com/athlete/amir-albazi",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Brandon Moreno",
+              "athlete_url": "https://www.ufc.com/athlete/brandon-moreno",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Sumudaerji",
+              "athlete_url": "https://www.ufc.com/athlete/su-mudaerji",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Mitch Raposo",
+              "athlete_url": "https://www.ufc.com/athlete/mitch-raposo",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Imanol Rodriguez",
+              "athlete_url": "https://www.ufc.com/athlete/imanol-rodriguez",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Rei Tsuruya",
+              "athlete_url": "https://www.ufc.com/athlete/rei-tsuruya",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Charles Johnson",
+              "athlete_url": "https://www.ufc.com/athlete/charles-johnson",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "bantamweight",
+          "name": "Bantamweight",
+          "source_heading": "Bantamweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Petr Yan",
+              "athlete_url": "https://www.ufc.com/athlete/petr-yan",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Merab Dvalishvili",
+              "athlete_url": "https://www.ufc.com/athlete/merab-dvalishvili",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Song Yadong",
+              "athlete_url": "https://www.ufc.com/athlete/song-yadong",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Sean O'Malley",
+              "athlete_url": "https://www.ufc.com/athlete/sean-omalley",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Mario Bautista",
+              "athlete_url": "https://www.ufc.com/athlete/mario-bautista",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Umar Nurmagomedov",
+              "athlete_url": "https://www.ufc.com/athlete/umar-nurmagomedov",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Cory Sandhagen",
+              "athlete_url": "https://www.ufc.com/athlete/cory-sandhagen",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "David Martinez",
+              "athlete_url": "https://www.ufc.com/athlete/david-martinez",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Raul Rosas Jr.",
+              "athlete_url": "https://www.ufc.com/athlete/raul-rosas-jr",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Farid Basharat",
+              "athlete_url": "https://www.ufc.com/athlete/farid-basharat",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Marcus McGhee",
+              "athlete_url": "https://www.ufc.com/athlete/marcus-mcghee",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Payton Talbott",
+              "athlete_url": "https://www.ufc.com/athlete/payton-talbott",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Montel Jackson",
+              "athlete_url": "https://www.ufc.com/athlete/montel-jackson",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Aiemann Zahabi",
+              "athlete_url": "https://www.ufc.com/athlete/aiemann-zahabi",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Bryce Mitchell",
+              "athlete_url": "https://www.ufc.com/athlete/bryce-mitchell",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 1"
+            },
+            {
+              "name": "Marlon Vera",
+              "athlete_url": "https://www.ufc.com/athlete/marlon-vera",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "featherweight",
+          "name": "Featherweight",
+          "source_heading": "Featherweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Alexander Volkanovski",
+              "athlete_url": "https://www.ufc.com/athlete/alexander-volkanovski",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Movsar Evloev",
+              "athlete_url": "https://www.ufc.com/athlete/movsar-evloev",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Diego Lopes",
+              "athlete_url": "https://www.ufc.com/athlete/diego-lopes",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Lerone Murphy",
+              "athlete_url": "https://www.ufc.com/athlete/lerone-murphy",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Aljamain Sterling",
+              "athlete_url": "https://www.ufc.com/athlete/aljamain-sterling",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jean Silva",
+              "athlete_url": "https://www.ufc.com/athlete/jean-silva",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Arnold Allen",
+              "athlete_url": "https://www.ufc.com/athlete/arnold-allen",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Pat Sabatini",
+              "athlete_url": "https://www.ufc.com/athlete/pat-sabatini",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Pavel Andrusca",
+              "athlete_url": "https://www.ufc.com/athlete/pavel-andrusca",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Youssef Zalal",
+              "athlete_url": "https://www.ufc.com/athlete/youssef-zalal",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Kevin Vallejos",
+              "athlete_url": "https://www.ufc.com/athlete/kevin-vallejos",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Joanderson Brito",
+              "athlete_url": "https://www.ufc.com/athlete/joanderson-brito",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Melquizael Costa",
+              "athlete_url": "https://www.ufc.com/athlete/melquizael-costa",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Steve Garcia",
+              "athlete_url": "https://www.ufc.com/athlete/steve-garcia",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Aaron Pico",
+              "athlete_url": "https://www.ufc.com/athlete/aaron-pico",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jamall Emmers",
+              "athlete_url": "https://www.ufc.com/athlete/jamall-emmers",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "lightweight",
+          "name": "Lightweight",
+          "source_heading": "Lightweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Justin Gaethje",
+              "athlete_url": "https://www.ufc.com/athlete/justin-gaethje",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Ilia Topuria",
+              "athlete_url": "https://www.ufc.com/athlete/ilia-topuria",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Arman Tsarukyan",
+              "athlete_url": "https://www.ufc.com/athlete/arman-tsarukyan",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Charles Oliveira",
+              "athlete_url": "https://www.ufc.com/athlete/charles-oliveira",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Max Holloway",
+              "athlete_url": "https://www.ufc.com/athlete/max-holloway",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Paddy Pimblett",
+              "athlete_url": "https://www.ufc.com/athlete/paddy-pimblett",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Quillan Salkilld",
+              "athlete_url": "https://www.ufc.com/athlete/quillan-salkilld",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Benoît Saint Denis",
+              "athlete_url": "https://www.ufc.com/athlete/benoit-saint-denis",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Renato Moicano",
+              "athlete_url": "https://www.ufc.com/athlete/renato-moicano",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Mateusz Gamrot",
+              "athlete_url": "https://www.ufc.com/athlete/mateusz-gamrot",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Mauricio Ruffy",
+              "athlete_url": "https://www.ufc.com/athlete/mauricio-ruffy",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tom Nolan",
+              "athlete_url": "https://www.ufc.com/athlete/tom-nolan",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Rafael Fiziev",
+              "athlete_url": "https://www.ufc.com/athlete/rafael-fiziev",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tofiq Musayev",
+              "athlete_url": "https://www.ufc.com/athlete/tofiq-musayev",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Grant Dawson",
+              "athlete_url": "https://www.ufc.com/athlete/grant-dawson",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Esteban Ribovics",
+              "athlete_url": "https://www.ufc.com/athlete/esteban-ribovics",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "welterweight",
+          "name": "Welterweight",
+          "source_heading": "Welterweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Islam Makhachev",
+              "athlete_url": "https://www.ufc.com/athlete/islam-makhachev",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Carlos Prates",
+              "athlete_url": "https://www.ufc.com/athlete/carlos-prates",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Ian Machado Garry",
+              "athlete_url": "https://www.ufc.com/athlete/ian-machado-garry",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Michael Morales",
+              "athlete_url": "https://www.ufc.com/athlete/michael-morales",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jack Della Maddalena",
+              "athlete_url": "https://www.ufc.com/athlete/jack-della-maddalena",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Sean Brady",
+              "athlete_url": "https://www.ufc.com/athlete/sean-brady",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Gabriel Bonfim",
+              "athlete_url": "https://www.ufc.com/athlete/gabriel-bonfim",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Belal Muhammad",
+              "athlete_url": "https://www.ufc.com/athlete/belal-muhammad",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Joaquin Buckley",
+              "athlete_url": "https://www.ufc.com/athlete/joaquin-buckley",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Uroš Medić",
+              "athlete_url": "https://www.ufc.com/athlete/uros-medic",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Leon Edwards",
+              "athlete_url": "https://www.ufc.com/athlete/leon-edwards",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Mike Malott",
+              "athlete_url": "https://www.ufc.com/athlete/mike-malott",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Kamaru Usman",
+              "athlete_url": "https://www.ufc.com/athlete/kamaru-usman",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Yaroslav Amosov",
+              "athlete_url": "https://www.ufc.com/athlete/yaroslav-amosov",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Kevin Holland",
+              "athlete_url": "https://www.ufc.com/athlete/kevin-holland",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Daniel Rodriguez",
+              "athlete_url": "https://www.ufc.com/athlete/daniel-rodriguez",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "middleweight",
+          "name": "Middleweight",
+          "source_heading": "Middleweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Sean Strickland",
+              "athlete_url": "https://www.ufc.com/athlete/sean-strickland",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Khamzat Chimaev",
+              "athlete_url": "https://www.ufc.com/athlete/khamzat-chimaev",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Dricus Du Plessis",
+              "athlete_url": "https://www.ufc.com/athlete/dricus-du-plessis",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Nassourdine Imavov",
+              "athlete_url": "https://www.ufc.com/athlete/nassourdine-imavov",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Brendan Allen",
+              "athlete_url": "https://www.ufc.com/athlete/brendan-allen",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 1"
+            },
+            {
+              "name": "Joe Pyfer",
+              "athlete_url": "https://www.ufc.com/athlete/joe-pyfer",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            },
+            {
+              "name": "Caio Borralho",
+              "athlete_url": "https://www.ufc.com/athlete/caio-borralho",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Gregory Rodrigues",
+              "athlete_url": "https://www.ufc.com/athlete/gregory-rodrigues",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Anthony Hernandez",
+              "athlete_url": "https://www.ufc.com/athlete/anthony-hernandez",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Israel Adesanya",
+              "athlete_url": "https://www.ufc.com/athlete/israel-adesanya",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Ikram Aliskerov",
+              "athlete_url": "https://www.ufc.com/athlete/ikram-aliskerov",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 1"
+            },
+            {
+              "name": "Christian Leroy Duncan",
+              "athlete_url": "https://www.ufc.com/athlete/christian-leroy-duncan",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            },
+            {
+              "name": "Bo Nickal",
+              "athlete_url": "https://www.ufc.com/athlete/bo-nickal",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Abus Magomedov",
+              "athlete_url": "https://www.ufc.com/athlete/abus-magomedov",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Roman Kopylov",
+              "athlete_url": "https://www.ufc.com/athlete/roman-kopylov",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Edmen Shahbazyan",
+              "athlete_url": "https://www.ufc.com/athlete/edmen-shahbazyan",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "light-heavyweight",
+          "name": "Light Heavyweight",
+          "source_heading": "Light Heavyweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Carlos Ulberg",
+              "athlete_url": "https://www.ufc.com/athlete/carlos-ulberg",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Alex Pereira",
+              "athlete_url": "https://www.ufc.com/athlete/alex-pereira",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Magomed Ankalaev",
+              "athlete_url": "https://www.ufc.com/athlete/magomed-ankalaev",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jiří Procházka",
+              "athlete_url": "https://www.ufc.com/athlete/jiri-prochazka",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Paulo Costa",
+              "athlete_url": "https://www.ufc.com/athlete/paulo-costa",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Khalil Rountree Jr.",
+              "athlete_url": "https://www.ufc.com/athlete/khalil-rountree-jr",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Navajo Stirling",
+              "athlete_url": "https://www.ufc.com/athlete/navajo-stirling",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Dominick Reyes",
+              "athlete_url": "https://www.ufc.com/athlete/dominick-reyes",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Reinier de Ridder",
+              "athlete_url": "https://www.ufc.com/athlete/reinier-de-ridder",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Azamat Murzakanov",
+              "athlete_url": "https://www.ufc.com/athlete/azamat-murzakanov",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alonzo Menifield",
+              "athlete_url": "https://www.ufc.com/athlete/alonzo-menifield",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Bogdan Guskov",
+              "athlete_url": "https://www.ufc.com/athlete/bogdan-guskov",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Robert Whittaker",
+              "athlete_url": "https://www.ufc.com/athlete/robert-whittaker",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Muhammad Saidov",
+              "athlete_url": "https://www.ufc.com/athlete/muhammad-said",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Modestas Bukauskas",
+              "athlete_url": "https://www.ufc.com/athlete/modestas-bukauskas",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Abdul Rakhman Yakhyaev",
+              "athlete_url": "https://www.ufc.com/athlete/abdulrakhman-yakhyaev",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "heavyweight",
+          "name": "Heavyweight",
+          "source_heading": "Heavyweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Ciryl Gane",
+              "athlete_url": "https://www.ufc.com/athlete/ciryl-gane",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Tom Aspinall",
+              "athlete_url": "https://www.ufc.com/athlete/tom-aspinall",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Sergei Pavlovich",
+              "athlete_url": "https://www.ufc.com/athlete/sergei-pavlovich",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alex Pereira",
+              "athlete_url": "https://www.ufc.com/athlete/alex-pereira",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alexander Volkov",
+              "athlete_url": "https://www.ufc.com/athlete/alexander-volkov",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Rizvan Kuniev",
+              "athlete_url": "https://www.ufc.com/athlete/rizvan-kuniev",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Josh Hokit",
+              "athlete_url": "https://www.ufc.com/athlete/josh-hokit",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Curtis Blaydes",
+              "athlete_url": "https://www.ufc.com/athlete/curtis-blaydes",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Waldo Cortes Acosta",
+              "athlete_url": "https://www.ufc.com/athlete/waldo-cortes-acosta",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Vitor Petrino",
+              "athlete_url": "https://www.ufc.com/athlete/vitor-petrino",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Mario Pinto",
+              "athlete_url": "https://www.ufc.com/athlete/mario-pinto",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Valter Walker",
+              "athlete_url": "https://www.ufc.com/athlete/valter-walker",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Johnny Walker",
+              "athlete_url": "https://www.ufc.com/athlete/johnny-walker",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Brando Peričić",
+              "athlete_url": "https://www.ufc.com/athlete/brando-pericic",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Serghei Spivac",
+              "athlete_url": "https://www.ufc.com/athlete/serghei-spivac",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Anthony Wint",
+              "athlete_url": "https://www.ufc.com/athlete/anthony-wint",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [
+            "The title panel labels Champion while portrait alt text says interim; the explicit title-panel label is retained."
+          ],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "womens-strawweight",
+          "name": "Women's Strawweight",
+          "source_heading": "Women's Strawweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Mackenzie Dern",
+              "athlete_url": "https://www.ufc.com/athlete/mackenzie-dern",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Zhang Weili",
+              "athlete_url": "https://www.ufc.com/athlete/zhang-weili",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Virna Jandiroba",
+              "athlete_url": "https://www.ufc.com/athlete/virna-jandiroba",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tatiana Suarez",
+              "athlete_url": "https://www.ufc.com/athlete/tatiana-suarez",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Denise Gomes",
+              "athlete_url": "https://www.ufc.com/athlete/denise-gomes",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Gillian Robertson",
+              "athlete_url": "https://www.ufc.com/athlete/gillian-robertson",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Fatima Kline",
+              "athlete_url": "https://www.ufc.com/athlete/fatima-kline",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alexia Thainara",
+              "athlete_url": "https://www.ufc.com/athlete/alexia-thainara",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Loopy Godinez",
+              "athlete_url": "https://www.ufc.com/athlete/loopy-godinez",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank increased by 3"
+            },
+            {
+              "name": "Piera Rodriguez",
+              "athlete_url": "https://www.ufc.com/athlete/piera-rodriguez",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            },
+            {
+              "name": "Yan Xiaonan",
+              "athlete_url": "https://www.ufc.com/athlete/yan-xiaonan",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            },
+            {
+              "name": "Mizuki",
+              "athlete_url": "https://www.ufc.com/athlete/mizuki-inoue",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            },
+            {
+              "name": "Tabatha Ricci",
+              "athlete_url": "https://www.ufc.com/athlete/tabatha-ricci",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jaqueline Amorim",
+              "athlete_url": "https://www.ufc.com/athlete/jaqueline-amorim",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Talita Alencar",
+              "athlete_url": "https://www.ufc.com/athlete/talita-alencar",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Amanda Lemos",
+              "athlete_url": "https://www.ufc.com/athlete/amanda-lemos",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "womens-flyweight",
+          "name": "Women's Flyweight",
+          "source_heading": "Women's Flyweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Natalia Silva",
+              "athlete_url": "https://www.ufc.com/athlete/natalia-silva",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Valentina Shevchenko",
+              "athlete_url": "https://www.ufc.com/athlete/valentina-shevchenko",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alexa Grasso",
+              "athlete_url": "https://www.ufc.com/athlete/alexa-grasso",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Erin Blanchfield",
+              "athlete_url": "https://www.ufc.com/athlete/erin-blanchfield",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Manon Fiorot",
+              "athlete_url": "https://www.ufc.com/athlete/manon-fiorot",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Zhang Weili",
+              "athlete_url": "https://www.ufc.com/athlete/zhang-weili",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jasmine Jasudavicius",
+              "athlete_url": "https://www.ufc.com/athlete/jasmine-jasudavicius",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Rose Namajunas",
+              "athlete_url": "https://www.ufc.com/athlete/rose-namajunas",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Wang Cong",
+              "athlete_url": "https://www.ufc.com/athlete/wang-cong",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Maycee Barber",
+              "athlete_url": "https://www.ufc.com/athlete/maycee-barber",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Tracy Cortez",
+              "athlete_url": "https://www.ufc.com/athlete/tracy-cortez",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Casey O'Neill",
+              "athlete_url": "https://www.ufc.com/athlete/casey-oneill",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Miranda Maverick",
+              "athlete_url": "https://www.ufc.com/athlete/miranda-maverick",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Regina Tarin",
+              "athlete_url": "https://www.ufc.com/athlete/regina-malpica-rivera",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Karine Silva",
+              "athlete_url": "https://www.ufc.com/athlete/karine-silva",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Carli Judice",
+              "athlete_url": "https://www.ufc.com/athlete/carli-judice",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        },
+        {
+          "id": "womens-bantamweight",
+          "name": "Women's Bantamweight",
+          "source_heading": "Women's Bantamweight",
+          "kind": "weight_class",
+          "champions": [
+            {
+              "name": "Kayla Harrison",
+              "athlete_url": "https://www.ufc.com/athlete/kayla-harrison",
+              "status": "champion",
+              "source_status_label": "Champion"
+            }
+          ],
+          "leader": null,
+          "championship_status": "champion",
+          "contenders": [
+            {
+              "name": "Joselyne Edwards",
+              "athlete_url": "https://www.ufc.com/athlete/joselyne-edwards",
+              "rank": 1,
+              "source_rank_label": "1",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Ailin Perez",
+              "athlete_url": "https://www.ufc.com/athlete/ailin-perez",
+              "rank": 2,
+              "source_rank_label": "2",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Norma Dumont",
+              "athlete_url": "https://www.ufc.com/athlete/norma-dumont",
+              "rank": 3,
+              "source_rank_label": "3",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Luana Santos",
+              "athlete_url": "https://www.ufc.com/athlete/luana-santos",
+              "rank": 4,
+              "source_rank_label": "4",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Julianna Peña",
+              "athlete_url": "https://www.ufc.com/athlete/julianna-pena",
+              "rank": 5,
+              "source_rank_label": "5",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Yana Santos",
+              "athlete_url": "https://www.ufc.com/athlete/yana-santos",
+              "rank": 6,
+              "source_rank_label": "6",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Jacqueline Cavalcanti",
+              "athlete_url": "https://www.ufc.com/athlete/jacqueline-cavalcanti",
+              "rank": 7,
+              "source_rank_label": "7",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Michelle Montague",
+              "athlete_url": "https://www.ufc.com/athlete/michelle-montague",
+              "rank": 8,
+              "source_rank_label": "8",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Melissa Croden",
+              "athlete_url": "https://www.ufc.com/athlete/melissa-croden",
+              "rank": 9,
+              "source_rank_label": "9",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Karol Rosa",
+              "athlete_url": "https://www.ufc.com/athlete/karol-rosa",
+              "rank": 10,
+              "source_rank_label": "10",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Bia Mesquita",
+              "athlete_url": "https://www.ufc.com/athlete/bia-mesquita",
+              "rank": 11,
+              "source_rank_label": "11",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": ""
+            },
+            {
+              "name": "Alice Pereira",
+              "athlete_url": "https://www.ufc.com/athlete/alice-pereira",
+              "rank": 12,
+              "source_rank_label": "12",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "NR"
+            },
+            {
+              "name": "Nora Cornolle",
+              "athlete_url": "https://www.ufc.com/athlete/nora-cornolle",
+              "rank": 13,
+              "source_rank_label": "13",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            },
+            {
+              "name": "Macy Chiasson",
+              "athlete_url": "https://www.ufc.com/athlete/macy-chiasson",
+              "rank": 14,
+              "source_rank_label": "14",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "Rank decreased by 1"
+            },
+            {
+              "name": "Chelsea Chandler",
+              "athlete_url": "https://www.ufc.com/athlete/chelsea-chandler",
+              "rank": 15,
+              "source_rank_label": "15",
+              "source_tie_marker": false,
+              "tied": false,
+              "tie_size": 1,
+              "rank_change_label": "NR"
+            }
+          ],
+          "vacancies": [],
+          "empty_reason": null,
+          "data_quality_notes": [],
+          "missing_ranks": [],
+          "missing_rank_reasons": {},
+          "published_contender_count": 15,
+          "unpublished_rank_slots": []
+        }
+      ]
+    }
+  ],
+  "historical_model_feature_eligible": false,
+  "limitations": [
+    "This is a captured current ranking snapshot, not a point-in-time historical rank archive.",
+    "Media-panel and Meta positions are separate publisher systems and must not be combined.",
+    "Only publisher-listed divisions and athletes are included; missing ranks and vacancies remain explicit."
+  ],
+  "snapshot_sha256": "087aa23e907078e254f3bf09390fe0f82778ae554060b304fb2b305c4d2e3390"
+}

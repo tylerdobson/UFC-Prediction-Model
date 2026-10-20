@@ -183,3 +183,22 @@ def load_saved_forecast(report_path: str | Path | None = None, *,
                 "market_freshness_basis": "forecast_cutoff_only", "report": report, "artifacts": artifacts}
     except (OSError, ValueError, TypeError, KeyError, OverflowError, RecursionError):
         return _unavailable()
+
+
+def load_mysql_saved_forecast(*, project_root=None, as_of=None):
+    """Resolve the published MySQL edition and verify its downloadable exports."""
+    from .mysql_delivery import load_document
+    try:
+        release = load_document('forecast-release', 'current', as_of=as_of)
+        report = load_document('forecast', 'current', as_of=as_of)
+        if not release or not report:
+            return _unavailable()
+        saved = load_saved_forecast(release['json_path'], project_root=project_root, as_of=as_of)
+        if (saved['status'] != 'available' or saved['report'] != report
+                or saved['artifacts']['json']['sha256'] != release['json_sha256']):
+            return _unavailable()
+        saved['database_backend'] = 'mysql'
+        return saved
+    except Exception:
+        # Database failures must not expose credentials or select an old file edition.
+        return _unavailable()

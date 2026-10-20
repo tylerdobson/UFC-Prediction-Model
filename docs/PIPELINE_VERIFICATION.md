@@ -1,3 +1,35 @@
+# Native MySQL verification — October 20, 2026 UTC
+
+Observed local results for the MySQL-first migration. This is bounded evidence, not an uptime or future accuracy claim.
+
+| Check | Observed result |
+|---|---|
+| Server | MySQL 8.4.11, project instance on 127.0.0.1:3307 |
+| Migration | Three retained datasets imported with original file SHA, logical row checksum and counts verified |
+| Original evidence | All 20 protected artifact hashes unchanged |
+| Native refresh | `20261020T030415Z-f1bcb649f5` succeeded in 28.1 seconds, directly from CSV to MySQL |
+| Archive | 793 cards, 8,950 bouts, 4,629 profiles, 17,636 fighter-bout and 41,514 fighter-round facts |
+| Quality | 8,818 usable paired-stat bouts; 132 held source bouts retained |
+| Controlled quality failure | `20261020T031149Z-a3e1e71b23` failed at `quality`; active statistics alias unchanged; SQLite connections prohibited during the exercise |
+| Legacy/native parity | All 8,748 research feature rows, prior records, coverage, sampled profiles/rounds and rosters match |
+| Forecast parity | Native MySQL reproduction matches all six delivered V6 probabilities and all eight held matchups exactly |
+| Demo | One-command native demo succeeded; separate synthetic role/namespace; no real alias or warehouse activation |
+| Default full suite | 664 tests, OK; 17 optional integration/dependency checks skipped |
+| Selected MySQL-enabled suite | 58 tests, all passed, including runtime, enrichment/restoration, delivery, maintenance, demo and actual-project AppTest |
+| Browser | Seven tabs, six matchup switches, chart tooltips, source-bound downloads and responsive layouts passed |
+
+The native suite verifies real foreign-key enforcement, published-data immutability, isolated snapshot restore, concurrent hash-chain appends, document version guards, alias rollback, profile enrichment and held-bout restoration without SQLite staging. Backup restoration verifies dataset and global delivery evidence in new recovery namespaces without activating them. Native demo and actual-project page tests prohibit SQLite connections.
+
+The browser loaded all 12 official portraits, matched PDF/CSV downloads byte for byte, exercised 1600/1280/1024/768/390-pixel widths, and observed no page overflow or JavaScript/framework exceptions. [Actual dashboard capture](assets/screenshots/ufc-dashboard.png). Docker is unavailable in this local environment; container startup is covered by focused tests and the disposable-server CI definition, not a local Docker execution claim.
+
+V7 ran against `mysql:research-complete` and the pinned imported `mysql:statistics-v6`. Its selected 43-feature style/finish/opponent candidate scored 61.16% accuracy / 0.65386 log loss versus V6's 61.30% / 0.65217 on the reused 1,447-bout historical benchmark. V6 remains delivered. [Retained experiment](../reports/mysql-v7-20261020/).
+
+The existing 09:00 local launchd schedule now reads the native MySQL configuration. Earlier manual launchd execution and notification delivery are recorded below. The new source refresh was invoked directly, so it is not a new scheduled-execution observation. A successful notification command does not establish that macOS displayed a banner.
+
+The records below describe the prior architecture and remain as historical operational evidence. Use [MySQL runtime](MYSQL_RUNTIME.md) for current operation.
+
+---
+
 # Local pipeline verification — October 19, 2026
 
 This is a bounded verification record for the delivered case study. It describes

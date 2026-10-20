@@ -155,6 +155,10 @@ def _view_sql():
 
 
 def _hash(path):
+    from .mysql_runtime import is_mysql_target
+    if is_mysql_target(path):
+        from .model_lab import file_sha256
+        return file_sha256(path)
     result=hashlib.sha256()
     with Path(path).open('rb') as stream:
         for block in iter(lambda:stream.read(1024*1024),b''):result.update(block)
@@ -211,8 +215,10 @@ class Snapshot:
 def read_snapshot(statistics_db,source_sha256=None):
     """Validate and materialize the read-only source before opening MySQL."""
     from .historical_stats import FIELDS,HistoryStore
-    path=Path(statistics_db).resolve()
-    if not path.is_file():raise WarehouseError('Canonical statistics database does not exist')
+    from .mysql_runtime import is_mysql_target
+    mysql=is_mysql_target(statistics_db)
+    path=statistics_db if mysql else Path(statistics_db).resolve()
+    if not mysql and not path.is_file():raise WarehouseError('Canonical statistics database does not exist')
     digest=_hash(path)
     if source_sha256 is not None and _sha(source_sha256,'source')!=digest:raise WarehouseError('Statistics database SHA256 does not match the requested source')
     if set(FIELDS)!=set(STAT_FIELDS):raise WarehouseError('Canonical statistics fields differ from warehouse schema')
@@ -318,6 +324,9 @@ def _configuration():
 
 
 def _connect(connector):
+    if connector is None:
+        from .mysql_runtime import connect_server
+        return connect_server()
     config=_configuration()
     if connector is None:
         try:import pymysql

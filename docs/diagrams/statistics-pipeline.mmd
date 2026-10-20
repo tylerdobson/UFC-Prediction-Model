@@ -1,53 +1,41 @@
-%% Reproducible source for statistics-pipeline.svg and statistics-pipeline.png.
-%% Solid arrows: data / published artifacts. Dashed arrows: control or separate use.
+%% Editable source for the committed SVG and PNG.
 flowchart TB
-    accTitle: UFC Forecast statistics pipeline
-    accDescr: A local batch pipeline accepts a pinned real archive or labeled offline synthetic fixtures, verifies raw hashes, validates identities and paired rounds, and normalizes SQLite facts and held gaps. Scheduled refreshes apply nonempty and retention gates, optionally publish MySQL, then activate a local ready pointer. Separate report and research invocations read SQLite; the offline demo asserts its own expected quality gaps and the research model uses strictly earlier observations. Local launchd scheduling and run receipts provide operational evidence without claiming continuous uptime.
-
-    subgraph INPUTS["01 / TWO DISTINCT INPUTS"]
-        REAL["Real archive<br/>Pinned Git commit + CSVs"]
-        DEMO["Offline demo<br/>Synthetic CSVs · no network"]
+    accTitle: UFC Forecast MySQL architecture
+    accDescr: Immutable source captures normalize directly into versioned MySQL datasets. Quality checks precede activation. Native operating records, research data, published rankings, forecasts and append-only forward ledgers remain separate. Streamlit reads committed MySQL evidence and verified report exports. Scheduled refreshes retain run receipts and notify on failures.
+    subgraph SOURCES["01 / SOURCE EVIDENCE"]
+        ARCHIVE["Pinned UFCStats archive<br/>CSV bytes + source hashes"]
+        RANKINGS["Official UFC rankings<br/>Meta + media · champion + top 15"]
+        LEGACY["Retained legacy evidence<br/>One-time read-only import"]
     end
-
-    RAW["Immutable raw capture<br/>Hashes + byte-count receipts"]
-    VALIDATE["Validate observations<br/>Exact IDs + paired rounds<br/>Missing fields stay NULL"]
-    SQLITE[("Normalized SQLite<br/>Dimensions + bout / round facts<br/>Held records + raw receipts")]
-    GATE["Scheduled refresh quality<br/>Nonempty + ≥90% retention*<br/>Failure keeps last ready"]
-
-    READY["Local ready version<br/>Verified pointer + coverage"]
-    REPORTS["Separate card / demo report<br/>HTML · CSV · JSON<br/>Demo quality assertions"]
-    MYSQL[("Optional MySQL 8.4<br/>Versioned facts + provenance<br/>Atomic load / verify / activate")]
-    VIEWS["Active-version SQL views<br/>Coverage · history · quality"]
-    MODEL["Separate research model<br/>Past-only dates + embargo<br/>Frozen forecasts / evaluation"]
-
-    OPS["Local refresh control<br/>launchd · 09:00 local / manual"]
-    RECEIPTS["Every refresh: run receipt<br/>Stage timings + hashes<br/>Failure: local Mac notification"]
-
-    REAL --> RAW
-    DEMO --> RAW
-    RAW --> VALIDATE --> SQLITE
-    SQLITE --> GATE
-    SQLITE --> REPORTS
-    SQLITE -.-> MODEL
-    GATE -->|local-only run| READY
-    GATE -->|explicit MySQL opt-in| MYSQL
-    MYSQL --> READY
-    MYSQL --> VIEWS
-    OPS -.->|starts refresh| RAW
-    OPS -.-> RECEIPTS
-
-    classDef source fill:#eef4f2,stroke:#54796c,color:#17382d,stroke-width:1.5px;
-    classDef synthetic fill:#fff4e5,stroke:#b78a47,color:#66451f,stroke-width:1.5px;
-    classDef process fill:#ffffff,stroke:#63786e,color:#1d352b,stroke-width:1.5px;
+    RAW["Immutable file archive<br/>Capture time · SHA-256 · provenance"]
+    BUILD["Native MySQL normalization<br/>Exact identities · paired rounds<br/>Missing values stay NULL"]
+    GATE["Quality gates<br/>Nonempty + retention threshold<br/>Held rows stay inspectable"]
+    MYSQL[("MySQL 8.4 / InnoDB<br/>Versioned statistics + research datasets<br/>Operating records + source receipts")]
+    PUBLISH["Verified publication<br/>Atomic dataset alias + receipt<br/>Versioned analytical SQL views"]
+    DELIVERY[("MySQL delivery evidence<br/>Rankings · evaluations · frozen reports<br/>Append-only forecast hash chain")]
+    MODEL["Separate research evaluation<br/>Earlier fights + date embargo<br/>Style · finishes · opponent strength"]
+    APP["Read-only Streamlit dashboard<br/>Card · history · model · quality<br/>Ledgers · forward test · rankings"]
+    FILES["Verified report exports<br/>PDF · HTML · CSV · JSON"]
+    OPS["Local scheduling / manual refresh<br/>launchd 09:00 · run receipts<br/>Failure: Mac notification"]
+    DEMO["Isolated synthetic MySQL demo<br/>Same parser · explicit quality fixtures<br/>Never activates the real archive"]
+    ARCHIVE --> RAW --> BUILD --> GATE --> MYSQL --> PUBLISH
+    LEGACY -.->|migration only| MYSQL
+    RANKINGS --> RAW
+    RANKINGS --> DELIVERY
+    PUBLISH --> MODEL --> DELIVERY
+    PUBLISH --> APP
+    DELIVERY --> APP
+    DELIVERY --> FILES --> APP
+    OPS -.-> BUILD
+    OPS -.-> GATE
+    DEMO -.-> BUILD
+    classDef source fill:#eef4f2,stroke:#54796c,color:#17382d;
+    classDef process fill:#fff,stroke:#63786e,color:#1d352b;
     classDef store fill:#e8f1ed,stroke:#28745d,color:#173b2c,stroke-width:2px;
-    classDef quality fill:#fff5e8,stroke:#aa7636,color:#66451f,stroke-width:1.8px;
-    classDef ops fill:#f0f2f5,stroke:#788697,color:#354457,stroke-width:1.3px,stroke-dasharray:5 3;
-    classDef research fill:#f2eff7,stroke:#8e7da6,color:#55446c,stroke-width:1.4px;
-    class REAL source;
-    class DEMO synthetic;
-    class RAW,VALIDATE,READY,REPORTS,VIEWS process;
-    class SQLITE,MYSQL store;
-    class GATE quality;
-    class OPS,RECEIPTS ops;
-    class MODEL research;
-    style INPUTS fill:#fafbf9,stroke:#d7e1db,stroke-width:1px,color:#53695e
+    classDef gate fill:#fff5e8,stroke:#aa7636,color:#66451f;
+    classDef research fill:#f2eff7,stroke:#8e7da6,color:#55446c;
+    class ARCHIVE,RANKINGS,LEGACY,RAW source;
+    class BUILD,PUBLISH,APP,FILES process;
+    class MYSQL,DELIVERY store;
+    class GATE,DEMO gate;
+    class MODEL,OPS research;

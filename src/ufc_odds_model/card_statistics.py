@@ -121,6 +121,10 @@ def _count(value: Any) -> float | None:
 
 
 def _file_sha(path: str | Path) -> str:
+    from .mysql_runtime import is_mysql_target
+    if is_mysql_target(path):
+        from .model_lab import file_sha256
+        return file_sha256(path)
     with Path(path).open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
@@ -231,6 +235,19 @@ def fighter_statistics(store: Any, fighter_id: str | None, name: str, before_dat
 
 
 def _history_event(path: str | Path, event_id: str) -> tuple[dict, list[dict]] | None:
+    from .mysql_runtime import is_mysql_target
+    if is_mysql_target(path):
+        from .model_lab import read_only
+        with read_only(path) as connection:
+            row = connection.execute('SELECT event_id,name,event_date FROM events WHERE event_id=?', (event_id,)).fetchone()
+            if row is None:
+                return None
+            bouts = [dict(item) for item in connection.execute(
+                'SELECT b.bout_id,b.fighter_a_id,b.fighter_b_id,b.weight_class,b.scheduled_rounds,'
+                'a.canonical_name AS fighter_a_name,z.canonical_name AS fighter_b_name FROM bouts b '
+                'JOIN fighters a ON a.fighter_id=b.fighter_a_id JOIN fighters z ON z.fighter_id=b.fighter_b_id '
+                'WHERE b.event_id=? ORDER BY b.bout_id', (event_id,))]
+            return {**dict(row), 'roster_basis': 'retained_mysql_research_dataset'}, bouts
     path = Path(path).expanduser()
     if path.is_symlink() or not path.is_file():
         raise ValueError("The optional history database must be a regular retained file")
@@ -438,8 +455,8 @@ def render_html(report: Mapping[str, Any]) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--stats-db", required=True, type=Path)
-    parser.add_argument("--history", type=Path)
+    parser.add_argument("--stats-db", default='mysql:statistics')
+    parser.add_argument("--history", default='mysql:research-complete')
     target = parser.add_mutually_exclusive_group(required=True)
     target.add_argument("--event-id")
     target.add_argument("--card", type=Path)

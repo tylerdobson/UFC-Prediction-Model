@@ -5,6 +5,9 @@ ENV PYTHONUNBUFFERED=1 \
     UV_LINK_MODE=copy \
     HOME=/tmp \
     XDG_CACHE_HOME=/tmp/cache \
+    UFC_MODEL_DB=mysql:operating \
+    UFC_MODEL_HISTORY_DB=mysql:research-complete \
+    UFC_MODEL_STATISTICS_DB=mysql:statistics \
     PATH=/app/.venv/bin:$PATH
 
 WORKDIR /app
@@ -20,7 +23,7 @@ COPY output/pdf/UFC-333-V6-Full-Statistics-Report.pdf ./output/pdf/UFC-333-V6-Fu
 COPY .streamlit/config.toml ./.streamlit/config.toml
 COPY scripts/dashboard-container-entrypoint.sh ./scripts/dashboard-container-entrypoint.sh
 
-RUN uv sync --frozen --extra dashboard --no-dev --python /usr/local/bin/python \
+RUN uv sync --frozen --extra dashboard --extra warehouse --no-dev --python /usr/local/bin/python \
     && chmod 755 ./scripts/dashboard-container-entrypoint.sh
 
 USER 10001:10001

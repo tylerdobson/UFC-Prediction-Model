@@ -1,6 +1,7 @@
 """Canonical, source-backed UFC statistics history, separate from target labels.
 
-Builds a new SQLite store from a retained archive. All source rounds survive
+Builds a new MySQL dataset from a retained archive by default. Explicit legacy
+SQLite destinations remain available for isolated fixtures. All source rounds survive
 intake; only unambiguous, complete paired rounds become model records. Public
 roster APIs never expose target outcomes. Archive reach is an approximate
 static attribute, not evidence of historical measurement availability.
@@ -33,6 +34,10 @@ def _json(value):
 
 
 def _sha(path):
+    from .mysql_runtime import is_mysql_target
+    if is_mysql_target(path):
+        from .model_lab import file_sha256
+        return file_sha256(path)
     h = hashlib.sha256()
     with Path(path).open("rb") as stream:
         for part in iter(lambda: stream.read(1024 * 1024), b""):
@@ -147,22 +152,33 @@ def _content_hash(connection):
 
 
 def _connection(path):
+    from .mysql_runtime import connect_dataset, is_mysql_target
+    if is_mysql_target(path):
+        return connect_dataset(path, readonly=True)
     con = sqlite3.connect("file:" + quote(str(Path(path).resolve()), safe="/") + "?mode=ro", uri=True)
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA query_only=ON")
     return con
 
 
-def build_history(archive_manifest, database_path, research_database_path=None):
+def build_history(archive_manifest, database_path, research_database_path=None, *, dataset_role='statistics'):
     """Create once, or verify and reuse an identical existing store.
 
     Changed inputs never overwrite a prior store. Build into a different path
     for a new archive. No research labels, source bytes or old DBs are written.
     """
-    archive_manifest, database_path = Path(archive_manifest).resolve(), Path(database_path).resolve()
+    from .mysql_runtime import (create_dataset, dataset_exists, dataset_name,
+                                finalize_dataset, is_mysql_target)
+    mysql = is_mysql_target(database_path)
+    if dataset_role not in {'statistics', 'synthetic'}:
+        raise ValueError('Canonical history requires a statistics or isolated synthetic dataset role')
+    archive_manifest = Path(archive_manifest).resolve()
+    database_path = ('mysql:' + dataset_name(database_path)) if mysql else Path(database_path).resolve()
     manifest = json.loads(archive_manifest.read_text())
     if manifest.get("schema_version") != 1:
         raise ValueError("Unsupported archive manifest")
+    if mysql and (manifest.get('synthetic') is True) != (dataset_role == 'synthetic'):
+        raise ValueError('Synthetic manifests require an isolated synthetic MySQL dataset role')
     captured = datetime.fromisoformat(manifest["captured_at_utc"].replace("Z", "+00:00"))
     if captured.tzinfo is None:
         raise ValueError("Source capture needs timezone")
@@ -173,23 +189,29 @@ def build_history(archive_manifest, database_path, research_database_path=None):
             raise ValueError("Archive bytes changed: " + name)
     history_hash = _sha(research_database_path) if research_database_path else None
     inputs = {"protocol": PROTOCOL, "source_manifest_sha256": _sha(archive_manifest), "research_database_sha256": history_hash, "builder_implementation_sha256": _sha(__file__)}
-    if database_path.exists():
+    if mysql:
+        inputs.update(dataset_role=dataset_role, synthetic=manifest.get('synthetic') is True)
+    if (dataset_exists(database_path) if mysql else database_path.exists()):
         with HistoryStore(database_path) as existing:
             if any(existing.metadata.get(k) != v for k, v in inputs.items()):
                 raise ValueError("Existing statistics store has different inputs; choose a new database path")
             return {**existing.metadata, "database_path": str(database_path), "idempotent_reuse": True}
-    if database_path.is_symlink():
+    if not mysql and database_path.is_symlink():
         raise ValueError("Statistics destination cannot be a symlink")
     events_raw, results_raw, rounds_raw, profiles_raw = [_read_csv(archive_manifest.parent / n) for n in FILES]
-    database_path.parent.mkdir(parents=True, exist_ok=True)
-    # Exclusive creation prevents replacing any existing DB between checks.
-    with database_path.open("xb"):
-        pass
-    con = sqlite3.connect(database_path)
-    con.row_factory = sqlite3.Row
+    if mysql:
+        con = create_dataset(SCHEMA, dataset=database_path, role=dataset_role)
+    else:
+        database_path.parent.mkdir(parents=True, exist_ok=True)
+        # Exclusive creation prevents replacing any existing DB between checks.
+        with database_path.open("xb"):
+            pass
+        con = sqlite3.connect(database_path)
+        con.row_factory = sqlite3.Row
     try:
         con.execute("PRAGMA foreign_keys=ON")
-        con.executescript(SCHEMA)
+        if not mysql:
+            con.executescript(SCHEMA)
         con.execute("BEGIN")
         con.executemany("INSERT INTO source_files VALUES(?,?,?,?)", [(n, files[n]["sha256"], files[n]["source_url"], (archive_manifest.parent / n).stat().st_size) for n in FILES])
         profile_names = defaultdict(list)
@@ -282,12 +304,15 @@ def build_history(archive_manifest, database_path, research_database_path=None):
         con.executemany("INSERT INTO metadata VALUES(?,?)", [(k, _json(v)) for k, v in metadata.items()])
         con.commit()
         assert con.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+        if mysql:
+            finalize_dataset(con, metadata)
     except BaseException:
         con.rollback()
         con.close()
         # Only this invocation's exclusively created output can reach here.
         # Existing stores returned or failed validation before creation.
-        database_path.unlink(missing_ok=True)
+        if not mysql:
+            database_path.unlink(missing_ok=True)
         raise
     finally:
         con.close()
@@ -375,8 +400,9 @@ class FighterBoutStats:
 
 
 class HistoryStore:
-    def __init__(self, path, *, verify=True):
-        self.path = Path(path).resolve()
+    def __init__(self, path='mysql:statistics', *, verify=True):
+        from .mysql_runtime import dataset_name, is_mysql_target
+        self.path = ('mysql:' + dataset_name(path)) if is_mysql_target(path) else Path(path).resolve()
         self.connection = _connection(self.path)
         try:
             self.metadata = {r[0]: json.loads(r[1]) for r in self.connection.execute("SELECT * FROM metadata")}
@@ -507,7 +533,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--archive", required=True)
     parser.add_argument("--history")
-    parser.add_argument("--db", required=True)
+    parser.add_argument("--db", default='mysql:statistics', help='MySQL dataset; an explicit legacy file is also accepted')
     parser.add_argument("--coverage-json")
     parser.add_argument("--coverage-csv")
     args = parser.parse_args(argv)

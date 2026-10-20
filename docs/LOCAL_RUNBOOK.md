@@ -1,81 +1,158 @@
 # Local operator runbook
 
-This is a **pre-fight, read-only dashboard plus CLI workflow** for one operator. The CLI imports sources, evaluates models, checks fresh prices, and records paper decisions. The dashboard reads saved evidence. Neither component places a wager or delivers a notification. Use the [source decision record](DATA_SOURCE_DECISION.md) before connecting an account.
+Normal CLI, model research, dashboard, rankings and forecast tracking use native
+MySQL. The dashboard reads committed evidence; CLI commands perform explicit
+imports, model evaluations and ledger writes. Scheduled source failures use local
+Mac notifications. No component places a wager.
 
-## First local setup
+## Set up the local runtime
 
 Use Python 3.11 or newer from the repository root:
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e '.[dashboard]'
-ufc-model init-db
-python -m unittest discover -s tests -v
+```sh
+uv sync --frozen --all-extras
+.venv/bin/python scripts/local_mysql.py setup
+.venv/bin/python scripts/local_mysql.py install-service
+.venv/bin/python scripts/local_mysql.py status
+.venv/bin/ufc-mysql init
+./scripts/demo.sh
 ```
 
-`init-db` creates the current schema in a new or empty `data/ufc.sqlite`. Ordinary CLI commands require an initialized, current schema and do not create or upgrade a database. If you install a newer project version over an existing database, stop other jobs and run the explicit [backup-gated migration](BACKUP_RUNBOOK.md#upgrade-an-existing-database) before importing or scoring. `init-db` refuses to upgrade an existing database. Keep `data/`, `models/`, and `reports/` out of Git. For a completely separate fictional walkthrough, use a new database path and mark every resulting screen as demo:
+The [project MySQL guide](LOCAL_MYSQL.md) describes the separate loopback instance
+on port 3307, its owner-private configuration and recovery credentials. Existing
+server users can configure a dedicated database instead. MySQL outages fail
+clearly; local SQLite files are never selected as fallback.
 
-```bash
-ufc-model --db data/demo.sqlite init-db
-ufc-model --db data/demo.sqlite seed-demo
-ufc-model --db data/demo.sqlite score-event demo-upcoming
-UFC_MODEL_DB=data/demo.sqlite python -m streamlit run app.py --server.address 127.0.0.1
+The demo uses a separate, explicitly synthetic MySQL namespace. It neither
+activates the real archive nor establishes a market signal. For existing retained
+local research/report evidence, follow [MySQL bootstrap](MYSQL_RUNTIME.md):
+
+```sh
+.venv/bin/ufc-mysql bootstrap --project-root . \
+  --receipt output/NEW-MIGRATION/receipt.json
+.venv/bin/ufc-pipeline refresh
+.venv/bin/ufc-pipeline status
+.venv/bin/streamlit run app.py --server.address 127.0.0.1
 ```
 
-The demo contains no real market signal. It has too little history for the calibrated logistic gate and cannot exercise a real live odds check.
+Bootstrap requires the ignored retained inputs and fails clearly when they are
+absent from a clean clone. It verifies/imports originals read-only; it is not a
+source download command. A fresh installation can use the native synthetic demo
+and then configure/capture real sources. Keep raw evidence, backups and private
+configuration outside Git; preserve versioned release/report artifacts according
+to the repository's existing policy.
+
+## Know the data boundaries
+
+| Handle | Purpose |
+|---|---|
+| `mysql:operating` | Current source receipts, cards, quotes, predictions and separate paper/actual ledgers |
+| `mysql:research-complete` | Immutable research labels and retained profile evidence |
+| `mysql:statistics` | Latest quality-approved archive alias |
+| `mysql:statistics-v6` | Pinned archive for frozen model reproduction |
+| `mysql:forecast` | Hash-chained frozen forecasts and later settlements |
+
+Research history is retrospective evidence. A current official athlete fact or
+ranking is descriptive context unless its historical publication timing has been
+verified. Refreshing sources does not retrain a model or promote a new candidate.
+Inspect [model/runtime evidence](MYSQL_RUNTIME.md) and the saved evaluations before
+using an edition. Forecast records, paper decisions and actual wagers are
+separate records; an empty actual-wager ledger stays empty.
 
 ## Configure real sources
 
-The operator approved free API accounts. Obtain keys through the providers' own account pages and check that each account's terms permit this project's intended use. Create a `.env` file from `.env.example` if you do not already have one, then put `ODDS_API_KEY=...` on its own line. Keep the file private:
+Keep source/API credentials separate from database connection settings. Source
+adapters read their documented environment variables and the CLI's private
+`.env` file; keep that file outside Git with mode `0600`. Never paste keys into
+reports, screenshots or chat. Review the [source decision record](DATA_SOURCE_DECISION.md)
+and each account's permitted use before collection or publication. Source limits
+and rights are separate from database setup and model performance.
 
-```bash
-chmod 600 .env
+Retained [Wikipedia history](WIKIPEDIA_HISTORY_SOURCE.md) and static profile data
+remain research evidence with their own receipts. Use explicit MySQL research
+namespaces and preserve originals when reproducing those imports. A later fetch
+or imported timestamp does not establish what was known before a past fight.
+
+## Refresh and inspect evidence
+
+```sh
+.venv/bin/ufc-pipeline refresh
+.venv/bin/ufc-pipeline status
+.venv/bin/ufc-mysql inspect mysql:statistics
+.venv/bin/ufc-mysql rankings
+.venv/bin/python -m ufc_odds_model.integrity \
+  --db mysql:operating --project-root . --output reports/integrity.json
+.venv/bin/ufc-model --db mysql:operating audit
 ```
 
-The CLI reads `.env` automatically from its current working directory. An exported shell variable takes precedence. Keep the key out of chat, Git, the dashboard, and bug reports.
+The pipeline pins the upstream source commit, normalizes CSVs directly into a
+new MySQL version, checks coverage and publishes its receipt. The statistics alias
+and receipt commit together; analytical warehouse views publish in a separate
+transaction. Run logs identify interrupted stages. Replaying the same inputs
+verifies/reuses the version. Optional missing statistics stay null and held
+identity/round records remain visible as gaps.
 
-The Odds API free tier can collect prospective snapshots, while historical odds generally need a paid plan. A reviewed rights-cleared CSV import is supported for fight history. The optional Sportradar adapter is for permitted internal source evaluation; its current free-trial terms restrict publication/display and require express written approval for betting-related use. Do not run a decision workflow on trial data without the appropriate rights. Read [DATA_SOURCE_DECISION.md](DATA_SOURCE_DECISION.md) for the checked limits and terms.
+Official rankings keep Meta and media sets separate, preserve ties and expose
+source update labels separately from capture time. Current ranks are not inputs
+to historical model evaluation. The [pipeline runbook](PIPELINE_OPERATIONS.md)
+covers the existing daily 09:00 local schedule and failure notifications.
 
-For a broad outcome-history research dataset, run the [Wikipedia year-range and embedded-card importers](WIKIPEDIA_HISTORY_SOURCE.md) in their **own** database. The year, event, and summary pages are retained with hashes and revision metadata. Open the generated review JSON files before using the results, then run integrity, audit, and the research-only Elo backtest. The [dataset card](RESEARCH_DATASET_CARD.md) records the checked 1993–2026 coverage and rebuild sequence. To inspect that database beside an operating card in the dashboard, set `UFC_MODEL_HISTORY_DB=data/ufc_research_2011_2025.sqlite` while `UFC_MODEL_DB` points to the operating database. The legacy filename contains the expanded history and remains labeled as research data. Its historical and retrospective views cannot pass live alert or paper-bet gates; the operating database stays separate.
+Source-integrity checks inspect actual MySQL schema/FKs and hash retained files.
+An unavailable file, changed hash or unresolved identity needs review before its
+rows are relied on. The check does not turn retrospective data into verified
+pre-fight evidence.
 
-A Wikipedia batch can leave earlier event commits in place if a later event fails; its review JSON is published only after full success. Follow the [partial-import recovery procedure](WIKIPEDIA_HISTORY_SOURCE.md) before relying on a report from that run.
+## Before and after a card
 
-## Before an event
+1. Import a reviewed, dated roster/results source with `ufc-model --db
+   mysql:operating import-csv PATH`. Check replacements, cancellations, event
+   identity and UTC start time. Use the [CSV template](../examples/bouts_template.csv)
+   and [dated observation guide](POINT_IN_TIME_OBSERVATIONS.md) for attribution
+   and publication timing. Resolve provider IDs explicitly; do not guess aliases.
+2. Run integrity and `audit` after imports. Review source age, missing facts,
+   chronological evaluation coverage and saved model version/cutoff. A research
+   probability alone does not satisfy operating decision gates.
+3. If prospective odds collection is configured, use `import-odds` or the explicit
+   scheduled odds commands. Credentials belong in private configuration, never
+   report exports. Read the [source decision record](DATA_SOURCE_DECISION.md)
+   before connecting accounts or using licensed feeds.
+4. `alert-event` and `paper-trade` independently refresh prices and apply roster,
+   quote and model-readiness checks. Missing verified evidence produces a hold.
+   Review exact command options with `--help`. No API key or verified future
+   roster means no new live gate approval. Saved prices are observational.
+5. After verified results, run `audit`, settle the applicable paper/forecast
+   records, and review exceptional outcomes. Record an actual wager only if it
+   was independently placed, using its accepted price and bookmaker settlement.
 
-1. Import a dated UFC card and historical results with `ufc-model import-csv path/to/reviewed_bouts.csv` from a source you have rights to use. For the upcoming card, fill `source_observed_at_utc`, source attribution, and reviewer fields in the [CSV template](../examples/bouts_template.csv). A missing or older-than-24-hour roster observation cannot pass the alert gate. A licensed production feed can be added after its scope is checked; the Sportradar trial is not the default source for this betting decision workflow. Link known cross-provider fighter IDs with `link-fighter` **before** mixing provider histories. Review replacements, cancellations, event status, and UTC start time against the source. Import [dated profile and stat observations](POINT_IN_TIME_OBSERVATIONS.md) only when their publication times and usage rights are verified.
-2. Run `python -m ufc_odds_model.integrity --db data/ufc.sqlite --output reports/integrity.json` from the repository root. It checks SQLite integrity, applied migrations, foreign keys, and the SHA-256 of every saved source payload without writing to the database. A missing, changed, or unreadable payload must be investigated before relying on its rows. The ignored JSON report records the last check for the dashboard. Then run `ufc-model audit` and resolve identity, status, timing, and result errors. If the current roster cannot be verified, leave the event unavailable.
-3. Run `ufc-model evaluate --decision-hours-before-event 24 --output reports/evaluation.json` after adding enough history. Historical targets require a scheduled roster snapshot captured before the decision, and prior results require completed snapshots captured before that decision. Backdated timestamps and revision labels on CSV files imported afterward cannot qualify. Inspect excluded target counts, train/validation/test sizes, calibration, bookmaker coverage, and missing metrics. `null` ROI means there were no qualifying historical prices; it is not zero return. Re-run the evaluation when the reviewed history or cutoff policy changes.
-4. With `ODDS_API_KEY` set, run `ufc-model alert-event EVENT_ID --model elo --max-age-seconds 60 --decimal-odds-drift 0.05 --min-ev 0.03`. This fetches a new odds snapshot and saves explicit accepted/rejected gate checks linked to the roster snapshot. Run `ufc-model paper-trade EVENT_ID --bankroll-units 1000` when ready to create capped paper decisions. It independently refreshes odds and repeats the gate. A previously accepted alert is not authority to use an older line or superseded roster.
-5. Rerun `python -m ufc_odds_model.integrity --db data/ufc.sqlite --output reports/integrity.json` after the latest import and gate writes so the dashboard's saved integrity status reflects the current database. Launch the local dashboard with `python -m streamlit run app.py --server.address 127.0.0.1`. See [DASHBOARD_RUNBOOK.md](DASHBOARD_RUNBOOK.md) for screen details and optional path settings. Review the saved gate reason, quote capture and bookmaker update times, model cutoff/version, recent source job status, and open exposure. Recheck any live market directly if deciding whether to place a real wager; the dashboard price is observational.
+The operating gate needs source-observed historical evidence, adequate
+chronological train/validation/test periods and reproducible probabilities.
+Historical imports and current rankings cannot replace those observations. The
+dashboard labels holds and retrospective research separately. Keep a dated log
+of missing bouts, source failures and rejected gates; inspect prospective results
+before considering any model promotion.
 
-No API key or confirmed future card means no live alert or new paper decision. An unavailable state is expected in that case.
+## Backup, recover and maintain
 
-### Model-readiness floor for a real card
-
-The saved pre-fight gate checks model readiness as well as quote and roster freshness. A real operating database needs at least 100 earlier binary results across 10 event dates. Every win or draw used by live Elo must match an intact, source-observed completed-card snapshot available before the current prediction cutoff. The operating chronological evaluation must have complete prior-result evidence, a calibrated validation period, at least 50 training bouts on 5 event dates, 30 validation bouts on 2 later dates, and 30 untouched test bouts on 2 still later dates. Logistic forecasts must also reproduce their saved model version and probabilities; Elo probabilities are recomputed from their exact prior results.
-
-When that evidence is missing, `alert-event` and `paper-trade` can still retain a newly fetched odds snapshot, but the gate records `model_not_validated` and creates no paper decision. `score-event` remains useful for exploratory forecasts. The isolated fictional rehearsal is explicitly labeled demo and bypasses this operating-history floor only while **all** stored events, bouts, and fighters are demo rows. Passing this sample and provenance floor does not establish a betting edge or permission to use a source; review the holdout metrics, data rights, and prospective paper results separately.
-
-## After the event
-
-Import verified results, rerun `ufc-model audit`, then run `ufc-model settle-paper EVENT_ID`. Draws, no contests, cancellations, substitutions, and unresolved results need human review under the relevant bookmaker's rules. If an actual wager was independently placed, record its accepted price and stake with `record-bet`, then enter the bookmaker's real settlement with `settle-bet`. The manual ledger and paper ledger remain separate.
-
-Keep a dated log of missing bouts, unmatched quotes, bookmaker update delay, gate rejections, source failures, and discrepancies. Do not promote a model on a small positive return alone.
-
-## Backup and recovery
-
-Back up SQLite before a source import. The backup command uses SQLite's online backup API and checks a temporary restore. Choose a new output path each time:
-
-```bash
-python -m ufc_odds_model.backup create --db data/ufc.sqlite \
-  --output backups/ufc-$(date -u +%Y%m%dT%H%M%SZ)-$(uuidgen).sqlite
+```sh
+.venv/bin/python -m ufc_odds_model.backup create \
+  --db mysql:operating \
+  --output "backups/ufc-$(date -u +%Y%m%dT%H%M%SZ)-$(uuidgen).mysql.json"
 ```
 
-For portable recovery, create an [evidence bundle](EVIDENCE_BUNDLE.md) containing the database, all receipt payloads, model artifacts, and reports. Restore to a **new** directory, then verify receipts and run the audit before switching over. The [SQLite backup drill](BACKUP_RUNBOOK.md) covers the smaller single-file backup used by the migration command.
+The [backup runbook](BACKUP_RUNBOOK.md) covers private logical JSON, actual native
+restore drills and scope. The [evidence bundle guide](EVIDENCE_BUNDLE.md) adds
+recorded payloads and artifacts. Restore into new namespaces/directories, verify
+receipts and run audits before any separate activation. Delivery recovery
+preserves documents and forecast chains in recovery-only tables; it does not
+replace live global pointers. Back up required research/statistics datasets
+separately and preserve private server recovery credentials outside bundles.
 
-For a schema upgrade, use `ufc-model --db data/ufc.sqlite migrate --backup backups/UNIQUE.sqlite`. This command creates and verifies the pre-migration backup before applying any pending SQL. It refuses an existing backup path. Preserve the printed backup path and verify the upgraded database with the source-integrity command and `audit` before resuming event jobs. Do not run `init-db` as an upgrade shortcut.
+Keep original frozen SQLite sources unchanged for explicit historical
+reproduction. They remain migration inputs, not normal runtime defaults. For
+hosted/container operation, follow the [deployment guide](CONTAINER_DEPLOYMENT.md).
+Local services depend on the Mac, login session, sleep and connectivity.
 
-For a packaged, private dashboard with a read-only database snapshot, follow the [container deployment runbook](CONTAINER_DEPLOYMENT.md). Its startup preflight verifies the snapshot and every retained payload before Streamlit serves it. The CLI ingestion and decision jobs remain in the operator environment.
-
-When a source fetch fails, leave prior saved records intact and show their age. The failed import or alert run is retained in `operator_job_runs` with command, time, and a credential-free error category, and appears in Data Quality. Do not silently present the last available quote as current. Check the CLI error, source quota, snapshot receipt, and provider status before retrying.
+When a source or database command fails, preserve existing evidence and inspect
+the sanitized run receipt. Source age must remain visible; a previous quote or
+ranking is not relabeled as freshly captured. Retry after reviewing the failed
+stage and source/server status.

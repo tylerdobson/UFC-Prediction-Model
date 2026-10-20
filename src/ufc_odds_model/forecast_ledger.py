@@ -14,7 +14,7 @@ from .model_lab import file_sha256
 from .pipeline import parse_utc,utc_now,utc_string
 from .research_evaluation import _digest_json
 
-DEFAULT_LEDGER = "reports/forecast_ledger.jsonl"
+DEFAULT_LEDGER = "mysql:forecast"
 
 
 def _decode(text):
@@ -33,6 +33,10 @@ def _decode(text):
 
 
 def read_entries(path=DEFAULT_LEDGER):
+    from .mysql_runtime import dataset_name, is_mysql_target
+    if is_mysql_target(path):
+        from .mysql_delivery import read_forecast_entries
+        return read_forecast_entries(dataset_name(path))
     path=Path(path)
     if path.is_symlink():
         raise ValueError("Forecast ledger must not be a symlink")
@@ -40,6 +44,10 @@ def read_entries(path=DEFAULT_LEDGER):
 
 
 def append_entry(path, entry):
+    from .mysql_runtime import dataset_name, is_mysql_target
+    if is_mysql_target(path):
+        from .mysql_delivery import append_forecast_entry
+        return append_forecast_entry(entry, dataset_name(path))
     path=Path(path)
     if path.is_symlink():
         raise ValueError("Forecast ledger must not be a symlink")
@@ -60,6 +68,9 @@ def append_entry(path, entry):
 
 
 def _portable_path(path):
+    from .mysql_runtime import dataset_name, is_mysql_target
+    if is_mysql_target(path):
+        return 'mysql:' + dataset_name(path)
     path=Path(path).resolve()
     try:
         return str(path.relative_to(Path.cwd()))

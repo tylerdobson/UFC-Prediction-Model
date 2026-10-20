@@ -1,9 +1,21 @@
+# MySQL dashboard verification — October 20, 2026 UTC
+
+The approved sports layout is preserved. The latest unedited [dashboard screenshot](docs/assets/screenshots/ufc-dashboard.png), [rankings screenshot](docs/assets/screenshots/ufc-rankings.png), and [archive screenshot](docs/assets/screenshots/ufc-history.png) come from the actual MySQL-backed app at 1600 × 1200, device scale 1.
+
+The native browser pass confirmed seven responsive tabs, six matchup selections, 12 loaded official portraits, exact earlier-round bar counts, chart tooltips, eight sourced profile comparisons, eight visible identity holds, byte-identical PDF/CSV downloads, and working icon navigation. Layouts at 1600, 1280, 1024, 768 and 390 pixels have no page overflow; the phone card strip scrolls horizontally.
+
+A second pass exercised historical search, both ranking systems, a selected champion/top-15 division, the media panel's tied-rank note, the unpromoted V7 comparison, three forward-ledger entries and the expanded past-opponent/style panel. No JavaScript or Streamlit exceptions occurred. Focused AppTest separately verifies seven-tab unavailable states and prohibits SQLite connections/schema setup during native page loads.
+
+Evidence scripts and full result JSON remain in `/private/tmp/ufc-dashboard-qa/`. Browser verification used local Playwright Chromium. The following earlier reference-comparison record remains useful for the approved art direction; its previous six-tab references describe the pre-migration state.
+
+---
+
 # UFC dashboard reference verification
 
 Final result: passed
 
 The second dashboard pass follows the supplied sports workspace while keeping
-the existing Streamlit app, saved forecasts and six operating tabs. No actionable
+the existing Streamlit app, saved forecasts and seven MySQL sections. No actionable
 P0, P1 or P2 findings remain in the captured default, comparison and responsive
 states. This is a UFC adaptation of the reference, rather than its football copy
 or live-match behavior.

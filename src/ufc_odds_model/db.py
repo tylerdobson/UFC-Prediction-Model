@@ -1,4 +1,8 @@
-"""SQLite access and schema setup."""
+"""Database access and schema setup; MySQL is the normal runtime backend.
+
+Explicit SQLite paths remain readable for retained evidence and isolated legacy
+fixtures. They are never selected as a fallback when MySQL is unavailable.
+"""
 
 from __future__ import annotations
 
@@ -8,7 +12,7 @@ from importlib.resources import files
 from pathlib import Path
 
 
-DEFAULT_DB = Path("data/ufc.sqlite")
+DEFAULT_DB = "mysql:operating"
 
 
 def _migration_files():
@@ -60,6 +64,9 @@ def require_current_schema(connection: sqlite3.Connection) -> None:
 
 
 def connect(path: str | Path = DEFAULT_DB) -> sqlite3.Connection:
+    from .mysql_runtime import connect_dataset, is_mysql_target
+    if is_mysql_target(path):
+        return connect_dataset(path)
     db_path = Path(path)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(db_path)
@@ -69,6 +76,12 @@ def connect(path: str | Path = DEFAULT_DB) -> sqlite3.Connection:
 
 
 def init_db(connection: sqlite3.Connection) -> None:
+    if getattr(connection, "dialect", None) == "mysql":
+        if getattr(connection, "scratch", False):
+            return
+        from .mysql_runtime import ensure_operating_dataset
+        ensure_operating_dataset(connection.dataset)
+        return
     if not has_migration_table(connection) and not is_empty_database(connection):
         raise ValueError("Existing database has unversioned objects; review it before initializing")
     connection.execute(

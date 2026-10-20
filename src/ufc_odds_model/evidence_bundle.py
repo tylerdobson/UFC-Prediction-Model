@@ -99,6 +99,11 @@ def create_bundle(
     reports_dir: str | Path | None = "reports",
 ) -> dict:
     """Archive a consistent database snapshot, every receipt payload, and artifacts."""
+    from .mysql_runtime import is_mysql_target
+    if is_mysql_target(database_path):
+        from .mysql_backup import create_bundle as create_mysql_bundle
+        return create_mysql_bundle(database_path, output_path, project_root=project_root,
+                                   models_dir=models_dir, reports_dir=reports_dir)
     source = Path(database_path).expanduser().resolve()
     root = Path(project_root).expanduser().resolve() if project_root else Path.cwd().resolve()
     destination = Path(output_path).expanduser().absolute()
@@ -193,8 +198,23 @@ def _copy_entry(archive: zipfile.ZipFile, name: str, destination: Path) -> None:
         shutil.copyfileobj(source, target, length=1024 * 1024)
 
 
+def _is_mysql_bundle(path):
+    candidate = Path(path).expanduser()
+    if candidate.is_symlink():
+        raise BundleError("Bundle is a symlink")
+    with zipfile.ZipFile(candidate) as archive:
+        try:
+            manifest = json.loads(archive.read("manifest.json"))
+        except (KeyError, ValueError):
+            return False
+        return isinstance(manifest, dict) and manifest.get("format_version") == 2 and manifest.get("storage_backend") == "mysql"
+
+
 def verify_bundle(bundle_path: str | Path) -> dict:
     """Check archive structure, bytes, SQLite restore, and receipt completeness."""
+    if _is_mysql_bundle(bundle_path):
+        from .mysql_backup import verify_bundle as verify_mysql_bundle
+        return verify_mysql_bundle(bundle_path)
     requested = Path(bundle_path).expanduser()
     bundle = requested.resolve()
     if requested.is_symlink() or not bundle.is_file():
@@ -234,8 +254,13 @@ def verify_bundle(bundle_path: str | Path) -> dict:
                 ), "table_counts": db_report["table_counts"]}
 
 
-def restore_bundle(bundle_path: str | Path, output_directory: str | Path) -> dict:
+def restore_bundle(bundle_path: str | Path, output_directory: str | Path, *, mysql_target: str | None = None) -> dict:
     """Recover into a new directory and rebase receipt paths in its DB copy."""
+    if _is_mysql_bundle(bundle_path):
+        from .mysql_backup import restore_bundle as restore_mysql_bundle
+        return restore_mysql_bundle(bundle_path, output_directory, mysql_target=mysql_target)
+    if mysql_target is not None:
+        raise BundleError("A legacy SQLite bundle requires a file recovery directory")
     bundle = Path(bundle_path).expanduser().resolve()
     if not bundle.is_file() or Path(bundle_path).expanduser().is_symlink():
         raise BundleError(f"Bundle is missing or a symlink: {bundle}")
@@ -329,6 +354,7 @@ def main(argv: list[str] | None = None) -> int:
     restore = commands.add_parser("restore")
     restore.add_argument("--bundle", required=True)
     restore.add_argument("--output", required=True)
+    restore.add_argument("--mysql-target", help="New, unused mysql:NAME recovery namespace")
     args = parser.parse_args(argv)
     try:
         if args.command == "create":
@@ -337,7 +363,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "verify":
             result = verify_bundle(args.bundle)
         else:
-            result = restore_bundle(args.bundle, args.output)
+            result = restore_bundle(args.bundle, args.output, mysql_target=args.mysql_target)
     except (BackupError, BundleError, FileExistsError, OSError, sqlite3.Error,
             zipfile.BadZipFile, ValueError) as exc:
         print(json.dumps({"ok": False, "operation": args.command, "error": str(exc)}))

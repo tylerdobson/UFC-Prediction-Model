@@ -1,4 +1,4 @@
-"""Create and prove a restorable, single-file SQLite backup.
+"""Create verified MySQL logical backups or explicit legacy SQLite copies.
 
 SQLite's backup API reads a consistent snapshot, including committed WAL pages.
 The source is opened read-only. A backup or restore is first written to a
@@ -188,7 +188,7 @@ def _validate_timeout(timeout_seconds: float) -> None:
 
 def create_backup(
     source_database: str | Path = DEFAULT_DB,
-    backup_path: str | Path = "backups/ufc.sqlite",
+    backup_path: str | Path | None = None,
     *,
     timeout_seconds: float = 60,
 ) -> dict:
@@ -198,6 +198,11 @@ def create_backup(
     path for every invocation. The source remains read-only throughout.
     """
     _validate_timeout(timeout_seconds)
+    from .mysql_runtime import is_mysql_target
+    if is_mysql_target(source_database):
+        from .mysql_backup import create_backup as create_mysql_backup
+        return create_mysql_backup(source_database, backup_path or "backups/ufc.mysql.json", timeout_seconds=timeout_seconds)
+    backup_path = backup_path or "backups/ufc.sqlite"
     source = _existing_database(source_database)
     destination = _new_destination(backup_path, source)
     temporary = _temporary_destination(destination.parent)
@@ -220,9 +225,22 @@ def create_backup(
         _cleanup_temporary(temporary)
 
 
+def _is_mysql_backup(path):
+    candidate = Path(path).expanduser()
+    if candidate.is_symlink():
+        raise BackupError("Backup is a symlink")
+    if not candidate.is_file():
+        return False
+    with candidate.open("rb") as stream:
+        return stream.read(64).lstrip().startswith(b"{")
+
+
 def verify_backup(backup_path: str | Path, *, timeout_seconds: float = 60) -> dict:
     """Prove that an existing backup restores without changing the backup."""
     _validate_timeout(timeout_seconds)
+    if _is_mysql_backup(backup_path):
+        from .mysql_backup import verify_backup as verify_mysql_backup
+        return verify_mysql_backup(backup_path, timeout_seconds=timeout_seconds)
     backup = _standalone_backup(backup_path)
     checked = _verify_restore(backup, timeout_seconds=timeout_seconds)
     return {
@@ -245,6 +263,12 @@ def restore_backup(
 ) -> dict:
     """Restore to a new path, validate it, and refuse to replace any file."""
     _validate_timeout(timeout_seconds)
+    if _is_mysql_backup(backup_path):
+        from .mysql_backup import restore_backup as restore_mysql_backup
+        return restore_mysql_backup(backup_path, restore_path, timeout_seconds=timeout_seconds)
+    from .mysql_runtime import is_mysql_target
+    if is_mysql_target(restore_path):
+        raise BackupError("A legacy SQLite backup requires an explicit new file destination")
     backup = _standalone_backup(backup_path)
     destination = _new_destination(restore_path, backup)
     original = _snapshot(backup)
@@ -272,7 +296,7 @@ def restore_backup(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Create and drill SQLite backups safely")
+    parser = argparse.ArgumentParser(description="Back up MySQL datasets or explicit legacy SQLite files safely")
     commands = parser.add_subparsers(dest="command", required=True)
     create = commands.add_parser("create", help="Create and verify a new backup")
     create.add_argument("--db", default=str(DEFAULT_DB))

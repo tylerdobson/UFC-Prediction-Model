@@ -1,43 +1,52 @@
-# UFC Forecast — Data Engineering Case Study
+# UFC Forecast — MySQL Data Engineering Case Study
 
-A reproducible data pipeline for combat-sports statistics: immutable source captures, a normalized relational store, explicit quality holds, historical analytics and optional transactional MySQL publication. The prediction model is a downstream consumer of that evidence.
+A combat-sports data pipeline with immutable source captures, normalized **MySQL** datasets, explicit quality holds, scheduled refreshes, failed-run notifications, evaluated models and a shareable prediction dashboard. MySQL is the default database for the pipeline, research, dashboard and forecast ledger.
 
-**Explore:** [Architecture diagram](#architecture) · [Workbench and demo screenshots](#screenshots) · [Verified runs](docs/PIPELINE_VERIFICATION.md)
+**Explore:** [Dashboard screenshots](#screenshots) · [Architecture](#architecture) · [MySQL runtime](docs/MYSQL_RUNTIME.md) · [Verification](docs/PIPELINE_VERIFICATION.md)
 
-**Start with the portable demo.** With [uv](https://docs.astral.sh/uv/) and an installed Python 3.11+, run from a clean clone:
+## Run locally
+
+With Python 3.11+, uv and MySQL 8.4 installed:
 
 ```sh
+uv sync --frozen --all-extras
+. .venv/bin/activate
+# First installation only: create a separate local project instance.
+.venv/bin/python scripts/local_mysql.py setup
+.venv/bin/python scripts/local_mysql.py install-service
+ufc-mysql init
 ./scripts/demo.sh
 ```
 
-After running the command, open `output/pipeline-demo/index.html` locally. This command runs entirely offline, uses checked-in **synthetic** fixtures and requires no API keys, private database or package installation. It calls the same normalizer and card-statistics code used for the retained research archive. Repeating it verifies and reuses the existing edition without changing its files. Use `--output-dir output/ANOTHER-DEMO-EDITION` after changing code or fixtures.
+Open `output/pipeline-demo-mysql/index.html`. The demo writes an isolated **synthetic MySQL dataset** using the production normalizer; it never replaces the real archive or its active SQL views. It needs a running configured MySQL server. Connection settings come from owner-private configuration or `UFC_MYSQL_*` environment variables, outside Git. [Local server and Workbench setup](docs/LOCAL_MYSQL.md).
 
-| Inspect | Default artifact |
-|---|---|
-| Pipeline and quality overview | `output/pipeline-demo/index.html` |
-| Raw capture hashes and byte counts | `output/pipeline-demo/raw/manifest.json` |
-| Normalized dimensions and facts | `output/pipeline-demo/normalized/statistics.sqlite` |
-| Missingness, held rows and coverage | `output/pipeline-demo/reports/quality.json`, `output/pipeline-demo/reports/coverage.csv` |
-| Earlier-fight sample analytics | `output/pipeline-demo/reports/card-statistics.html` |
-| Code, inputs and output fingerprints | `output/pipeline-demo/run-manifest.json` |
-
-The small demo deliberately includes missing reach, missing control time, unknown fight duration and an incomplete paired-round bout. Missing values remain `NULL`; incomplete bouts stay visible as held records. Every fixture is invented and clearly labeled. The demo does not fit a winner model or make real predictions.
-
-Read the [data engineering case study and architecture](docs/DATA_ENGINEERING_CASE_STUDY.md), [MySQL warehouse and analytical SQL](docs/MYSQL_WAREHOUSE.md), and [refresh, scheduling and failure recovery runbook](docs/PIPELINE_OPERATIONS.md). MySQL publication is opt-in:
+For an existing installation with retained local evidence, migrate once and preserve the originals:
 
 ```sh
-./scripts/demo.sh --mysql --config "$HOME/Library/Application Support/UFCForecast/pipeline-env.json"
+ufc-mysql bootstrap --project-root . --receipt output/NEW-MIGRATION/receipt.json
+ufc-pipeline refresh
+ufc-mysql rankings
+streamlit run app.py --server.address 127.0.0.1
 ```
 
-That optional command requires the warehouse dependency and a configured project MySQL database. The [case study](docs/DATA_ENGINEERING_CASE_STUDY.md#optional-mysql-publication) and [local MySQL setup](docs/LOCAL_MYSQL.md) explain setup; the offline command above needs neither. Configuration and credentials stay outside Git and exported reports. A scheduled refresh and local database service are installed separately; running the demo installs neither.
+A clean clone can run the synthetic demo, fetch the canonical archive, and load official rankings. Frozen forecast regeneration also needs the retained research source evidence; private archives and credentials are excluded from Git. The public PDF, HTML and CSV remain readable without a server.
 
-The [local verification record](docs/PIPELINE_VERIFICATION.md) documents a real full-archive MySQL load, a successful launchd execution, a controlled failure alert and recovery, and the test evidence. The schedule is configured for 09:00 local time; execution was verified through a manual launchd kickstart. A clean clone requires its own setup. The local suite passed 554 tests with one gated MySQL test skipped; a separate warehouse run passed all 12 tests with real MySQL integration enabled. [GitHub Actions](https://github.com/tylerdobson/UFC-Prediction-Model/actions) tracks the hosted checks separately.
+| Evidence | Storage |
+|---|---|
+| Normalized statistics, research and operating records | Separate native MySQL datasets |
+| Rankings, evaluations and published forecast payloads | Versioned MySQL documents |
+| Frozen forecasts and settlements | Append-only MySQL hash chain |
+| Raw captures and source hashes | Immutable local files and MySQL receipts |
+| Shareable reports | Verified PDF, HTML, CSV and JSON exports |
+| Demo inputs | Checked-in synthetic fixtures, isolated from real publications |
+
+The local refresh runs at **09:00** through launchd and supports Mac failure notifications. The Mac must be awake and logged in. [Scheduling and recovery](docs/PIPELINE_OPERATIONS.md). The pipeline does not retrain a model during refresh or page requests.
 
 ## Architecture
 
-[![UFC data pipeline architecture: immutable sources, validated SQLite facts, scheduled quality gates, versioned MySQL and separate report/model consumers](docs/diagrams/statistics-pipeline.png)](docs/diagrams/statistics-pipeline.svg)
+[![UFC data pipeline architecture: immutable sources, native MySQL datasets, quality gates, rankings, evaluated models and read-only dashboard](docs/diagrams/statistics-pipeline.png)](docs/diagrams/statistics-pipeline.svg)
 
-The offline demo and real archive share the production normalizer. Scheduled refreshes additionally enforce dataset quality gates, publish a complete MySQL version when enabled, and then update the local ready pointer. Reports and the research model are separate consumers of earlier-fight evidence.
+The demo and real archive share the normalizer and use separate MySQL namespaces. Real refreshes normalize directly into immutable MySQL versions, enforce quality gates, publish analytical views, and commit the statistics alias with its publication receipt. Rankings and frozen forecasts are versioned MySQL documents; the dashboard reads published evidence.
 
 [Full-size SVG](docs/diagrams/statistics-pipeline.svg) · [Editable Mermaid source](docs/diagrams/statistics-pipeline.mmd) · [Export instructions and publication boundaries](docs/diagrams/README.md)
 
@@ -47,13 +56,19 @@ The offline demo and real archive share the production normalizer. Scheduled ref
 
 [![UFC Forecast dashboard with real fighter portraits, saved UFC 333 probabilities and comparative statistics](docs/assets/screenshots/ufc-dashboard.png)](docs/assets/screenshots/ufc-dashboard.png)
 
+**Official division rankings.** Current Meta and media systems, each published champion and 15 contender rows, with source dates and explicit ties.
+
+[![UFC rankings in the MySQL-backed dashboard, showing the selected division champion and published top-15 contenders](docs/assets/screenshots/ufc-rankings.png)](docs/assets/screenshots/ufc-rankings.png)
+
+**Searchable history.** Every retained card and bout, with methods, reach measurements and quality holds. [View the archive screenshot](docs/assets/screenshots/ufc-history.png).
+
 **Actual MySQL warehouse.** Workbench connected to the project instance, with normalized tables and the archive verification query. The real archive contains 793 cards, 8,950 bouts, 8,818 usable paired-stat bouts and 132 held bouts. [Run the screenshot query](sql/mysql/portfolio_screenshot.sql).
 
 [![MySQL Workbench connected to the UFC warehouse, showing normalized schema tables and real archive coverage results](docs/assets/screenshots/mysql-workbench.png)](docs/assets/screenshots/mysql-workbench.png)
 
-**Offline synthetic demo.** Captured from the generated report in Chrome. The production parser retains missing values and holds an incomplete paired-round bout; all five cards and six bouts in this demo are invented.
+**Synthetic demo report.** Captured from the generated report in Chrome. The production parser retains missing values and holds an incomplete paired-round bout; all five cards and six bouts in this demo are invented.
 
-[![Offline synthetic pipeline demo showing source hash checks, relational integrity, explicit missing values and one held bout](docs/assets/screenshots/pipeline-demo.jpg)](docs/assets/screenshots/pipeline-demo.jpg)
+[![Synthetic pipeline demo showing source hash checks, relational integrity, explicit missing values and one held bout](docs/assets/screenshots/pipeline-demo.jpg)](docs/assets/screenshots/pipeline-demo.jpg)
 
 [Screenshot provenance](docs/assets/screenshots/README.md). Screenshots are dated evidence; running the commands produces the current local artifacts.
 
@@ -87,6 +102,12 @@ These are reused retrospective benchmarks, not a fresh holdout or evidence of li
 
 The all-card store retains **793 cards, 8,950 distinct bouts and 4,629 fighter profiles**. It has 8,818 usable paired-stat bouts (98.53%); 132 are held for identity, event or round-data gaps. Reach is available for 2,490 profiles; unavailable measurements are not invented. Reports can be generated for any retained card or a supplied future roster. The canonical archive spans March 1994 to October 17, 2026. Original research result labels remain frozen through September 19; rich history uses safely linked earlier archive fights without silently adding target labels.
 
+## Style, finishes and opponent-strength experiment
+
+V7 tests measured clinch/ground/body/leg strike shares, takedown pressure, prior KO/submission wins and losses, and opponents' pre-bout archive strength. Two candidate families were declared before bounded 2016–2023 selection; all target and same-date results are withheld.
+
+The selected 43-feature candidate **did not improve the reused historical benchmark**: 61.16% accuracy and 0.65386 log loss, versus V6's 61.30% and 0.65217 across 1,447 bouts. V6 remains the delivered model. More inputs do not guarantee better predictions. The complete [protocol, selection and evaluation](reports/mysql-v7-20261020/) are retained; neither result is a fresh holdout.
+
 ## Reproduce and verify
 
 Use Python 3.11+ from the repository root:
@@ -104,7 +125,8 @@ Generate a new, explicitly dated edition from verified captures:
 
 ```sh
 ufc-model-report --card reports/ufc333_card_20261019.json \
-  --statistics-db data/ufc_fight_statistics.sqlite \
+  --history mysql:research-complete \
+  --statistics-db mysql:statistics-v6 \
   --athlete-facts reports/ufc333_fighter_stats_20261019.json \
   --output-dir output/NEW-FORECAST-EDITION
 python scripts/render_prediction_pdf.py \
@@ -121,13 +143,19 @@ uv sync --frozen --all-extras
 uv run --frozen --all-extras streamlit run app.py --server.address 127.0.0.1
 ```
 
-Open `http://127.0.0.1:8501`. The dashboard defaults to the checked-in V6 research report and verifies every release artifact before displaying it. No private database is needed for that saved edition. Select any of the six scored matchups to update the fighter portraits, win probabilities and statistics; inspect all eight identity-held matchups and download the original PDF or CSV. Dates and retrospective evaluation remain explicit, and the edition becomes archived when its event start passes.
+Open `http://127.0.0.1:8501`. The default is **MySQL**, with seven populated sections: Upcoming card, Historical data, Model evidence, Data quality, Ledgers, Forward test and Rankings. Database failures appear as unavailable; the app never silently falls back to SQLite or a local report. The published forecast must match its verified export manifest before downloads are offered.
+
+Historical data searches every retained card and bout with date, division, quality and reach filters. The quality section exposes source hashes, nullable fields and identity/date holds. Ledgers show actual stored entries, including truthful empty states. Forward test separates the recovered UFC 332 forecast from the pre-start UFC 333 freeze and its pending outcome.
+
+Rankings show the champion and all 15 published contenders for every active division, with official **Meta** and **media** systems, source update dates, capture time and links. Tied positions and skipped numbers remain as published. Current rankings are descriptive; they are not used as historical features.
+
+The card's past-fight panel shows prior opponents, outcomes, finish methods, rounds, times, pre-bout archive Elo and measured striking/grappling style with sample counts. Held source rows remain visible and excluded from feature aggregates.
 
 The history chart uses [retained earlier-fight observations](assets/data/README.md): 47 fighter-fight records and 136 rounds across the 12 scored fighters, with up to five earlier fights per fighter. Hover a bar for its opponent, date, round and observed duration. The two series describe separate fight histories; they are not live momentum or a shared timeline. The statistics view provides eight reach, striking and grappling comparisons, and archive tiles link to their UFCStats bout sources.
 
-The four-fighter grid, icon rail, light-gray panels, black matchup strip, condensed headings and lime/purple comparisons are adapted from [VALMAX's sports dashboard reference](https://dribbble.com/shots/26961358-Live-Sports-Analytics-Dashboard). Real fighter portraits load directly from official UFC image URLs with [source attribution](assets/fighters/README.md); they need internet access. Licensed fonts, saved data and downloads are local. The six existing tabs remain available, and operating card details appear in a separate expander below the research edition. [Design verification](design-qa.md) records the reference comparison and browser checks.
+The four-fighter grid, icon rail, light-gray panels, black matchup strip, condensed headings and lime/purple comparisons are adapted from [VALMAX's sports dashboard reference](https://dribbble.com/shots/26961358-Live-Sports-Analytics-Dashboard). Real fighter portraits load directly from official UFC image URLs with [source attribution](assets/fighters/README.md); they need internet access. Licensed fonts, saved data and downloads are local. The approved sports layout is preserved across the seven sections. [Design verification](design-qa.md) records the reference comparison and browser checks.
 
-Use `UFC_MODEL_FORECAST_REPORT` to select another project-local report with a matching sibling release manifest. Missing or changed report evidence is withheld. Operating, historical and forward-test views keep their existing data verification; the older score-event research opt-in retains V3 defaults. Fitting and ingestion run outside page requests. No component places wagers.
+Publish editions through explicit CLI jobs; page requests read committed evidence only. Default handles are `mysql:operating`, `mysql:research-complete`, `mysql:statistics` and `mysql:forecast`. Exact immutable version handles preserve earlier experiments. Legacy SQLite inputs remain available only for explicit migration and regression fixtures. [Runtime and migration contract](docs/MYSQL_RUNTIME.md).
 
 <details>
 <summary>Earlier dashboard capture with fictional demo data</summary>

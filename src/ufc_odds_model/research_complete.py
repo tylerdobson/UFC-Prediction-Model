@@ -220,6 +220,10 @@ def restore_bouts(connection, positions, title_map, fallback_map):
 def complete_history(source_path, output_path, *, review_path="reports/wikipedia_1993_2026_identity_review.json",
                      report_path="reports/research_complete_identity_report.json",
                      raw_dir="data/raw/research_complete"):
+    from .mysql_runtime import is_mysql_target
+    if is_mysql_target(source_path) or is_mysql_target(output_path):
+        return _complete_native_history(source_path,output_path,review_path=review_path,
+                                        report_path=report_path,raw_dir=raw_dir)
     source_path, output_path, review_path = map(Path, (source_path, output_path, review_path))
     if source_path.resolve() == output_path.resolve() or output_path.exists() or output_path.is_symlink():
         raise ValueError("Complete history needs a new, separate output database")
@@ -266,3 +270,44 @@ def complete_history(source_path, output_path, *, review_path="reports/wikipedia
         report["complete_database_sha256"] = file_sha256(output_path)
         write_new_json(report_path, report)
     return report
+
+
+def _complete_native_history(source,output,*,review_path,report_path,raw_dir):
+    from .mysql_runtime import (clone_dataset,dataset_name,finalize_dataset,
+                                inspect_dataset,is_mysql_target)
+    if not is_mysql_target(source) or not is_mysql_target(output):
+        raise ValueError('Native history completion requires MySQL source and output handles; import legacy files explicitly first')
+    if dataset_name(source)==dataset_name(output):raise ValueError('Complete history needs a new, separate output database')
+    if Path(report_path).exists():raise ValueError('Identity report needs a new filename')
+    review_path=Path(review_path);review=json.loads(review_path.read_bytes())
+    original=inspect_dataset(source,verify=True)
+    original_hash=original.get('source_sha256') or original['content_sha256']
+    with read_only(source) as connection:
+        positions,recovered=held_positions(connection,review)
+        titles,_=saved_title_map(connection)
+    connection=clone_dataset(source,output,role='research',upgrade_operating_schema=True)
+    try:
+        restoration,fallback_count=restore_bouts(connection,positions,titles,_fallbacks(review,review_path))
+        report={'schema_version':1,'research_only':True,'promotion_eligible':False,
+                'original_database_sha256':original_hash,'original_content_sha256':original['content_sha256'],
+                'worksheet_sha256':file_sha256(review_path),'worksheet_held_bouts':review['summary']['held_bouts'],
+                'identity_replays_recovered':recovered,'restored_bouts':len(restoration),
+                'held_bouts_remaining':len(positions)-len(restoration),'parser_fallbacks':fallback_count,
+                'restored_bout_receipts':restoration,'identity_flags':collision_report(connection),
+                'provisional_fighters':connection.execute("SELECT COUNT(*) FROM fighters WHERE source='wikipedia_provisional'").fetchone()[0],
+                'no_automatic_provisional_merges':True,'storage_backend':'mysql'}
+        raw,digest=retain_snapshot(json.dumps(report,sort_keys=True).encode(),raw_dir,
+                                   kind='complete-history restoration manifest')
+        connection.execute('INSERT INTO ingestion_runs(source,fetched_at_utc,payload_path,sha256) VALUES(?,?,?,?)',
+                           (SOURCE,utc_string(utc_now()),str(raw),digest))
+        if connection.foreign_key_violations():raise ValueError('Restored database has broken foreign keys')
+        if inspect_dataset(source,verify=True)['content_sha256']!=original['content_sha256']:
+            raise RuntimeError('Original research dataset changed')
+        receipt=finalize_dataset(connection,{'workflow':'complete_research_history',
+            'restoration_manifest_sha256':digest,'parent_content_sha256':original['content_sha256']})
+        report['complete_database_sha256']=receipt['content_sha256']
+        report['output_dataset']=receipt['target']
+        write_new_json(report_path,report)
+        return report
+    except BaseException:connection.rollback();raise
+    finally:connection.close()

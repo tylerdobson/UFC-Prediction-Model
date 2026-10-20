@@ -114,7 +114,7 @@ class PortfolioDemoTests(unittest.TestCase):
         checkout = self.root / "clean checkout"
         package = checkout / "src/ufc_odds_model"
         package.mkdir(parents=True)
-        for name in ("__init__.py", "portfolio_demo.py", "historical_stats.py", "card_statistics.py"):
+        for name in ("__init__.py", "portfolio_demo.py", "historical_stats.py", "card_statistics.py", 'mysql_runtime.py'):
             shutil.copyfile(ROOT / "src/ufc_odds_model" / name, package / name)
         shutil.copytree(FIXTURE_DIRECTORY, checkout / "demo/fixtures")
         (checkout / "scripts").mkdir()
@@ -123,7 +123,7 @@ class PortfolioDemoTests(unittest.TestCase):
         script.chmod(0o755)
         environment = {key: value for key, value in os.environ.items() if key not in {"VIRTUAL_ENV", "PYTHONPATH", "UV_PROJECT_ENVIRONMENT", "UV_ENV_FILE"}}
         environment["UV_CACHE_DIR"] = str(self.root / "uv-cache")
-        command = [str(script), "--output-dir", str(checkout / "output/pipeline-demo")]
+        command = [str(script), '--legacy-sqlite-fixture', "--output-dir", str(checkout / "output/pipeline-demo")]
         result = subprocess.run(command, cwd=self.root, env=environment, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(result.stdout)["status"], "created")

@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  portable-demo:
+  legacy-fixture-evidence:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -22,8 +22,8 @@ jobs:
       - run: python -m pip install uv==0.12.9
       - name: Run offline demo twice from checked-in synthetic fixtures
         run: |
-          ./scripts/demo.sh
-          ./scripts/demo.sh
+          ./scripts/demo.sh --legacy-sqlite-fixture
+          ./scripts/demo.sh --legacy-sqlite-fixture
       - name: Exercise quality, replay, locking and failure behavior
         env:
           PYTHONPATH: src
@@ -32,13 +32,14 @@ jobs:
           python -m unittest discover -s tests -p 'test_pipeline_ops.py' -v
           python -m unittest discover -s tests -p 'test_local_mysql.py' -v
 
-  mysql-publication:
+  native-mysql-demo:
     runs-on: ubuntu-24.04
     services:
       mysql:
         image: mysql:8.4.11
         env:
           MYSQL_ROOT_PASSWORD: ci_disposable_root
+          MYSQL_ROOT_HOST: "%"
           MYSQL_DATABASE: ufc_warehouse
           MYSQL_USER: ufc_pipeline
           MYSQL_PASSWORD: ci_disposable_application
@@ -56,15 +57,27 @@ jobs:
       UFC_MYSQL_USER: ufc_pipeline
       UFC_MYSQL_PASSWORD: ci_disposable_application
       UFC_MYSQL_INTEGRATION: "1"
+      UFC_MYSQL_BACKUP_INTEGRATION: "1"
+      UFC_MYSQL_SCHEMA_USER: root
+      UFC_MYSQL_SCHEMA_PASSWORD: ci_disposable_root
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: python -m pip install uv==0.12.9
-      - run: uv sync --frozen --extra warehouse --python "$(command -v python)"
-      - name: Publish demo and verify idempotent replay against real MySQL
+      - run: uv sync --frozen --extra dashboard --extra warehouse --python "$(command -v python)"
+      - name: Initialize disposable native operating and delivery schemas
+        run: uv run --frozen --extra dashboard python -m ufc_odds_model.mysql_project init
+      - name: Build isolated native demo and verify replay without SQLite staging
         run: |
-          ./scripts/demo.sh --mysql
-          ./scripts/demo.sh --mysql
-          uv run --frozen --extra warehouse python -m unittest discover -s tests -p 'test_mysql_warehouse*.py' -v
+          ./scripts/demo.sh
+          ./scripts/demo.sh
+          uv run --frozen --extra dashboard python -m unittest discover -s tests -p 'test_portfolio_demo_native.py' -v
+      - name: Exercise native runtime, publication, cloning and recovery on the disposable server
+        run: |
+          uv run --frozen --extra dashboard python -m unittest discover -s tests -p 'test_mysql*.py' -v
+          uv run --frozen --extra dashboard python -m unittest discover -s tests -p 'test_dashboard_mysql*.py' -v
+          uv run --frozen --extra dashboard python -m unittest discover -s tests -p 'test_deployment_mysql.py' -v
+        # UFC_MYSQL_PROJECT_INTEGRATION intentionally remains unset: those
+        # assertions require private retained research/card/report evidence.

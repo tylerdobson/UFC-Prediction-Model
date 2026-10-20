@@ -1,56 +1,86 @@
-# Portable decision evidence recovery
+# Portable evidence recovery
 
-An SQLite backup alone cannot reproduce a decision when its ingestion receipts
-point to raw files elsewhere. The evidence bundle archives a verified SQLite
-snapshot, **every** receipt payload, and the files currently under `models/`
-and `reports/`. The archive retains the original database unchanged. Recovery
-creates a new database and changes only its receipt paths to the extracted
-payloads. The recovery report records each original and new path.
+The MySQL evidence bundle combines a private logical backup with recorded source
+payloads and exported artifacts. It preserves the selected dataset and all
+global delivery documents, active-pointer records and forecast chains without
+creating a SQLite copy.
 
 ## Create and verify
 
-Stop imports and event jobs while making a bundle so the raw files and model
-artifacts represent one reviewed operating point. Use a new output name every
-time:
+Pause imports, publications and ledger writes for a coordinated operating point.
+Use a new output name:
 
-```bash
+```sh
 bundle="backups/ufc-evidence-$(date -u +%Y%m%dT%H%M%SZ)-$(uuidgen).zip"
 python -m ufc_odds_model.evidence_bundle create \
-  --db data/ufc.sqlite --project-root . --models models --reports reports \
+  --db mysql:operating --project-root . --models models --reports reports \
   --output "$bundle"
 python -m ufc_odds_model.evidence_bundle verify --bundle "$bundle"
 ```
 
-Creation refuses a missing or changed receipt payload. Verification hashes
-each archived file, checks that the receipt set matches the archived database,
-and drills a SQLite restore with structural and foreign-key checks. The bundle
-is a private local file and may contain a manual betting ledger and licensed
-source data. Store it outside Git and restrict access. Keep provider secrets
-outside the bundle; files named `.env` or `secrets.toml` in artifact directories
-cause creation to fail.
+Format 2 contains `database.mysql.json`, payloads and optional `models/` and
+`reports/` files. The recorded payload set includes ingestion receipts; for a
+statistics dataset it includes its source files and pinned source manifest. It
+also includes exact saved forecast files referenced by the global forecast
+ledger. Creation refuses recorded payloads that are missing, linked or changed.
+The archive is not an indiscriminate copy of all `data/raw/` or `output/` files;
+retain additional captures and report directories separately when needed.
+
+Verification hashes every archived file, rejects unsafe/duplicate paths, checks
+that payload identities and hashes match the embedded receipts, and verifies
+the logical dataset, document identities and forecast chains offline. It does
+not claim a native restore drill until recovery is actually run against MySQL.
+The selected dataset and global delivery snapshot are each transactionally
+consistent, captured in separate transactions.
+
+The archive is owner-private and may contain manual ledger data and licensed
+source material. Keep it outside Git. Do not add credential directories to the
+artifact paths; `.env` and `secrets.toml` files there are rejected. Project
+connection configuration remains outside the bundle.
 
 ## Recover without overwriting
 
-Stop jobs first and preserve the old database plus its WAL/SHM files for
-investigation. Recover to a **new** directory:
+Prepare the configured MySQL server and stop writers while reviewing recovery.
+Choose both a new directory and a new unused namespace:
 
-```bash
+```sh
 python -m ufc_odds_model.evidence_bundle restore \
-  --bundle backups/SELECTED.zip --output recovered/ufc-YYYYMMDD
+  --bundle backups/SELECTED.zip \
+  --output recovered/ufc-20261020 \
+  --mysql-target mysql:recovery-operating-20261020
 python -m ufc_odds_model.integrity \
-  --db recovered/ufc-YYYYMMDD/database.sqlite
-ufc-model --db recovered/ufc-YYYYMMDD/database.sqlite audit
+  --db mysql:recovery-operating-20261020 \
+  --project-root recovered/ufc-20261020
+ufc-model --db mysql:recovery-operating-20261020 audit
 ```
 
-The directory contains `database.sqlite`, `payloads/`, optional `models/` and
-`reports/`, and `restore_report.json`. Receipt immutability triggers are
-temporarily removed **only in that new database copy**, then restored in the
-same transaction after paths are rebound. The original archived database is
-never changed. A recovery of an older schema may still need the explicit
-backup-gated migration before the current CLI can operate it. Regenerate the
-integrity and evaluation reports for the new database path; archived reports
-remain evidence of the earlier run and may be stale after recovery.
+The directory contains the original logical backup, extracted payloads, optional
+artifacts, `receipt_paths.json` and `restore_report.json`. Extracted files are
+private. The recovery index binds receipt identities and original hashes to the
+new payload paths and the restored dataset's content/schema hashes. **Database
+receipts are not rewritten** and immutability triggers are not removed.
 
-This drill proves recoverability and byte integrity. It does not establish
-source rights, factual accuracy, executable odds, model calibration, or an
-event-day result. Review those separately before any decision.
+The restore creates the selected dataset plus a separate delivery recovery
+namespace. The result reports its exact `delivery_recovery_target`; the native
+schema, content and forecast chains are verified again. Live global delivery
+tables, aliases and the dashboard's active publications remain unchanged.
+Activation requires separate reviewed maintenance. A failed recovery can leave
+new namespaces and extracted evidence for diagnosis rather than deleting READY
+data.
+
+Back up other required research/statistics datasets separately. This is not a
+server-wide restore of users, credentials, aliases or analytical views. Preserve
+additional raw captures and server recovery configuration independently. Archived
+reports describe their original run; regenerate current integrity/audit results
+before resuming writes.
+
+## Legacy archives
+
+Explicit SQLite format-1 bundles remain readable for historical reproduction.
+They restore `database.sqlite` into a new directory and record receipt-path
+rebinding in that copy. They contain no native MySQL delivery archive. Omit
+`--mysql-target` for that legacy path. Normal commands use MySQL format 2.
+
+See the [backup runbook](BACKUP_RUNBOOK.md) for scope, physical-check limits and
+the opt-in native restore test. Recovery proves retained bytes and relationships;
+it does not establish factual accuracy, completeness or predictive performance.
