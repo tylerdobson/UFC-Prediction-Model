@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import hashlib
 import json
 from pathlib import Path
@@ -115,14 +115,39 @@ def bootstrap(project_root, *, report_path=DEFAULT_REPORT, card_path=DEFAULT_CAR
     return result
 
 
+def prepare_ranking_portraits(rankings, *, raw_directory):
+    """Reuse verified, roster-bound display evidence for at most seven days."""
+    from .mysql_delivery import load_document
+    from .ranking_portraits import fetch_portraits, validate_portraits
+    from .pipeline import parse_utc
+    existing = load_document('rankings-portraits', 'current')
+    if existing:
+        try:
+            validate_portraits(existing, rankings=rankings)
+            if datetime.now(timezone.utc) - parse_utc(existing['fetched_at_utc']) <= timedelta(days=7):
+                return existing
+        except (ValueError, KeyError, TypeError):
+            pass
+    return fetch_portraits(rankings, raw_directory=raw_directory)
+
+
+def publish_ranking_portraits(document):
+    from .mysql_delivery import publish_document
+    return publish_document('rankings-portraits', 'current', document,
+                            captured_at_utc=document['fetched_at_utc'], source_sha256=document['snapshot_sha256'])
+
+
 def refresh_rankings(*, raw_directory='data/raw/rankings'):
     from .mysql_delivery import publish_document
     from .rankings import fetch_rankings
     document = fetch_rankings(raw_directory=raw_directory)
+    portraits = prepare_ranking_portraits(document, raw_directory=Path(raw_directory) / 'portraits')
     receipt = publish_document('rankings', 'current', document,
                                captured_at_utc=document['source']['fetched_at_utc'],
                                source_sha256=document['source']['raw_sha256'])
-    return {'backend': 'mysql', 'status': 'published', 'source': document['source'], **receipt}
+    publish_ranking_portraits(portraits)
+    return {'backend': 'mysql', 'status': 'published', 'source': document['source'],
+            'portrait_coverage': portraits['coverage'], **receipt}
 
 
 def main(argv=None):

@@ -30,7 +30,7 @@ network calls by disabling the otherwise-default rankings refresh:
 
 This replay still requires the configured MySQL server. Without
 `--no-refresh-rankings`, an archive replay also fetches the current official
-rankings. A clean installation needs no private research database: the default
+rankings. It verifies their source-bound fighter portrait map, reusing a matching MySQL publication for at most seven days; a new roster or expired capture triggers bounded official athlete-page/image capture. Portrait coverage and explicit failures remain visible. A clean installation needs no private research database: the default
 build uses canonical archive identities without a research crosswalk. The local
 installed configuration supplies `mysql:research-complete`. Use `--history
 mysql:research-complete` to select that read-only input explicitly, or

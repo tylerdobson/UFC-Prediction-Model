@@ -56,9 +56,9 @@ The demo and real archive share the normalizer and use separate MySQL namespaces
 
 [![UFC Forecast dashboard with real fighter portraits, saved UFC 333 probabilities and comparative statistics](docs/assets/screenshots/ufc-dashboard.png)](docs/assets/screenshots/ufc-dashboard.png)
 
-**Official division rankings.** Current Meta and media systems, each published champion and 15 contender rows, with source dates and explicit ties.
+**Official division rankings.** Current Meta and media systems, each published champion and 15 contender rows with fighter portraits, source dates and explicit ties. All **203 unique ranked fighters** have verified official UFC headshots. [Portrait provenance](assets/data/ranking-portraits-README.md).
 
-[![UFC rankings in the MySQL-backed dashboard, showing the selected division champion and published top-15 contenders](docs/assets/screenshots/ufc-rankings.png)](docs/assets/screenshots/ufc-rankings.png)
+[![UFC rankings in the MySQL-backed dashboard, showing official fighter portraits for the selected champion and all 15 contenders](docs/assets/screenshots/ufc-rankings.png)](docs/assets/screenshots/ufc-rankings.png)
 
 **Searchable history.** Every retained card and bout, with methods, reach measurements and quality holds. [View the archive screenshot](docs/assets/screenshots/ufc-history.png).
 
@@ -107,6 +107,10 @@ The all-card store retains **793 cards, 8,950 distinct bouts and 4,629 fighter p
 V7 tests measured clinch/ground/body/leg strike shares, takedown pressure, prior KO/submission wins and losses, and opponents' pre-bout archive strength. Two candidate families were declared before bounded 2016–2023 selection; all target and same-date results are withheld.
 
 The selected 43-feature candidate **did not improve the reused historical benchmark**: 61.16% accuracy and 0.65386 log loss, versus V6's 61.30% and 0.65217 across 1,447 bouts. V6 remains the delivered model. More inputs do not guarantee better predictions. The complete [protocol, selection and evaluation](reports/mysql-v7-20261020/) are retained; neither result is a fresh holdout.
+
+## Future deployment
+
+Future hosting is conditional on an unproven **72% accuracy target**, with at least **90% full-card coverage**, fresh chronological and prospective validation, uncertainty and calibration checks. The [deployment roadmap](docs/DEPLOYMENT_ROADMAP.md) defines the proposed release gates, private hosting architecture, monitoring, recovery and budget decisions. Reaching that performance may take years or may never be possible; the current delivered V6 remains at 61.30% on its reused historical benchmark.
 
 ## Reproduce and verify
 

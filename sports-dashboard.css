@@ -240,3 +240,23 @@ button:focus-visible, a:focus-visible, [role="combobox"]:focus-visible { outline
   .sports-edition-footer { flex-direction: column; gap: 4px; font-size: 9px; }
 }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior: auto !important; transition: none !important; } }
+
+/* Official ranking portraits share the card's sourced-athlete visual language. */
+.rankings-champion { display:flex; align-items:center; gap:22px; background:#fff; border:1px solid #e1e1e5; border-radius:12px; padding:16px 22px; margin:4px 0 18px; }
+.rankings-champion > div { display:flex; flex-direction:column; gap:7px; }
+.rankings-champion-label { display:inline-block; align-self:flex-start; background:var(--sports-lime); color:#101010; padding:4px 10px; border-radius:5px; font:600 11px/1.3 "Barlow",Arial,sans-serif; text-transform:uppercase; letter-spacing:.7px; }
+.rankings-champion strong { font:600 28px/1.15 "Barlow",Arial,sans-serif; }
+.rankings-champion strong a, .rankings-athlete a { color:#17171b !important; text-decoration:none; }
+.rankings-champion > div > span:last-child { color:#81818a; font-size:12px; }
+.rankings-portrait { display:inline-flex; flex:0 0 58px; width:58px; height:58px; overflow:hidden; background:#eeeef1; border-radius:8px; align-items:center; justify-content:center; }
+.rankings-portrait img { width:100%; height:100%; object-fit:cover; object-position:center 20%; }
+.rankings-champion-portrait { flex-basis:110px; width:110px; height:110px; border-bottom:4px solid var(--sports-lime); }
+.rankings-portrait-missing { color:#76767f; font:600 18px/1 "Barlow",Arial,sans-serif; }
+.rankings-table-wrap { overflow-x:auto; margin-bottom:20px; border:1px solid #dfdfe4; border-radius:10px; background:#fff; }
+.rankings-table { width:100%; min-width:430px; border-collapse:collapse; margin:0 !important; border:0 !important; font:400 15px/1.3 "Barlow",Arial,sans-serif; }
+.rankings-table th { color:#83838d; background:#fafafa; font-size:12px; font-weight:400; text-align:left; padding:13px 20px; border:0 !important; }
+.rankings-table td { padding:8px 20px; border:0 !important; border-top:1px solid #eeeef1 !important; }
+.rankings-position { width:75px; color:#8c8c96; font-size:18px; }
+.rankings-athlete { display:flex; align-items:center; gap:16px; min-width:220px; font-weight:600; }
+.rankings-table td:last-child { width:160px; color:#81818a; font-size:12px; }
+@media(max-width:640px) { .rankings-champion { padding:12px; gap:14px; } .rankings-champion strong { font-size:23px; } .rankings-champion-portrait { width:88px; height:100px; flex-basis:88px; } .rankings-table td,.rankings-table th { padding:8px 12px; } .rankings-portrait { flex-basis:48px; width:48px; height:48px; } }

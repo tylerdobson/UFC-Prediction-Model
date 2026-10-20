@@ -1,6 +1,8 @@
 # MySQL dashboard verification — October 20, 2026 UTC
 
-The approved sports layout is preserved. The latest unedited [dashboard screenshot](docs/assets/screenshots/ufc-dashboard.png), [rankings screenshot](docs/assets/screenshots/ufc-rankings.png), and [archive screenshot](docs/assets/screenshots/ufc-history.png) come from the actual MySQL-backed app at 1600 × 1200, device scale 1.
+The approved sports layout is preserved. The latest unedited [dashboard screenshot](docs/assets/screenshots/ufc-dashboard.png), [rankings screenshot](docs/assets/screenshots/ufc-rankings.png), and [archive screenshot](docs/assets/screenshots/ufc-history.png) come from the actual MySQL-backed app at device scale 1. The main/archive captures are 1600 × 1200; the updated rankings capture is 1600 × 1900 to show the champion and all 15 pictured contenders.
+
+The portrait pass loaded the champion and all 15 contender headshots, checked exact athlete order and original 256 × 160 image dimensions, preserved media ties, and verified the 390-pixel layout without page overflow. All 203 ranked identities have source-verified portraits; images remain remotely hosted on UFC.
 
 The native browser pass confirmed seven responsive tabs, six matchup selections, 12 loaded official portraits, exact earlier-round bar counts, chart tooltips, eight sourced profile comparisons, eight visible identity holds, byte-identical PDF/CSV downloads, and working icon navigation. Layouts at 1600, 1280, 1024, 768 and 390 pixels have no page overflow; the phone card strip scrolls horizontally.
 

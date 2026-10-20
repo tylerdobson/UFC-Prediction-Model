@@ -33,7 +33,7 @@ For a clean installation, [configure MySQL](LOCAL_MYSQL.md), initialize it, run 
 
 Physical `rt_<namespace-hash>_<table>` tables preserve each dataset's schema, original identifiers and logical rows. The runtime catalog records role, schema hash, content hash, source hash and build/ready state. A narrow query facade translates existing parameterized repository queries; all normal execution and relational constraints are native MySQL. Published immutable datasets have database guards against inserts, updates and deletes. Scratch forecast input tables are connection-local MySQL temporary tables.
 
-`ufc_app_document` retains immutable versioned JSON payloads for rankings, model evaluations, forecast editions and descriptive context. `ufc_app_document_active` selects a current edition. Document hashes bind kind, key, capture time, payload and source. Published forecast exports must match this payload and their release hashes before the UI offers downloads.
+`ufc_app_document` retains immutable versioned JSON payloads for rankings, official portrait metadata, model evaluations, forecast editions and descriptive context. `ufc_app_document_active` selects a current edition. Document hashes bind kind, key, capture time, payload and source. Published forecast exports must match this payload and their release hashes before the UI offers downloads.
 
 The forecast ledger stores hash-linked entries and a locked tail in `ufc_app_forecast_entry`/`ufc_app_forecast_chain`. Per-ledger writer locks serialize initial creation and appends. Imported older records preserve their recorded times; a new freeze uses its actual registration time. A saved report recovered after an event is labeled accordingly. Forecasts are not wagers.
 
@@ -41,7 +41,7 @@ The forecast ledger stores hash-linked entries and a locked tail in `ufc_app_for
 
 Raw CSVs normalize directly into a new MySQL version. Missing optional fields remain null and ambiguous identities/incomplete paired rounds remain held. Nonempty and retained-coverage checks run before publication. The statistics alias and its publication receipt commit together. Warehouse analytical views use a separate validated transaction; replay reconciles an interrupted refresh between these steps. DDL runs before publication transactions. A failed build or quality gate leaves the previous statistics alias available.
 
-Current official rankings refresh alongside the archive. Source publication dates and capture time remain separate. Meta and media rankings are distinct; tied published ranks are preserved. Current ranking snapshots are not historical model inputs.
+Current official rankings refresh alongside the archive. A separately verified portrait manifest covers each exact ranked athlete URL; the worker reuses it for up to seven days while source/roster bindings match, then captures official images again. Portraits are display evidence and are never historical model inputs. Source publication dates and capture time remain separate. Meta and media rankings are distinct; tied published ranks are preserved. Current ranking snapshots are not historical model inputs.
 
 ## Model experiment reproducibility
 

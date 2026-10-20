@@ -56,13 +56,15 @@ def refresh_pipeline(*, ops_root=ops.DEFAULT_OPS_ROOT, archive=None, commit=None
                 stage.update(quality)
                 if not quality['passed']:
                     raise ValueError('Dataset coverage failed publication quality gates')
-            ranking = None
+            ranking = portraits = None
             if refresh_rankings:
                 with journal.stage('rankings_source') as stage:
                     from .rankings import fetch_rankings
                     ranking = fetch_rankings(raw_directory=root / 'rankings')
+                    from .mysql_project import prepare_ranking_portraits
+                    portraits = prepare_ranking_portraits(ranking, raw_directory=root / 'rankings' / 'portraits')
                     stage.update(raw_sha256=ranking['source']['raw_sha256'],
-                                 captured_at_utc=ranking['source']['fetched_at_utc'])
+                                 captured_at_utc=ranking['source']['fetched_at_utc'], portrait_coverage=portraits['coverage'])
             with journal.stage('warehouse_views') as stage:
                 from .mysql_warehouse import publish_statistics
                 warehouse = publish_statistics(target, run_id='native-' + identity['content_sha256'][:32])
@@ -84,6 +86,8 @@ def refresh_pipeline(*, ops_root=ops.DEFAULT_OPS_ROOT, archive=None, commit=None
                     publish_document('rankings', 'current', ranking,
                                      captured_at_utc=ranking['source']['fetched_at_utc'],
                                      source_sha256=ranking['source']['raw_sha256'])
+                    from .mysql_project import publish_ranking_portraits
+                    publish_ranking_portraits(portraits)
                 activate_statistics_publication(publication)
                 stage['dataset'] = target
             journal.value.update(status='succeeded', exit_code=0, version=target,

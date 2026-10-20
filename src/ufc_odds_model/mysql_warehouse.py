@@ -326,12 +326,9 @@ def _configuration():
 def _connect(connector):
     if connector is None:
         from .mysql_runtime import connect_server
-        return connect_server()
+        try:return connect_server()
+        except Exception:raise WarehouseError('Cannot connect to the project MySQL database; check its private configuration') from None
     config=_configuration()
-    if connector is None:
-        try:import pymysql
-        except ImportError:raise WarehouseError('Optional MySQL dependency is missing; install the project warehouse extra') from None
-        connector=pymysql.connect
     try:return connector(**config)
     except Exception:raise WarehouseError('Cannot connect to the project MySQL database; check UFC_MYSQL_* configuration') from None
 
@@ -436,8 +433,13 @@ def publish_statistics(statistics_db:Path,*,source_sha256:str|None=None,run_id:s
     if not isinstance(run_id,str) or not re.fullmatch('[A-Za-z0-9_.-]{1,64}',run_id):raise WarehouseError('run_id must contain 1-64 letters, digits, dots, hyphens or underscores')
     connection=_connect(connector)
     locked=False
-    lock_name='ufc_wh:'+hashlib.sha256(os.environ['UFC_MYSQL_DATABASE'].encode()).hexdigest()[:40]
     try:
+        database=getattr(connection,'db',None)
+        if isinstance(database,bytes):database=database.decode('utf-8')
+        if not isinstance(database,str):database=os.environ.get('UFC_MYSQL_DATABASE')
+        if not isinstance(database,str) or not re.fullmatch('[A-Za-z0-9_]{1,64}',database):
+            raise WarehouseError('Connected MySQL project database identity is unavailable')
+        lock_name='ufc_wh:'+hashlib.sha256(database.encode()).hexdigest()[:40]
         with connection.cursor() as cursor:
             cursor.execute('SELECT GET_LOCK(%s,30)',(lock_name,))
             if cursor.fetchone()!=(1,):raise WarehouseError('Another warehouse publisher holds the project database lock')

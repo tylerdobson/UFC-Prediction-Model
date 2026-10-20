@@ -71,6 +71,16 @@ class WarehouseTests(unittest.TestCase):
         with patch.object(wh,'_ensure_schema'):
             return wh.publish_statistics(self.source,run_id=run_id,connector=lambda **options:connection,**kwargs)
 
+    def test_private_config_connection_does_not_require_exported_database_variable(self):
+        connection=FakeConnection();connection.db=b'ufc_private_configuration'
+        os.environ.pop('UFC_MYSQL_DATABASE',None)
+        with patch.object(wh,'_connect',return_value=connection),patch.object(wh,'_ensure_schema'):
+            first=wh.publish_statistics(self.source,run_id='private-config')
+            second=wh.publish_statistics(self.source,run_id='private-config')
+        self.assertEqual(first['status'],'published')
+        self.assertEqual(second['status'],'already_published')
+        self.assertTrue(connection.closed)
+
     def test_read_only_snapshot_preserves_nulls_grains_and_provenance(self):
         before=self.source.read_bytes();snapshot=wh.read_snapshot(self.source)
         self.assertEqual(snapshot.counts['fighters'],3)

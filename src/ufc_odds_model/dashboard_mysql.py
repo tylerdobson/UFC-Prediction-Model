@@ -18,7 +18,7 @@ from urllib.parse import urlsplit
 
 _DOCS = {"model_report": ("forecast", "current"), "evaluation_v6": ("evaluation", "v6"),
          "evaluation_v7": ("evaluation", "v7"), "fight_context": ("fight-context", "current"),
-         "rankings": ("rankings", "current")}
+         "rankings": ("rankings", "current"), "rankings_portraits": ("rankings-portraits", "current")}
 
 
 def _server():
@@ -236,6 +236,15 @@ def load_mysql_overview(as_of=None, *, extras=None):
                 validate_rankings(payload)
                 if _time(payload["source"]["fetched_at_utc"]) > as_of:
                     raise ValueError("Rankings capture is later than observation time")
+            if key == 'rankings_portraits':
+                from .ranking_portraits import validate_portraits
+                if documents.get('rankings') is None:
+                    raise ValueError('Portraits require their published rankings roster')
+                validate_portraits(payload, rankings=documents['rankings'])
+                if _time(payload['fetched_at_utc']) > as_of:
+                    raise ValueError('Portrait capture is later than observation time')
+                if any(_time(entry['fetched_at_utc']) > as_of for entry in payload['portraits'].values()):
+                    raise ValueError('An athlete portrait is later than observation time')
             return {"status": "available", "payload": _clean(payload),
                     "source": "explicit_extra" if key in extras else "mysql_document"}
         saved = attempt(key, get_document); document_status[key] = saved
@@ -243,7 +252,8 @@ def load_mysql_overview(as_of=None, *, extras=None):
     result["model_evidence"] = {"status": "available" if any(documents[k] for k in ("model_report", "evaluation_v6", "evaluation_v7")) else "uninitialized",
                                 **{k: documents[k] for k in ("model_report", "evaluation_v6", "evaluation_v7", "fight_context")},
                                 "document_status": {k: {a: b for a, b in v.items() if a != "payload"} for k, v in document_status.items()}}
-    result["rankings"] = {**{k: v for k, v in document_status["rankings"].items() if k != "payload"}, "document": documents["rankings"]}
+    result["rankings"] = {**{k: v for k, v in document_status["rankings"].items() if k != "payload"},
+                          "document": documents["rankings"], "portraits": documents['rankings_portraits']}
     def forward():
         entries = _entries()  # Delivery verifies chain, index, and tail before returning.
         summary = extras["forward_status"] if "forward_status" in extras else _summary()
@@ -438,11 +448,56 @@ def render_forward_test(overview, *, st=None):
     st.caption("Small forward samples do not establish a betting edge. A recovered earlier forecast is not prospective evidence for a newer model.")
 
 
+def _athlete_link(value):
+    if not isinstance(value, str): return None
+    parsed = urlsplit(value)
+    if (parsed.scheme != 'https' or parsed.hostname not in {'ufc.com', 'www.ufc.com'}
+            or parsed.username or parsed.password or not parsed.path.startswith('/athlete/')):
+        return None
+    return value
+
+
+def _ranking_portrait(row, portraits, *, champion=False):
+    entry = portraits.get(row.get('athlete_url'), {})
+    source = entry.get('image_url') if entry.get('status') == 'available' and entry.get('athlete_url') == row.get('athlete_url') else None
+    from .ranking_portraits import image_url
+    try:
+        image_url(source)
+    except (ValueError, TypeError, AttributeError):
+        source = None
+    classes = 'rankings-portrait' + (' rankings-champion-portrait' if champion else '')
+    if source:
+        return (f"<span class='{classes}'><img src='{_esc(source)}' alt='{_esc(row['name'])} — official UFC portrait' "
+                "loading='lazy' referrerpolicy='no-referrer'></span>")
+    initials = ''.join(word[0] for word in row['name'].split()[:2])
+    return f"<span class='{classes} rankings-portrait-missing' title='Official portrait unavailable'>{_esc(initials)}</span>"
+
+
+def _ranked_name(row):
+    name = _esc(row['name'])
+    link = _athlete_link(row.get('athlete_url'))
+    return f"<a href='{_esc(link)}' target='_blank' rel='noopener noreferrer'>{name}</a>" if link else name
+
+
+def _rankings_table(division, portraits):
+    rows = []
+    for row in division['contenders']:
+        rank = str(row['rank']) + (' =' if row['tied'] else '')
+        rows.append(f"<tr><td class='rankings-position'>{_esc(rank)}</td><td><div class='rankings-athlete'>"
+                    f"{_ranking_portrait(row, portraits)}{_ranked_name(row)}</div></td>"
+                    f"<td>{_esc(row['rank_change_label'] or '—')}</td></tr>")
+    return ("<div class='rankings-table-wrap'><table class='rankings-table'><thead><tr>"
+            "<th>Rank</th><th>Fighter</th><th>Movement</th></tr></thead><tbody>" + ''.join(rows) + '</tbody></table></div>')
+
+
 def render_rankings(overview, *, st=None):
     st = _st(st); section = overview.get("rankings", {})
     _title(st, "Official UFC rankings", "Publisher-listed champions and top-15 positions, with both official systems kept separate.")
     if not _available(st, section): return
     document = section["document"]; systems = document["ranking_sets"]
+    portrait_document = section.get('portraits') or {}
+    portraits = (portrait_document.get('portraits', {})
+                 if portrait_document.get('rankings_source_sha256') == document['source']['raw_sha256'] else {})
     labels = [s["label"] for s in systems]
     default = next(i for i, s in enumerate(systems) if s["id"] == document["default_ranking_set"])
     selectors = st.columns([1, 2])
@@ -455,12 +510,19 @@ def render_rankings(overview, *, st=None):
         if chosen != "All published divisions" and chosen != division["name"]: continue
         st.subheader(division["name"])
         for champion in division["champions"]:
-            st.markdown(f"<p class='evidence-line'><strong>{_esc(champion['source_status_label'])}:</strong> {_esc(champion['name'])}</p>", unsafe_allow_html=True)
+            st.markdown("<div class='rankings-champion'>" + _ranking_portrait(champion, portraits, champion=True)
+                        + f"<div><span class='rankings-champion-label'>{_esc(champion['source_status_label'])}</span>"
+                        + f"<strong>{_ranked_name(champion)}</strong><span>Official UFC division rankings</span></div></div>", unsafe_allow_html=True)
         if division["championship_status"] == "vacant": st.caption("Championship: explicitly vacant in the official source.")
-        _table(st, [{"Rank": str(r["rank"]) + (" =" if r["tied"] else ""), "Fighter": r["name"],
-                    "Change": r["rank_change_label"], "Official athlete": r["athlete_url"]} for r in division["contenders"]],
-               division.get("empty_reason") or "No contenders are published.", height=40 + 35 * len(division['contenders']))
+        if division['contenders']:
+            st.markdown(_rankings_table(division, portraits), unsafe_allow_html=True)
+        else:
+            st.info(division.get('empty_reason') or 'No contenders are published.')
         if division["missing_ranks"]:
             st.caption("Unassigned published rank numbers: " + "; ".join(f"{rank}: {division['missing_rank_reasons'][str(rank)].replace('_',' ')}" for rank in division["missing_ranks"]))
         for note in division["data_quality_notes"]: st.caption(note)
     st.caption("Source snapshot SHA-256: " + document["source"]["raw_sha256"] + ". Current descriptive rankings are not historical model inputs.")
+    if portraits:
+        coverage = portrait_document.get('coverage', {})
+        st.caption(f"Official portraits: {coverage.get('available', 0)} / {coverage.get('ranked_unique_athletes', 0)} verified · captured {portrait_document.get('fetched_at_utc')}")
+    st.caption('Fighter portraits: official UFC athlete pages. Images load from UFC; unavailable portraits are labeled explicitly.')

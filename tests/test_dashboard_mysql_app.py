@@ -43,7 +43,10 @@ class MySQLDashboardAppTests(unittest.TestCase):
             app = AppTest.from_file(str(APP), default_timeout=30).run()
         self.assertEqual(list(app.exception), [])
         self.assertEqual([t.label for t in app.tabs], TABS)
-        self.assertGreater(len(app.dataframe), 15)
+        self.assertGreater(len(app.dataframe), 5)
+        ranking_tables = [m.value for m in app.markdown if "class='rankings-table'" in m.value]
+        self.assertEqual(len(ranking_tables), 11)
+        self.assertTrue(all(table.count("class='rankings-position'") == 15 for table in ranking_tables))
         self.assertTrue(any('8,950' in c.value for c in app.caption))
         self.assertTrue(any(s.key == 'mysql_rankings_system' for s in app.selectbox))
         ddl.assert_not_called()

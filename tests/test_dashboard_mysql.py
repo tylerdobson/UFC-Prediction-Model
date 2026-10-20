@@ -201,8 +201,49 @@ class DashboardMySQLTests(unittest.TestCase):
         for expected in ("Historical archive", "Data quality", "Model evidence", "Recorded actual wagers", "Forward test", "Official UFC rankings", "not counted"):
             self.assertIn(expected, combined)
         self.assertTrue(any(r.get("Method") == "KO/TKO" for table in ui.tables for r in table))
-        self.assertTrue(any(r.get("Rank") == "2 =" for table in ui.tables for r in table))
+        self.assertIn("class='rankings-position'>2 =", combined)
         self.assertEqual(overview, before)
+
+    def test_rankings_display_champion_and_every_contender_portrait_only_for_the_bound_roster(self):
+        overview = self.load(); doc = overview['rankings']['document']
+        division = doc['ranking_sets'][0]['divisions'][0]
+        athletes = division['champions'] + division['contenders']
+        portraits = {r['athlete_url']: {'athlete_url': r['athlete_url'], 'status': 'available',
+                       'image_url': 'https://www.ufc.com/images/fixture.png'} for r in athletes}
+        overview['rankings']['portraits'] = {'rankings_source_sha256': doc['source']['raw_sha256'], 'portraits': portraits}
+        ui = UI(); dashboard.render_rankings(overview, st=ui)
+        markup = ' '.join(ui.text)
+        self.assertEqual(markup.count('<img src='), len(athletes))
+        self.assertIn('rankings-champion-portrait', markup)
+        overview['rankings']['portraits']['rankings_source_sha256'] = '0' * 64
+        ui = UI(); dashboard.render_rankings(overview, st=ui)
+        self.assertNotIn('<img src=', ' '.join(ui.text))
+
+    def test_portraits_reject_swapped_identity_unavailable_status_and_unsafe_urls(self):
+        row = {'name': 'A <script> B', 'athlete_url': 'https://www.ufc.com/athlete/a'}
+        entry = {'status': 'available', 'athlete_url': row['athlete_url'], 'image_url': 'https://www.ufc.com/images/a.png'}
+        valid = dashboard._ranking_portrait(row, {row['athlete_url']: entry})
+        self.assertIn('<img src=', valid); self.assertNotIn('<script>', valid)
+        for changed in ({'athlete_url': 'https://www.ufc.com/athlete/b'}, {'status': 'unavailable'},
+                        {'image_url': 'javascript:alert(1)'}, {'image_url': 'https://evil.example/images/a.png'},
+                        {'image_url': 'https://www.ufc.com:444/images/a.png'}):
+            with self.subTest(changed=changed):
+                self.assertNotIn('<img src=', dashboard._ranking_portrait(row, {row['athlete_url']: {**entry, **changed}}))
+
+    def test_loader_rejects_future_or_mismatched_portrait_publications(self):
+        from ufc_odds_model.ranking_portraits import _digest
+        root = Path(__file__).resolve().parents[1]
+        rank = json.loads((root / 'assets/data/ufc-rankings.json').read_bytes())
+        portrait = json.loads((root / 'assets/data/rankings-portraits.json').read_bytes())
+        self.documents[('rankings', 'current')] = rank
+        self.documents[('rankings-portraits', 'current')] = portrait
+        self.assertIsNotNone(self.load()['rankings']['portraits'])
+        for change in ({'fetched_at_utc': '2026-10-20T05:00:00Z'}, {'rankings_source_sha256': '0' * 64}):
+            altered = deepcopy(portrait); altered.update(change); altered['snapshot_sha256'] = _digest(altered)
+            self.documents[('rankings-portraits', 'current')] = altered
+            result = self.load()
+            self.assertIsNone(result['rankings']['portraits'])
+            self.assertTrue(any(e['section'] == 'rankings_portraits' for e in result['errors']))
 
 
 if __name__ == "__main__": unittest.main()

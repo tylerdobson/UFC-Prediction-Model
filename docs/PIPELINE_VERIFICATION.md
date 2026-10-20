@@ -14,13 +14,15 @@ Observed local results for the MySQL-first migration. This is bounded evidence, 
 | Legacy/native parity | All 8,748 research feature rows, prior records, coverage, sampled profiles/rounds and rosters match |
 | Forecast parity | Native MySQL reproduction matches all six delivered V6 probabilities and all eight held matchups exactly |
 | Demo | One-command native demo succeeded; separate synthetic role/namespace; no real alias or warehouse activation |
-| Default full suite | 664 tests, OK; 17 optional integration/dependency checks skipped |
-| Selected MySQL-enabled suite | 58 tests, all passed, including runtime, enrichment/restoration, delivery, maintenance, demo and actual-project AppTest |
+| Default full suite | 680 tests, OK; 17 optional integration/dependency checks skipped |
+| Selected MySQL-enabled suite | 82 tests, all passed, including runtime, enrichment/restoration, delivery, maintenance, demo and actual-project AppTest |
 | Browser | Seven tabs, six matchup switches, chart tooltips, source-bound downloads and responsive layouts passed |
+| Replay with portrait refresh | `20261020T032529Z-b6ef416921` succeeded, reused the native dataset and verified all 203 portraits with SQLite connections prohibited |
+| Ranking portraits | 203/203 unique ranked athletes have verified official 256 × 160 headshots; champion + all 15 contender images, exact row order, ties and mobile layout passed |
 
 The native suite verifies real foreign-key enforcement, published-data immutability, isolated snapshot restore, concurrent hash-chain appends, document version guards, alias rollback, profile enrichment and held-bout restoration without SQLite staging. Backup restoration verifies dataset and global delivery evidence in new recovery namespaces without activating them. Native demo and actual-project page tests prohibit SQLite connections.
 
-The browser loaded all 12 official portraits, matched PDF/CSV downloads byte for byte, exercised 1600/1280/1024/768/390-pixel widths, and observed no page overflow or JavaScript/framework exceptions. [Actual dashboard capture](assets/screenshots/ufc-dashboard.png). Docker is unavailable in this local environment; container startup is covered by focused tests and the disposable-server CI definition, not a local Docker execution claim.
+The browser loaded all 12 official portraits, matched PDF/CSV downloads byte for byte, exercised 1600/1280/1024/768/390-pixel widths, and observed no page overflow or JavaScript/framework exceptions. [Actual dashboard capture](assets/screenshots/ufc-dashboard.png). Docker is unavailable in this local environment. The preceding migration/fixture-fix commit `9ec2e8d` passed all seven GitHub checks, including actual disposable-MySQL native integration and container startup. This is a hosted CI observation, not a local Docker execution claim.
 
 V7 ran against `mysql:research-complete` and the pinned imported `mysql:statistics-v6`. Its selected 43-feature style/finish/opponent candidate scored 61.16% accuracy / 0.65386 log loss versus V6's 61.30% / 0.65217 on the reused 1,447-bout historical benchmark. V6 remains delivered. [Retained experiment](../reports/mysql-v7-20261020/).
 
